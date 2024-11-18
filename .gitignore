@@ -1,0 +1,28 @@
+#BACKEND IGNORES
+
+backend/venv
+
+
+
+# FRONTEND IGNORES
+
+frontend/petsphere/node_modules
+frontend/petsphere/.pnp
+frontend/petsphere/.pnp.js
+
+# testing
+frontend/petsphere/coverage
+
+# production
+frontend/petsphere/build
+
+# misc
+frontend/petsphere/.DS_Store
+frontend/petsphere/.env.local
+frontend/petsphere/.env.development.local
+frontend/petsphere/.env.test.local
+frontend/petsphere/.env.production.local
+
+frontend/petsphere/npm-debug.log*
+frontend/petsphere/yarn-debug.log*
+frontend/petsphere/yarn-error.log*
