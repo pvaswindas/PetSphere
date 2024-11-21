@@ -1,7 +1,7 @@
 #BACKEND IGNORES
 
 backend/venv
-
+backend/petsphere/.env
 
 
 # FRONTEND IGNORES
