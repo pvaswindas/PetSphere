@@ -6,6 +6,7 @@ backend/petsphere/.env
 
 # FRONTEND IGNORES
 
+frontend/petsphere/.env
 frontend/petsphere/node_modules
 frontend/petsphere/.pnp
 frontend/petsphere/.pnp.js
