@@ -39,15 +39,3 @@ class EmailOTP(models.Model):
 
     def __str__(self):
         return f"OTP for {self.email}"
-
-
-class Profile(models.Model):
-    user = models.OneToOneField(PetSphereUser, on_delete=models.CASCADE)
-    bio = models.CharField(max_length=255, null=True, blank=True)
-    is_private = models.BooleanField(default=False)
-    push_notification = models.BooleanField(default=False)
-    follower_count = models.PositiveBigIntegerField(default=0)
-    following_count = models.PositiveBigIntegerField(default=0)
-
-    def __str__(self):
-        return self.user.username

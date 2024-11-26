@@ -1,4 +1,4 @@
-from .models import EmailOTP
+from ..models import EmailOTP
 from django.utils.timezone import now
 import random
 
@@ -13,7 +13,7 @@ def generate_otp(email):
             'resend_count': 0,
         }
     )
-    return True, otp_entry
+    return otp_entry
 
 
 def regenerate_otp(old_otp):
@@ -48,4 +48,4 @@ def resend_otp(email):
     otp_entry.created_at = now()
     otp_entry.resend_count += 1
     otp_entry.save()
-    return True, otp_entry
+    return otp_entry
