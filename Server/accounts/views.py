@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from .serializers import RegisterSerializer, LoginSerializer
 from .serializers import PetSphereUserSerializer
 from .serializers import ChangePasswordSerializer, ResetPasswordSerializer
@@ -142,7 +143,6 @@ class ResetPassword(APIView):
             return Response({"error": "Invalid user ID"},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        from django.contrib.auth.tokens import PasswordResetTokenGenerator
         token_generator = PasswordResetTokenGenerator()
         if not token_generator.check_token(user, token):
             return Response({'error': 'Invalid or expired token'},

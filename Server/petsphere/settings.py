@@ -99,6 +99,16 @@ DATABASES = {
     }
 }
 
+CASHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': env.str("REDIS_URL"),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
 AUTH_USER_MODEL = 'accounts.PetSphereUser'
 
 
