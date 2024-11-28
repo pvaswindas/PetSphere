@@ -27,7 +27,8 @@ function LoginFormPanel() {
         setIsLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:8000/api/accounts/login/', formData);
+            const apiBaseUrl = process.env.REACT_APP_API_BASE_URL
+            const response = await axios.post(`${apiBaseUrl}accounts/login/`, formData);
 
             const { access, refresh, user } = response.data;
 
