@@ -48,7 +48,7 @@ function LoginFormPanel() {
     return (
         <div className="w-full h-full p-6 flex flex-col justify-center items-center">
             {/* Form Wrapper */}
-            <form onSubmit={handleSubmit} className="space-y-4 w-full lg:w-3/4 ">
+            <form onSubmit={handleSubmit} className="space-y-4 w-full lg:w-3/4">
                 {/* Heading Section */}
                 <div className="items-left">
                     <h1 className="text-2xl text-labelGreen lg:text-4xl font-bold mt-4 lg:mt-6">Welcome Back!</h1>

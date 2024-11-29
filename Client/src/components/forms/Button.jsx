@@ -19,7 +19,7 @@ function Button({
             className={`
                 px-4 py-2 rounded-full text-white trasition-colors duration-300
                 ${isLoading || disabled
-                    ? "bg-gray-400 cursor-not-allowed"
+                    ? "bg-labelGreen cursor-not-allowed"
                     : `${backgroundColor} ${hoverBackgroundColor}`}
                 } ${className}
             `}

@@ -24,7 +24,7 @@ function TextFieldInput({
     }
 
     return (
-        <div className="flex flex-col space-y-2 ">
+        <div className="flex flex-col space-y-2">
             <label htmlFor={id} className={`text-sm font-medium ${labelColor}`}>
                 {label}
             </label>
