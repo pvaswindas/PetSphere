@@ -1,3 +1,4 @@
+import redis
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -11,47 +12,57 @@ from .models import PetSphereUser
 from .utils.otp_utils import generate_otp, resend_otp, verify_otp
 from .tasks import send_otp_email, send_password_otp_email
 
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0,
+                                 decode_responses=True)
 
-# View to handle sending OTP for email verification
+
+# ------------------------------ OTP Management ------------------------------
 class SendOTPView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
         email = request.data.get('email')
+        username = request.data.get('username')
+        username = username.capitalize()
         if not email:
             return Response({"error": "Email is required"},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        otp_entry = generate_otp(email)
-        if otp_entry:
-            send_otp_email.delay(email, otp_entry.otp)
+        otp, expiry_minutes = generate_otp(email)
+        if otp:
+            send_otp_email.delay(email, otp, username, expiry_minutes)
             return Response({"message": "OTP sent successfully"},
                             status=status.HTTP_200_OK)
         return Response({"error": "Failed to send otp, please try again"},
                         status=status.HTTP_400_BAD_REQUEST)
 
 
-# View to handle resending OTP if the user requests it
 class ResendOTPView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
         email = request.data.get('email')
+        username = request.data.get('username')
+        username = username.capitalize()
         if not email:
             return Response({"error": "Email is required"},
                             status=status.HTTP_400_BAD_REQUEST)
         try:
-            otp_entry = resend_otp(email)
+            otp_entry, message = resend_otp(email)
             if otp_entry:
-                send_otp_email.delay(email, otp_entry.otp)
+                otp = otp_entry.get("otp")
+                expiry_minutes = otp_entry.get("expiry_minutes")
+                send_otp_email.delay(email, otp, username, expiry_minutes)
                 return Response({"message": "OTP resent successfully"},
                                 status=status.HTTP_200_OK)
+            else:
+                return Response({"error": message},
+                                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)},
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-# View to verify the OTP provided by the user
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
 
@@ -62,16 +73,58 @@ class VerifyOTPView(APIView):
             return Response({"error": "Email and OTP are required"},
                             status=status.HTTP_400_BAD_REQUEST)
         try:
-            otp_entry = verify_otp(email, otp)
-            if otp_entry:
+            is_valid, message = verify_otp(email, otp)
+            if is_valid:
                 return Response({"message": "OTP verified successfully"},
                                 status=status.HTTP_200_OK)
+            else:
+                return Response({"error": message},
+                                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)},
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-# View to handle user registration, including JWT token generation
+# ---------------------------- User Authentication ----------------------------
+class UserDataStoreView(APIView):
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [AllowAny()]
+        elif self.request.method == 'GET':
+            return [IsAuthenticated()]
+        return super().get_permissions()
+
+    def post(self, request):
+        user_data = request.data.get('user_data')
+        if not user_data:
+            return Response({"error": "User Data is required"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        username = request.data.get('username')
+        if not username:
+            return Response({"error": "Username is required"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            redis_key = f"user_data:{username}"
+            redis_client.set(redis_key, user_data)
+        except Exception as e:
+            return Response({"error": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get(self, request):
+        username = request.user.username
+        redis_key = f"user_data:{username}"
+        try:
+            user_data = redis_client.get(redis_key)
+            if not user_data:
+                return Response({"error": "User Data not found"},
+                                status=status.HTTP_404_NOT_FOUND)
+            return Response({"user_data": user_data.decode('utf-8')},
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
@@ -90,7 +143,6 @@ class RegisterView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# View to handle user login, including JWT token generation
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -108,7 +160,22 @@ class LoginView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# View to handle forgot password requests and initiate OTP generation
+# ---------------------------- Password Management ----------------------------
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        serializer = ChangePasswordSerializer(
+            data=request.data, context={'request': request}
+            )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'success': 'Password changed successfully'},
+                            status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class ForgotPassword(APIView):
     permission_classes = [AllowAny]
 
@@ -128,7 +195,6 @@ class ForgotPassword(APIView):
                                 status=status.HTTP_404_NOT_FOUND)
 
 
-# View to handle resetting the user's password based on a valid token
 class ResetPassword(APIView):
     permission_classes = [AllowAny]
 
@@ -159,6 +225,7 @@ class ResetPassword(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
+# -------------------------- User Profile & Settings --------------------------
 class UserProfileViews(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -178,21 +245,7 @@ class UserProfileViews(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ChangePasswordView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def patch(self, request):
-        serializer = ChangePasswordSerializer(
-            data=request.data, context={'request': request}
-            )
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'success': 'Password changed successfully'},
-                            status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
+# ----------------------- Security & Account Management -----------------------
 class DeactivateAccountView(APIView):
     permission_classes = [IsAuthenticated]
 

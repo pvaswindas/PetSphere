@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .otp {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <p>Hi {{ username }},</p>
+
+    <p>Thank you for registering with PetSphere! To complete your registration, please use the following One-Time Password:</p>
+
+    <p class="otp">{{ otp }}</p>
+
+    <p>This OTP is valid for {{ expiry_minutes }} minutes. Please enter it on the verification page to complete your registration.</p>
+
+    <p>If you did not initiate this registration, please ignore this email.</p>
+
+    <p>We're excited to have you as part of our community!</p>
+
+    <p>Best regards,<br>The PetSphere Team</p>
+</body>
+</html>
