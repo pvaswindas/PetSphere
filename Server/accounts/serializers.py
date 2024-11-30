@@ -21,7 +21,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PetSphereUser
-        fields = ['username', 'email', 'password']
+        fields = ['email', 'password']
 
     def validate_password(self, value):
         return validate_password(value)

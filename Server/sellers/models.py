@@ -4,7 +4,7 @@ from django.utils.timezone import now
 
 
 class Seller(models.Model):
-    user = models.OneToOneField(PetSphereUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(PetSphereUser, on_delete=models.DO_NOTHING)
     is_verified = models.BooleanField(default=False)
     joined_date = models.DateTimeField(auto_now_add=True)
     review_count = models.PositiveBigIntegerField(default=0)

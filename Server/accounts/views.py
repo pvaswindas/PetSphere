@@ -1,4 +1,5 @@
 import redis
+import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -22,15 +23,12 @@ class SendOTPView(APIView):
 
     def post(self, request):
         email = request.data.get('email')
-        username = request.data.get('username')
-        username = username.capitalize()
         if not email:
             return Response({"error": "Email is required"},
                             status=status.HTTP_400_BAD_REQUEST)
-
         otp, expiry_minutes = generate_otp(email)
         if otp:
-            send_otp_email.delay(email, otp, username, expiry_minutes)
+            send_otp_email.delay(email, otp, expiry_minutes)
             return Response({"message": "OTP sent successfully"},
                             status=status.HTTP_200_OK)
         return Response({"error": "Failed to send otp, please try again"},
@@ -42,8 +40,6 @@ class ResendOTPView(APIView):
 
     def post(self, request):
         email = request.data.get('email')
-        username = request.data.get('username')
-        username = username.capitalize()
         if not email:
             return Response({"error": "Email is required"},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -52,7 +48,7 @@ class ResendOTPView(APIView):
             if otp_entry:
                 otp = otp_entry.get("otp")
                 expiry_minutes = otp_entry.get("expiry_minutes")
-                send_otp_email.delay(email, otp, username, expiry_minutes)
+                send_otp_email.delay(email, otp, expiry_minutes)
                 return Response({"message": "OTP resent successfully"},
                                 status=status.HTTP_200_OK)
             else:
@@ -72,6 +68,7 @@ class VerifyOTPView(APIView):
         if not email or not otp:
             return Response({"error": "Email and OTP are required"},
                             status=status.HTTP_400_BAD_REQUEST)
+
         try:
             is_valid, message = verify_otp(email, otp)
             if is_valid:
@@ -82,7 +79,7 @@ class VerifyOTPView(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)},
-                            status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ---------------------------- User Authentication ----------------------------
@@ -99,21 +96,32 @@ class UserDataStoreView(APIView):
         if not user_data:
             return Response({"error": "User Data is required"},
                             status=status.HTTP_400_BAD_REQUEST)
-        username = request.data.get('username')
-        if not username:
-            return Response({"error": "Username is required"},
+        email = request.data.get('email')
+        if not email:
+            return Response({"error": "Email is required"},
                             status=status.HTTP_400_BAD_REQUEST)
         try:
-            redis_key = f"user_data:{username}"
-            redis_client.set(redis_key, user_data)
+            serializer = RegisterSerializer(data=user_data)
+            if serializer.is_valid():
+                redis_key = f"user_data:{email}"
+                redis_client.set(redis_key, json.dumps(user_data))
+                redis_client.expire(redis_key, 1200)
+                return Response({"message": "User data stored successfully"},
+                                status=status.HTTP_201_CREATED)
+            print(serializer.errors)
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def get(self, request):
-        username = request.user.username
-        redis_key = f"user_data:{username}"
         try:
+            username = request.user.username
+            if not username:
+                return Response({"error": "Username is required"},
+                                status=status.HTTP_400_BAD_REQUEST)
+            redis_key = f"user_data:{username}"
             user_data = redis_client.get(redis_key)
             if not user_data:
                 return Response({"error": "User Data not found"},
@@ -121,6 +129,7 @@ class UserDataStoreView(APIView):
             return Response({"user_data": user_data.decode('utf-8')},
                             status=status.HTTP_200_OK)
         except Exception as e:
+            print(f"Verify error : {str(e)}")
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -129,18 +138,39 @@ class RegisterView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            user_data = PetSphereUserSerializer(user).data
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                "message": "User registered successfully",
-                "user": user_data,
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            email = request.data.get('email')
+            if not email:
+                return Response({"error": "Email is required"},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            redis_key = f"user_data:{email}"
+            user_data = redis_client.get(redis_key)
+
+            if not user_data:
+                return Response({"error": "User Data not found"},
+                                status=status.HTTP_404_NOT_FOUND)
+            user_data = json.loads(user_data)
+            serializer = RegisterSerializer(data=user_data)
+            if serializer.is_valid():
+                user = serializer.save()
+                user_data = PetSphereUserSerializer(user).data
+                refresh = RefreshToken.for_user(user)
+                redis_client.delete(redis_key)
+                redis_client.set(redis_key,  json.dumps(user_data))
+                return Response({
+                    "message": "User registered successfully",
+                    "user": user_data,
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                }, status=status.HTTP_201_CREATED)
+            print("Register serializer")
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"Register error : {str(e)}")
+            return Response({"error": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class LoginView(APIView):

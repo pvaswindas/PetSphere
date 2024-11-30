@@ -6,11 +6,11 @@ from .utils.tokens import token_generator
 
 
 @shared_task
-def send_otp_email(user_email, otp, username, expiry_minutes):
+def send_otp_email(user_email, otp, expiry_minutes):
     subject = 'Your OTP for Registration on PetSphere'
     message = render_to_string(
         "emails/registration/registration_otp.html",
-        {"otp": otp, "username": username, "expiry_minutes": expiry_minutes}
+        {"otp": otp, "expiry_minutes": expiry_minutes}
     )
     from_email = settings.EMAIL_HOST_USER
     recipient_list = [user_email]
