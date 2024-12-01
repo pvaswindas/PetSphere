@@ -3,11 +3,12 @@ import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from .serializers import RegisterSerializer, LoginSerializer
-from .serializers import PetSphereUserSerializer
+from .serializers import PetSphereUserSerializer, UserDataStoreSerializer
 from .serializers import ChangePasswordSerializer, ResetPasswordSerializer
 from .models import PetSphereUser
 from .utils.otp_utils import generate_otp, resend_otp, verify_otp
@@ -78,7 +79,9 @@ class VerifyOTPView(APIView):
                 return Response({"error": message},
                                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"error": str(e)},
+            print(f"Error during OTP verification: {str(e)}")
+            return Response({
+                "error": "An unexpected error occurred. Please try again."},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -101,7 +104,7 @@ class UserDataStoreView(APIView):
             return Response({"error": "Email is required"},
                             status=status.HTTP_400_BAD_REQUEST)
         try:
-            serializer = RegisterSerializer(data=user_data)
+            serializer = UserDataStoreSerializer(data=user_data)
             if serializer.is_valid():
                 redis_key = f"user_data:{email}"
                 redis_client.set(redis_key, json.dumps(user_data))
@@ -134,12 +137,43 @@ class UserDataStoreView(APIView):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def check_username(request):
+    username = request.data.get('username', '').strip()
+    if not username:
+        return Response({"error": "Username is required."},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    if not username.isalnum() and '_' not in username:
+        return Response(
+            {
+                "error": (
+                    "Username can only contain letters, numbers, "
+                    "and underscores."
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if len(username) < 3 or len(username) > 15:
+        return Response(
+            {
+                "error": "Username must be between 3 and 15 characters."
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    is_available = not PetSphereUser.objects.filter(username=username).exists()
+    return Response({"available": is_available})
+
+
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
         try:
             email = request.data.get('email')
+            username = request.data.get('username')
             if not email:
                 return Response({"error": "Email is required"},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -151,6 +185,8 @@ class RegisterView(APIView):
                 return Response({"error": "User Data not found"},
                                 status=status.HTTP_404_NOT_FOUND)
             user_data = json.loads(user_data)
+            user_data['username'] = username
+
             serializer = RegisterSerializer(data=user_data)
             if serializer.is_valid():
                 user = serializer.save()
@@ -165,6 +201,7 @@ class RegisterView(APIView):
                     "access": str(refresh.access_token),
                 }, status=status.HTTP_201_CREATED)
             print("Register serializer")
+
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
