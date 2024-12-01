@@ -1,108 +1,144 @@
-import React, { useState } from "react";
-import Button from "../../forms/Button";
-import TextFieldInput from "../../forms/TextInput";
+import React, { useState } from "react"
+import Button from "../../forms/Button"
+import TextFieldInput from "../../forms/TextInput"
+import { checkUsername } from "../../../utils/checkUsername"
+import { useSelector, useDispatch } from 'react-redux'
+import axios from 'axios'
+import { setAuthData } from "../../../redux/slices/authSlice"
+import { useNavigate } from 'react-router-dom'
 
 function CreateUsernameForm() {
-    const [username, setUsername] = useState("");
-    const [error, setError] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [username, setUsername] = useState("")
+    const [error, setError] = useState("")
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isUsernameAvailable, setIsUsernameAvailable] = useState(null)
+
+    const email = useSelector((state) => state.auth.email)
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
 
     const validateUsername = (username) => {
         if (username.length < 3) {
-        return "Username must be at least 3 characters long.";
+            return "Username must be at least 3 characters long"
         }
         if (username.length > 15) {
-        return "Username must not exceed 15 characters.";
+            return "Username must not exceed 15 characters"
         }
         if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-        return "Username can only contain letters, numbers, and underscores.";
+            return "Username can only contain letters, numbers, and underscores"
         }
-        return "";
-    };
+        return ""
+    }
 
-    // Check if the username meets all the expectations
-    const isFormValid = () => {
-        return !validateUsername(username.trim());
-    };
+    const handleChange = async (value) => {
+        setUsername(value)
+        setError("") // Clear previous error messages
+        setIsUsernameAvailable(null)
 
-    const handleChange = (value) => {
-        setUsername(value);
-        setError("");
-    };
+        const validationError = validateUsername(value.trim())
+        if (validationError) {
+            setError(validationError)
+            return
+        }
+
+        try {
+            const data = await checkUsername(value.trim())
+            setIsUsernameAvailable(data.available)
+        } catch (err) {
+            setError(err.message)
+        }
+    }
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e.preventDefault()
 
-        const validationError = validateUsername(username.trim());
+        const validationError = validateUsername(username.trim())
         if (validationError) {
-        setError(validationError);
-        return;
+            setError(validationError)
+            return
         }
 
-        setIsSubmitting(true);
-        try {
-        console.log("Username submitted:", username);
-
-        const isUsernameAvailable = await mockCheckUsernameAvailability(username);
         if (!isUsernameAvailable) {
-            setError("Username is already taken. Please choose another.");
-            return;
+            setError("The username is unavailable. Please choose another")
+            return
         }
 
-        console.log("Username successfully created:", username);
+        setIsSubmitting(true)
+        try {
+            const apiBaseUrl = process.env.REACT_APP_API_BASE_URL
+            const reg_response = await axios.post(`${apiBaseUrl}accounts/register/`, {
+                email: email,
+                username: username.trim(),
+            })
+
+            if (reg_response.status === 201) {
+                const { access, refresh, user } = reg_response.data
+
+                dispatch(setAuthData({
+                    user_data: user,
+                }))
+
+                localStorage.setItem('access_token', access)
+                localStorage.setItem('refresh_token', refresh)
+                localStorage.setItem('user', JSON.stringify(user))
+
+                navigate('/feed')
+            } else {
+                setError("Registration failed. Please try again.")
+            }
         } catch (err) {
-        setError("An unexpected error occurred. Please try again.");
+            setError("An unexpected error occurred. Please try again")
         } finally {
-        setIsSubmitting(false);
+            setIsSubmitting(false)
         }
-    };
-
-    const mockCheckUsernameAvailability = async (username) => {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return username !== "taken";
-    };
+    }
 
     return (
         <div className="w-full h-full p-6 flex flex-col justify-center items-center">
-        <form onSubmit={handleSubmit} className="w-full lg:w-3/4">
-            {/* Header Section */}
-            <div className="text-left">
-            <h1 className="text-2xl text-labelGreen lg:text-4xl font-bold mt-4 lg:mt-6">
-                Create Your Username
-            </h1>
-            <h4 className="text-lightGreen mt-2 mb-4 lg:mb-9">
-                Please choose a unique username for your account.
-            </h4>
-            </div>
+            <form onSubmit={handleSubmit} className="w-full lg:w-3/4">
+                <div className="text-left">
+                    <h1 className="text-2xl text-labelGreen lg:text-4xl font-bold mt-4 lg:mt-6">
+                        Create Your Username
+                    </h1>
+                    <h4 className="text-lightGreen mt-2 mb-4 lg:mb-9">
+                        Please choose a unique username for your account
+                    </h4>
+                </div>
 
-            {/* Username Input */}
-            <TextFieldInput
-            label="Username"
-            id="username"
-            name="username"
-            placeholder="Enter your username"
-            value={username}
-            onChange={(value) => handleChange(value)}
-            errorMessage={error}
-            />
+                <TextFieldInput
+                    label="Username"
+                    id="username"
+                    name="username"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(value) => handleChange(value)}
+                    errorMessage={null}
+                />
 
-            {/* Error Message */}
-            {error && <p className="text-red-500 text-sm text-center mt-2">{error}</p>}
+                {/* Centered Availability Status */}
+                {isUsernameAvailable === true && (
+                    <p className="text-green-500 text-sm text-center mt-2">Username is available!</p>
+                )}
+                {isUsernameAvailable === false && (
+                    <p className="text-red-500 text-center text-sm mt-2">Username is unavailable</p>
+                )}
 
-            {/* Submit Button */}
-            <Button
-            type="submit"
-            text="Continue"
-            isLoading={isSubmitting}
-            loadingText="Creating..."
-            backgroundColor="bg-labelGreen"
-            hoverBackgroundColor="hover:bg-hoverGreen"
-            disabled={!isFormValid() || isSubmitting}
-            className="w-full mt-4"
-            />
-        </form>
+                {/* Centered Error Messages */}
+                {error && <p className="text-red-500 text-sm text-center mt-2">{error}</p>}
+
+                <Button
+                    type="submit"
+                    text="Continue"
+                    isLoading={isSubmitting}
+                    loadingText="Creating..."
+                    backgroundColor="bg-labelGreen"
+                    hoverBackgroundColor="hover:bg-hoverGreen"
+                    disabled={!username.trim() || isSubmitting || !isUsernameAvailable}
+                    className="w-full mt-4"
+                />
+            </form>
         </div>
-    );
+    )
 }
 
-export default CreateUsernameForm;
+export default CreateUsernameForm

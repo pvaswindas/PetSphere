@@ -48,8 +48,6 @@ const authSlice = createSlice({
   },
 });
 
-// Export actions
 export const { setAuthData, setEmail } = authSlice.actions;
 
-// Export reducer (default export)
 export default authSlice.reducer;

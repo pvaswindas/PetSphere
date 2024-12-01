@@ -11,9 +11,9 @@ function Profile() {
             <Navbar />
 
             {/* Main Layout */}
-            <div className="flex flex-col lg:flex-row px-2 py-6">
+            <div className="flex flex-col lg:flex-row px-4 py-6">
                 {/* Sidebar Section */}
-                <div className="hidden lg:flex flex-col space-y-4 lg:px-4 lg:w-1/5">
+                <div className="hidden lg:flex flex-col space-y-4 lg:w-1/5">
                     {/* ProfileViewBar */}
                     <ProfileViewBar />
 
@@ -22,7 +22,7 @@ function Profile() {
                 </div>
 
                 {/* Content Section */}
-                <div className="flex-1 lg:w-3/5 mx-auto lg:px-2">
+                <div className="flex-1 lg:w-3/5 mx-auto lg:px-6">
                     {/* Profile Card */}
                     <ProfileCard
                         coverImage="https://via.placeholder.com/1200x400"
