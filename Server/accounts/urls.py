@@ -4,7 +4,7 @@ from .views import (
     RegisterView, LoginView, SendOTPView, ResendOTPView, VerifyOTPView,
     ForgotPassword, ResetPassword, ChangePasswordView, UserDataStoreView,
     UserProfileViews, DeactivateAccountView, ReactivateAccountView,
-    check_username,
+    LogoutView, check_username,
 )
 
 urlpatterns = [
@@ -12,6 +12,7 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('logout/', LogoutView.as_view(), name='logout'),
 
     # ---------------------------- OTP Management -----------------------------
     path('sendotp/', SendOTPView.as_view(), name='sendotp'),

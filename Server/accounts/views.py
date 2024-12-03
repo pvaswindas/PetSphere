@@ -10,6 +10,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from .serializers import RegisterSerializer, LoginSerializer
 from .serializers import PetSphereUserSerializer, UserDataStoreSerializer
 from .serializers import ChangePasswordSerializer, ResetPasswordSerializer
+from user_profile.serializers import ProfileSerializer
 from .models import PetSphereUser
 from .utils.otp_utils import generate_otp, resend_otp, verify_otp
 from .tasks import send_otp_email, send_password_otp_email
@@ -176,7 +177,7 @@ class RegisterView(APIView):
             username = request.data.get('username')
             if not email:
                 return Response({"error": "Email is required"},
-                                status=status.HTTP_400_BAD_REQUEST)
+                                status=status.HTTP_)
 
             redis_key = f"user_data:{email}"
             user_data = redis_client.get(redis_key)
@@ -190,13 +191,16 @@ class RegisterView(APIView):
             serializer = RegisterSerializer(data=user_data)
             if serializer.is_valid():
                 user = serializer.save()
+                profile = user.profile
                 user_data = PetSphereUserSerializer(user).data
+                profile_data = ProfileSerializer(profile).data
                 refresh = RefreshToken.for_user(user)
                 redis_client.delete(redis_key)
                 redis_client.set(redis_key,  json.dumps(user_data))
                 return Response({
                     "message": "User registered successfully",
                     "user": user_data,
+                    "profile": profile_data,
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
                 }, status=status.HTTP_201_CREATED)
@@ -219,12 +223,38 @@ class LoginView(APIView):
             user = serializer.validated_data
             refresh = RefreshToken.for_user(user)
             user_data = PetSphereUserSerializer(user).data
+            profile = user.profile
+            profile_data = ProfileSerializer(profile).data
             return Response({
                 "user": user_data,
+                "profile": profile_data,
                 "refresh": str(refresh),
                 "access": str(refresh.access_token)
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh_token"]
+            email = request.data["email"]
+            if not refresh_token:
+                return Response({"error": "Refresh token is required"},
+                                status=status.HTTP_400_BAD_REQUEST)
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            redis_key = f"user_data:{email}"
+            redis_client.delete(redis_key)
+
+            return Response({"message": "Successfully logged out"},
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            print("ERROR : ", str(e))
+            return Response({"error": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ---------------------------- Password Management ----------------------------
