@@ -19,7 +19,7 @@ const UserInfo = () => {
         <div className="pt-16 px-4 lg:px-8">
             {/* Header Section */}
             <div className="flex items-start justify-between">
-                <div className='w-full'>
+                <div className='w-full lg:w-0'>
                     <h2 className="text-lg sm:text-lg md:text-xl font-bold text-gray-800">
                         {user?.name || "Anonymous User"}
                     </h2>
@@ -34,7 +34,7 @@ const UserInfo = () => {
                             paddingx="px-3"
                             paddingy="py-1"
                             onClick={handleEditProfile}
-                            className="text-xs w-1/2 lg:text-sm"
+                            className="text-xs lg:text-sm flex-1"
                             backgroundColor="bg-lightTextGreyOpacity20"
                             textColor="text-blackOpacity85"
                             hoverBackgroundColor="hover:bg-lightTextGreyOpacity30"
@@ -45,7 +45,7 @@ const UserInfo = () => {
                             rounded="rounded"
                             paddingx="px-3"
                             paddingy="py-1"
-                            className="text-xs w-1/2 lg:text-sm"
+                            className="text-xs lg:text-sm flex-1"
                             onClick={handleShareProfile}
                             backgroundColor="bg-lightTextGreyOpacity20"
                             textColor="text-blackOpacity85"
@@ -58,7 +58,7 @@ const UserInfo = () => {
                         type="button"
                         text="Edit Profile"
                         rounded="rounded"
-                        paddingx="px-3"
+                        paddingx="px-4"
                         paddingy="py-1"
                         onClick={handleEditProfile}
                         className="text-xs lg:text-sm"
@@ -70,7 +70,7 @@ const UserInfo = () => {
                         type="button"
                         text="Share Profile"
                         rounded="rounded"
-                        paddingx="px-3"
+                        paddingx="px-4"
                         paddingy="py-1"
                         className="text-xs lg:text-sm"
                         onClick={handleShareProfile}
@@ -82,9 +82,7 @@ const UserInfo = () => {
             </div>
             {/* Bio Section */}
             <p className="text-sm sm:text-base md:text-lg text-gray-600 mt-4">{profile?.bio}</p>
-            
         </div>
-        
     )
 }
 

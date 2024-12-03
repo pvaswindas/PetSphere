@@ -3,7 +3,7 @@ import searchIcon from "../../../assets/icon/search-icon.svg"
 
 const SearchBar = ({ placeholder = "Search", onChange, value }) => {
   return (
-    <div className="flex items-center py-1 px-3 bg-[#B9B9B9]/15 rounded-md w-1/2">
+    <div className="flex items-center py-1 px-3 mx-11 bg-[#B9B9B9]/15 rounded-md w-1/2">
       <img src={searchIcon}
       alt="Search"
       className="w-4"

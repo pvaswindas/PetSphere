@@ -10,8 +10,7 @@ const Navbar = () => {
   const logout = useLogout()
   return (
     <nav
-      className="w-full bg-white shadow-md flex items-center justify-between px-4"
-      style={{ height: "65px" }}
+      className="w-full bg-white shadow-md flex items-center justify-between px-4 py-1 lg:py-2"
     >
       {/* Start Section */}
       <div className="flex items-center space-x-4">
@@ -24,11 +23,11 @@ const Navbar = () => {
       </div>
 
       {/* Middle Section */}
-      <div className="hidden lg:flex items-center justify-start gap-10 sm:gap-12 md:gap-16 ml-10 sm:ml-20 md:ml-40 w-3/4">
+      <div className="hidden lg:flex items-center justify-start gap-16 ml-10 sm:ml-20 md:ml-40 w-3/4">
         <SearchBar />
         <Button
           rounded="rounded-md"
-          paddingx="px-8 sm:px-10"
+          paddingx="px-10"
           paddingy="py-1.5"
           text="Add New Post"
           backgroundColor="bg-og-gradient"

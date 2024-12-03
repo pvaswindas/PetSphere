@@ -16,7 +16,7 @@ const ProfileHeader = () => {
                     className="w-full h-[200px] object-cover"
                 />
             ) : (
-                <div className="w-full h-[130px] lg:h-[200px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                <div className="w-full h-[130px] lg:h-[280px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
             )}
 
             {/* Edit Icon */}
@@ -38,7 +38,7 @@ const ProfileHeader = () => {
                         className="w-[100px] h-[100px] rounded-full border-4 border-white object-cover"
                     />
                 ) : (
-                    <div className="w-[100px] h-[100px] rounded-full border-4 border-white bg-gray-300 flex items-center justify-center">
+                    <div className="w-[100px] h-[100px] lg:w-[110px] lg:h-[110px] rounded-full border-4 border-white bg-gray-300 flex items-center justify-center">
                         <span className="text-gray-600 font-bold text-lg"></span>
                     </div>
                 )}

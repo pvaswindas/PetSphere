@@ -45,7 +45,7 @@ const ProfileCard = () => {
             />
 
             {/* Feed Content */}
-            <div className="lg:p-4">{renderSelectedFeed()}</div>
+            <div className="lg:px-4 lg:pt-4 lg:pb-8">{renderSelectedFeed()}</div>
         </div>
     );
 };
