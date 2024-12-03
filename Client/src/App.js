@@ -5,16 +5,18 @@ import SignupPage from "./pages/user-ui/auth/SignupPage";
 import VerifyOtp from "./pages/user-ui/auth/VerifyOtp";
 import CreateUsername from "./pages/user-ui/auth/CreateUsername";
 import Profile from "./pages/user-ui/Profile";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import RestrictedRoute from "./routes/RestrictedRoute";
 
 function App() {
   return (
     <div className="bg-gray-100">
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/signup/otp" element={<VerifyOtp />}/>
-        <Route path="/signup/username/" element={<CreateUsername />}/>
-        <Route path="profile/" element={<Profile />} />
+        <Route path="/login" element={<RestrictedRoute><LoginPage /></RestrictedRoute>} />
+        <Route path="/signup" element={<RestrictedRoute><SignupPage /></RestrictedRoute>} />
+        <Route path="/signup/otp" element={<RestrictedRoute><VerifyOtp /></RestrictedRoute>}/>
+        <Route path="/signup/username/" element={<RestrictedRoute><CreateUsername /></RestrictedRoute>}/>
+        <Route path="profile/" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       </Routes>
     </div>
   );

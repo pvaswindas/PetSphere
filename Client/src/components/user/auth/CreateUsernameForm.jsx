@@ -5,6 +5,7 @@ import { checkUsername } from "../../../utils/checkUsername"
 import { useSelector, useDispatch } from 'react-redux'
 import axios from 'axios'
 import { setAuthData } from "../../../redux/slices/authSlice"
+import { setProfile } from "../../../redux/slices/ProfileSlice"
 import { useNavigate } from 'react-router-dom'
 
 function CreateUsernameForm() {
@@ -32,7 +33,7 @@ function CreateUsernameForm() {
 
     const handleChange = async (value) => {
         setUsername(value)
-        setError("") // Clear previous error messages
+        setError("")
         setIsUsernameAvailable(null)
 
         const validationError = validateUsername(value.trim())
@@ -72,17 +73,14 @@ function CreateUsernameForm() {
             })
 
             if (reg_response.status === 201) {
-                const { access, refresh, user } = reg_response.data
+                const { access, refresh, user, profile } = reg_response.data
+                dispatch(setAuthData({ user_data: user }))
+                dispatch(setProfile({ profile_data: profile }))
 
-                dispatch(setAuthData({
-                    user_data: user,
-                }))
-
-                localStorage.setItem('access_token', access)
-                localStorage.setItem('refresh_token', refresh)
-                localStorage.setItem('user', JSON.stringify(user))
-
-                navigate('/feed')
+                localStorage.setItem('ACCESS_TOKEN', access)
+                localStorage.setItem('REFRESH_TOKEN', refresh)
+                navigate('/profile')
+                
             } else {
                 setError("Registration failed. Please try again.")
             }
@@ -115,7 +113,7 @@ function CreateUsernameForm() {
                     errorMessage={null}
                 />
 
-                {/* Centered Availability Status */}
+                {/* Availability Status */}
                 {isUsernameAvailable === true && (
                     <p className="text-green-500 text-sm text-center mt-2">Username is available!</p>
                 )}
@@ -123,7 +121,7 @@ function CreateUsernameForm() {
                     <p className="text-red-500 text-center text-sm mt-2">Username is unavailable</p>
                 )}
 
-                {/* Centered Error Messages */}
+                {/* Error Messages */}
                 {error && <p className="text-red-500 text-sm text-center mt-2">{error}</p>}
 
                 <Button

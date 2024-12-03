@@ -9,7 +9,7 @@ function AuthLayout({ AuthContent, link, text }) {
             <AuthNavbar link={link} text={text} />
 
             {/* Main Content */}
-            <div className="flex flex-col lg:flex-row w-[95%] lg:min-h-[600px] max-w-[1200px] rounded-xl overflow-hidden bg-login-gradient shadow-xl">
+            <div className="flex flex-col lg:flex-row w-[95%] lg:min-h-[610px] max-w-[1200px] rounded-xl overflow-hidden bg-login-gradient shadow-xl">
                 {/* Left Section: Static Hero Image */}
                 <AuthHeroImage />
 

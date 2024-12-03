@@ -14,7 +14,6 @@ const initialState = {
   user_data: null,
   email: null,
   isAuthenticated: false,
-  status: "idle",
   error: null,
 };
 
@@ -23,31 +22,23 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setAuthData(state, action) {
-      state.user_data = action.payload.user_data;
-      state.isAuthenticated = true;
+      state.user_data = action.payload.user_data
+      state.isAuthenticated = true
     },
     setEmail(state, action) {
-        state.email = action.payload;
-    }
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(logout.pending, (state) => {
-        state.status = "loading";
-        state.error = null;
-      })
-      .addCase(logout.fulfilled, (state) => {
-        state.user_data = null;
-        state.isAuthenticated = false;
-        state.status = "succeeded";
-      })
-      .addCase(logout.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload;
-      });
+        state.email = action.payload.email
+    },
+    setError(state, action) {
+      state.error = action.payload.error;
+    },
+    clearAuth(state, action) {
+      state.user_data = null
+      state.isAuthenticated = false
+      state.email = null
+    },
   },
 });
 
-export const { setAuthData, setEmail } = authSlice.actions;
+export const { setAuthData, setEmail, setError, clearAuth } = authSlice.actions;
 
 export default authSlice.reducer;

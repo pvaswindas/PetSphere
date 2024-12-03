@@ -1,52 +1,51 @@
-import React from "react";
-import { useSelector } from "react-redux";
+import React, { useState } from "react";
+import ProfileFeedSelection from "./ProfileFeedSelection";
+import UserInfo from "./UserInfo";
+import ProfileHeader from "./ProfileHeader";
+import PawStories from "./Content/PawStories";
+import PetListings from "./Content/PetListings";
+import PetPals from "./Content/PetPals";
+import Badges from "./Content/Badges";
+import Friends from "./Content/Friends";
 
 const ProfileCard = () => {
-    const profile = useSelector((state) => state.profile.profile);
+    const [selectedFeed, setSelectedFeed] = useState("PawStories");
+
+    const renderSelectedFeed = () => {
+        switch (selectedFeed) {
+            case "PawStories":
+                return <PawStories />
+            case "PetListings":
+                return <PetListings />
+            case "PetPals":
+                return <PetPals />
+            case "Friends":
+                return <Friends />
+            case "Badges":
+                return <Badges />
+            default:
+                return <PawStories />
+        }
+    };
 
     return (
-        <div className="w-full bg-white rounded-lg shadow-md overflow-hidden">
-            {/* Cover Image */}
-            <div className="relative">
-                {profile?.coverImage ? (
-                    <img
-                        src={profile.coverImage}
-                        alt="Cover"
-                        className="w-full h-[200px] object-cover"
-                    />
-                ) : (
-                    <div className="w-full h-[200px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
-                )}
+        <div className="w-full bg-white lg:rounded-lg shadow-md overflow-hidden mb-1">
+            {/* Profile Header */}
+            <ProfileHeader />
 
-                {/* Profile Image */}
-                <div className="absolute bottom-[-50px] left-8">
-                    {profile?.profile_picture ? (
-                        <img
-                            src={profile.profile_picture}
-                            alt="Profile"
-                            className="w-[100px] h-[100px] rounded-full border-4 border-white object-cover"
-                        />
-                    ) : (
-                        <div className="w-[100px] h-[100px] rounded-full border-4 border-white bg-gray-300 flex items-center justify-center">
-                            <span className="text-gray-600 font-bold text-lg"></span>
-                        </div>
-                    )}
-                </div>
+            {/* User Info */}
+            <UserInfo />
+            <div className="px-1 lg:px-8">
+                <hr className="border-t-2 border-lightTextGreyOpacity30 hidden lg:flex lg:my-4" />
             </div>
+            {/* Feed Selection */}
+            <ProfileFeedSelection
+                selectedOption={selectedFeed}
+                onSelectOption={setSelectedFeed}
+            />
 
-            {/* Info Section */}
-            <div className="pt-12 px-8 pb-6">
-                <h2 className="text-xl font-bold text-gray-800">{profile?.name || "John Doe"}</h2>
-                <p className="text-sm text-gray-600 mt-2">{profile?.bio || "This is a brief bio about the user. Add more details here to demonstrate how the card adjusts its height."}</p>
-                <div className="mt-6 flex justify-end space-x-4">
-                    <button className="px-6 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition">
-                        Follow
-                    </button>
-                    <button className="px-6 py-2 bg-gray-100 text-gray-800 text-sm rounded-md hover:bg-gray-200 transition">
-                        Message
-                    </button>
-                </div>
-            </div>
+            {/* Feed Content */}
+            <div className="lg:p-4">{renderSelectedFeed()}</div>
         </div>
     );
 };

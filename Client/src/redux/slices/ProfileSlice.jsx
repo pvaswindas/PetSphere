@@ -3,14 +3,14 @@ import { createSlice } from "@reduxjs/toolkit";
 const profileSlice = createSlice({
     name: "profile",
     initialState: {
-        profile: null,
+        profile_data: null,
     },
     reducers: {
         setProfile(state, action) {
-            state.user = action.payload;
+            state.profile_data = action.payload.profile_data;
         },
         clearProfile(state) {
-            state.user = null;
+            state.profile_data = null;
         },
     },
 });

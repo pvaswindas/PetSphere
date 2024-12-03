@@ -4,6 +4,10 @@ import PasswordInput from "../../forms/PasswordInput";
 import Button from "../../forms/Button";
 import GoogleButton from "./GoogleButton";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { setAuthData } from "../../../redux/slices/authSlice"
+import { setProfile } from "../../../redux/slices/ProfileSlice"
+import { useDispatch } from "react-redux";
 
 function LoginFormPanel() {
     const [formData, setFormData] = useState({
@@ -13,6 +17,8 @@ function LoginFormPanel() {
 
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate()
+    const dispatch = useDispatch()
 
     const handleChange = (field, value) => {
         setFormData((prev) => ({
@@ -30,13 +36,16 @@ function LoginFormPanel() {
             const apiBaseUrl = process.env.REACT_APP_API_BASE_URL
             const response = await axios.post(`${apiBaseUrl}accounts/login/`, formData);
 
-            const { access, refresh, user } = response.data;
+            const { access, refresh, user, profile } = response.data;
 
-            localStorage.setItem('access_token', access);
-            localStorage.setItem('refresh_token', refresh);
-            localStorage.setItem('user', JSON.stringify(user));
+            localStorage.setItem('ACCESS_TOKEN', access);
+            localStorage.setItem('REFRESH_TOKEN', refresh);
+            
+            dispatch(setAuthData({ user_data: user }))
+            dispatch(setProfile({ profile_data: profile }))
 
-            console.log('Logged in user : ', user);
+            navigate('/profile')
+
         } catch (error) {
             const errorMsg = error.response?.data?.detail || 'Failed to login. Please try again.';
             setError(errorMsg);
