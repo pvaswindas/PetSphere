@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense, memo } from "react";
 import ProfileFeedSelection from "./ProfileFeedSelection";
 import UserInfo from "./UserInfo";
 import ProfileHeader from "./ProfileHeader";
-import PawStories from "./Content/PawStories";
-import PetListings from "./Content/PetListings";
-import PetPals from "./Content/PetPals";
-import Badges from "./Content/Badges";
-import Friends from "./Content/Friends";
+const PawStories = lazy(() => import("./Content/PawStories"));
+const PetListings = lazy(() => import("./Content/PetListings"));
+const PetPals = lazy(() => import("./Content/PetPals"));
+const Friends = lazy(() => import("./Content/Friends"));
+const Badges = lazy(() => import("./Content/Badges"));
 
-const ProfileCard = () => {
+const ProfileCard = memo(() => {
     const [selectedFeed, setSelectedFeed] = useState("PawStories");
 
     const renderSelectedFeed = () => {
@@ -45,9 +45,13 @@ const ProfileCard = () => {
             />
 
             {/* Feed Content */}
-            <div className="lg:px-4 lg:pt-4 lg:pb-8">{renderSelectedFeed()}</div>
+            <div className="lg:px-4 lg:pt-4 lg:pb-8">
+                <Suspense fallback={<div>Loading...</div>}>
+                    {renderSelectedFeed()}
+                </Suspense>
+            </div>
         </div>
     );
-};
+});
 
 export default ProfileCard;

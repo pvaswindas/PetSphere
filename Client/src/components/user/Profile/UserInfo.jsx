@@ -1,18 +1,28 @@
-import React from 'react'
-import Button from '../../forms/Button'
+import React, { useState } from 'react';
+import Button from '../../forms/Button';
 import { useSelector } from 'react-redux';
+import EditModal from './EditModal';
 
 const UserInfo = () => {
-
-    const user = useSelector((state) => state.auth.user_data);
     const profile = useSelector((state) => state.profile.profile_data);
+    const user = profile ? profile.user : null;
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleEditProfile = () => {
-
+        setIsModalOpen(true);
     }
 
     const handleShareProfile = () => {
+    }
 
+    const closeModal = () => {
+        setIsModalOpen(false);
+    }
+
+    const handleSaveChanges = (event) => {
+        event.preventDefault();
+        closeModal();
     }
 
     return (
@@ -82,8 +92,17 @@ const UserInfo = () => {
             </div>
             {/* Bio Section */}
             <p className="text-sm sm:text-base md:text-lg text-gray-600 mt-4">{profile?.bio}</p>
+
+            {/* Modal for Editing Profile */}
+            <EditModal
+                isOpen={isModalOpen}
+                closeModal={closeModal}
+                user={user}
+                profile={profile}
+                handleSaveChanges={handleSaveChanges}
+            />
         </div>
-    )
+    );
 }
 
-export default UserInfo
+export default UserInfo;

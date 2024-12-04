@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import post1 from "../../../../assets/profile-testing/alicja-koczaska-FCuJ_bVjrrs-unsplash.jpg";
 import post2 from "../../../../assets/profile-testing/bao-menglong-usTb7ZMa6QI-unsplash.jpg";
 import post3 from "../../../../assets/profile-testing/cat-bw-gayatri-malhotra-38iYfX4Rk8A-unsplash.jpg";
@@ -8,7 +8,7 @@ import post6 from "../../../../assets/profile-testing/sam-h-Ui78vxO7pw8-unsplash
 
 const posts = [post1, post2, post3, post4, post5, post6];
 
-const PawStories = () => {
+const PawStories = memo(() => {
     return (
         <div className="lg:mx-4">
             {posts.length === 0 ? (
@@ -30,7 +30,7 @@ const PawStories = () => {
             )}
         </div>
     );
-};
+});
 
 
 export default PawStories

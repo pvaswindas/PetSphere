@@ -4,7 +4,6 @@ import TextFieldInput from "../../forms/TextInput"
 import { checkUsername } from "../../../utils/checkUsername"
 import { useSelector, useDispatch } from 'react-redux'
 import axios from 'axios'
-import { setAuthData } from "../../../redux/slices/authSlice"
 import { setProfile } from "../../../redux/slices/ProfileSlice"
 import { useNavigate } from 'react-router-dom'
 
@@ -14,7 +13,7 @@ function CreateUsernameForm() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isUsernameAvailable, setIsUsernameAvailable] = useState(null)
 
-    const email = useSelector((state) => state.auth.email)
+    const email = useSelector((state) => state.profile.email)
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
@@ -73,8 +72,7 @@ function CreateUsernameForm() {
             })
 
             if (reg_response.status === 201) {
-                const { access, refresh, user, profile } = reg_response.data
-                dispatch(setAuthData({ user_data: user }))
+                const { access, refresh, profile } = reg_response.data
                 dispatch(setProfile({ profile_data: profile }))
 
                 localStorage.setItem('ACCESS_TOKEN', access)

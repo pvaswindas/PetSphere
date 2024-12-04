@@ -12,7 +12,7 @@ function OtpVerification() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isResending, setIsResending] = useState(false);
     const navigate = useNavigate();
-    const email = useSelector((state) => state.auth.email);
+    const email = useSelector((state) => state.profile.email);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

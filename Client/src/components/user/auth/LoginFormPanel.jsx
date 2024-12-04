@@ -5,8 +5,7 @@ import Button from "../../forms/Button";
 import GoogleButton from "./GoogleButton";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { setAuthData } from "../../../redux/slices/authSlice"
-import { setProfile } from "../../../redux/slices/ProfileSlice"
+import { setEmail, setProfile } from "../../../redux/slices/ProfileSlice"
 import { useDispatch } from "react-redux";
 
 function LoginFormPanel() {
@@ -36,13 +35,12 @@ function LoginFormPanel() {
             const apiBaseUrl = process.env.REACT_APP_API_BASE_URL
             const response = await axios.post(`${apiBaseUrl}accounts/login/`, formData);
 
-            const { access, refresh, user, profile } = response.data;
+            const { access, refresh, profile } = response.data;
 
             localStorage.setItem('ACCESS_TOKEN', access);
             localStorage.setItem('REFRESH_TOKEN', refresh);
-            
-            dispatch(setAuthData({ user_data: user }))
             dispatch(setProfile({ profile_data: profile }))
+            dispatch(setEmail({ email: profile.user.email}))
 
             navigate('/profile')
 

@@ -6,7 +6,7 @@ import GoogleButton from "./GoogleButton";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useDispatch } from "react-redux";
-import { setEmail } from "../../../redux/slices/authSlice"
+import { setEmail } from "../../../redux/slices/ProfileSlice"
 
 function SignUpFormPanel() {
     const [formData, setFormData] = useState({

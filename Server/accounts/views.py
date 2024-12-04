@@ -12,6 +12,7 @@ from .serializers import PetSphereUserSerializer, UserDataStoreSerializer
 from .serializers import ChangePasswordSerializer, ResetPasswordSerializer
 from user_profile.serializers import ProfileSerializer
 from .models import PetSphereUser
+from user_profile.models import Profile
 from .utils.otp_utils import generate_otp, resend_otp, verify_otp
 from .tasks import send_otp_email, send_password_otp_email
 
@@ -192,14 +193,12 @@ class RegisterView(APIView):
             if serializer.is_valid():
                 user = serializer.save()
                 profile = user.profile
-                user_data = PetSphereUserSerializer(user).data
                 profile_data = ProfileSerializer(profile).data
                 refresh = RefreshToken.for_user(user)
                 redis_client.delete(redis_key)
                 redis_client.set(redis_key,  json.dumps(user_data))
                 return Response({
                     "message": "User registered successfully",
-                    "user": user_data,
                     "profile": profile_data,
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
@@ -222,11 +221,11 @@ class LoginView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data
             refresh = RefreshToken.for_user(user)
-            user_data = PetSphereUserSerializer(user).data
-            profile = user.profile
-            profile_data = ProfileSerializer(profile).data
+            profile = Profile.objects.get(user__id=user.id)
+            profile_data = ProfileSerializer(
+                profile,
+                context={'request': request}).data
             return Response({
-                "user": user_data,
                 "profile": profile_data,
                 "refresh": str(refresh),
                 "access": str(refresh.access_token)
