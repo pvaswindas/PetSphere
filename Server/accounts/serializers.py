@@ -9,7 +9,7 @@ class PetSphereUserSerializer(serializers.ModelSerializer):
         model = PetSphereUser
         fields = [
             'id', 'username', 'email', 'name', 'mobile_no',
-            'profile_picture', 'updated_at', 'is_pending',
+            'updated_at', 'is_pending',
             'is_suspended'
         ]
         read_only_fields = ['id', 'updated_at']

@@ -7,8 +7,7 @@ class PetSphereUserAdmin(UserAdmin):
     model = PetSphereUser
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('Personal info', {'fields': ('name', 'email', 'mobile_no',
-                                      'profile_picture')}),
+        ('Personal info', {'fields': ('name', 'email', 'mobile_no')}),
         ('Permissions', {'fields': ('is_active', 'is_pending', 'is_suspended',
                                     'is_staff', 'is_superuser')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),

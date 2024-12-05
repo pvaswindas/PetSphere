@@ -6,7 +6,6 @@ import { setProfile } from '../../../redux/slices/ProfileSlice'
 
 const ProfileHeader = () => {
     const profile = useSelector((state) => state.profile.profile_data)
-    const user = profile ? profile.user : null
     const [selectedImage, setSelectedImage] = useState(null)
     const [previewImage, setPreviewImage] = useState(null)
     const [showConfirmCard, setShowConfirmCard] = useState(false)
@@ -83,9 +82,9 @@ const ProfileHeader = () => {
 
             {/* Profile Image */}
             <div className="absolute bottom-[-50px] left-4 lg:left-8">
-                {user?.profile_picture ? (
+                {profile?.profile_picture ? (
                     <img
-                        src={user.profile_picture}
+                        src={profile.profile_picture}
                         alt="Profile"
                         className="w-[100px] h-[100px] rounded-full border-4 border-white object-cover"
                     />

@@ -11,15 +11,23 @@ export const useLogout = () => {
 
     const logout = async () => {
         try {
+            if (!refresh_token) {
+                throw new Error("Refresh token is missing")
+            }
+            if (!email) {
+                throw new Error("Email is missing")
+            }
+
             await axiosInstance.post('accounts/logout/', { refresh_token, email })
             dispatch(clearProfile())
             localStorage.removeItem("ACCESS_TOKEN")
             localStorage.removeItem("REFRESH_TOKEN")
             navigate('/login')
         } catch (error) {
-            throw new Error("Logout failed")
+            console.error("Logout failed:", error.message)
         }
     }
 
     return logout
 }
+

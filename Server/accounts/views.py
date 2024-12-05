@@ -146,7 +146,6 @@ def check_username(request):
     if not username:
         return Response({"error": "Username is required."},
                         status=status.HTTP_400_BAD_REQUEST)
-
     if not username.isalnum() and '_' not in username:
         return Response(
             {
@@ -165,7 +164,8 @@ def check_username(request):
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
-    is_available = not PetSphereUser.objects.filter(username=username).exists()
+    is_available = not PetSphereUser.objects.filter(
+        username__iexact=username).exists()
     return Response({"available": is_available})
 
 
@@ -193,22 +193,21 @@ class RegisterView(APIView):
             if serializer.is_valid():
                 user = serializer.save()
                 profile = user.profile
-                profile_data = ProfileSerializer(profile).data
+                profile_data = ProfileSerializer(
+                    profile,
+                    context={'request': request}).data
                 refresh = RefreshToken.for_user(user)
                 redis_client.delete(redis_key)
-                redis_client.set(redis_key,  json.dumps(user_data))
                 return Response({
                     "message": "User registered successfully",
                     "profile": profile_data,
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
                 }, status=status.HTTP_201_CREATED)
-            print("Register serializer")
 
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(f"Register error : {str(e)}")
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -334,10 +333,20 @@ class UserProfileViews(APIView):
         user = request.user
         serializer = PetSphereUserSerializer(
             user, data=request.data, partial=True
-            )
+        )
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            profile = user.profile
+            profile_serializer = ProfileSerializer(
+                profile, data=request.data, partial=True,
+                context={'request': request}
+            )
+            if profile_serializer.is_valid():
+                profile_serializer.save()
+                return Response(profile_serializer.data,
+                                status=status.HTTP_200_OK)
+            return Response(profile_serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

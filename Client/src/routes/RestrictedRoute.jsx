@@ -16,6 +16,7 @@ function RestrictedRoute({ children }) {
             })
             if (res.status === 200) {
                 localStorage.setItem('ACCESS_TOKEN', res.data.access)
+                localStorage.setItem('REFRESH_TOKEN', res.data.refresh)
                 setIsAuthorized(true)
             } else {
                 setIsAuthorized(false)
