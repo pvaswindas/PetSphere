@@ -12,10 +12,10 @@ class ProfileView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
-        user_id = request.data.get('user_id')
-        if user_id:
+        user = request.user
+        if user:
             try:
-                profile = Profile.objects.get(user__id=user_id)
+                profile = Profile.objects.get(user=user)
                 serializer = ProfileSerializer(profile)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except Profile.DoesNotExist:

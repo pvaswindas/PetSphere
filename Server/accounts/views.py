@@ -59,7 +59,7 @@ class ResendOTPView(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)},
-                            status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class VerifyOTPView(APIView):
@@ -81,9 +81,7 @@ class VerifyOTPView(APIView):
                 return Response({"error": message},
                                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(f"Error during OTP verification: {str(e)}")
-            return Response({
-                "error": "An unexpected error occurred. Please try again."},
+            return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -113,7 +111,6 @@ class UserDataStoreView(APIView):
                 redis_client.expire(redis_key, 1200)
                 return Response({"message": "User data stored successfully"},
                                 status=status.HTTP_201_CREATED)
-            print(serializer.errors)
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
@@ -134,7 +131,6 @@ class UserDataStoreView(APIView):
             return Response({"user_data": user_data.decode('utf-8')},
                             status=status.HTTP_200_OK)
         except Exception as e:
-            print(f"Verify error : {str(e)}")
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -250,7 +246,6 @@ class LogoutView(APIView):
             return Response({"message": "Successfully logged out"},
                             status=status.HTTP_200_OK)
         except Exception as e:
-            print("ERROR : ", str(e))
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

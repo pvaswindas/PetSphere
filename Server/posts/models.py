@@ -10,7 +10,6 @@ class Post(models.Model):
     content = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
     likes_count = models.PositiveBigIntegerField(default=0)
     comment_count = models.PositiveBigIntegerField(default=0)
     shares_count = models.PositiveBigIntegerField(default=0)

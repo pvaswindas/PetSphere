@@ -10,6 +10,7 @@ import RestrictedRoute from "./routes/RestrictedRoute";
 import EditProfile from "./pages/user-ui/profile/EditProfile";
 import EditFieldPage from "./pages/user-ui/profile/EditFieldPage";
 import EditUsernamePage from "./pages/user-ui/profile/EditUsernamePage";
+import AddPetStory from "./pages/user-ui/AddPetStory";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="edit-profile/" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
         <Route path="edit/" element={<ProtectedRoute><EditFieldPage /></ProtectedRoute>} />
         <Route path="edit-username/" element={<ProtectedRoute><EditUsernamePage /></ProtectedRoute>} />
+        <Route path="add-pet-story/" element={<ProtectedRoute><AddPetStory /></ProtectedRoute>} />
       </Routes>
     </div>
   );
