@@ -14,7 +14,7 @@ const UserInfo = () => {
     };
 
     const handleShareProfile = () => {
-        navigate('/change-username');
+        
     };
 
     return (

@@ -4,7 +4,7 @@ const ProfileFeedSelection = memo(({ selectedOption, onSelectOption }) => {
     const options = ['PawStories', 'PetListings', 'PetPals', 'Friends', 'Badges'];
 
     return (
-        <div className="lg:px-8">
+        <div className="pt-2 lg:pt-0 lg:px-8">
             <div className="flex md:inline-flex text-xs lg:text-sm lg:bg-lightTextGreyOpacity20 lg:rounded-lg overflow-x-auto md:overflow-visible whitespace-nowrap md:whitespace-normal items-center px-2">
                 {options.map((option) => (
                     <div

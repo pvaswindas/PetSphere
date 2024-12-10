@@ -10,6 +10,7 @@ function Button({
     onClick = () => {},
     isLoading = false,
     disabled = false,
+    isLoadingBackground = 'bg-labelGreen ',
     className = "",
     loadingText = "Loading...",
     backgroundColor = "bg-labelGreen",
@@ -23,7 +24,7 @@ function Button({
             className={`
                 ${paddingx} ${paddingy} ${rounded} ${textColor} transition-colors duration-300
                 ${isLoading || disabled
-                    ? "bg-labelGreen cursor-not-allowed"
+                    ? `${isLoadingBackground} cursor-not-allowed`
                     : `${backgroundColor} ${hoverBackgroundColor}`}
                 } ${className}
             `}

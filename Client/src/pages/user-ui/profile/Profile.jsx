@@ -1,12 +1,12 @@
-import React from "react";
-import Navbar from "../../../components/user/Navbar/Navbar";
-import ProfileCard from "../../../components/user/Profile/ProfileCard";
-import Sidebar from "../../../components/user/sidebar/Sidebar";
-import AdPreviewBar from "../../../components/user/sidebar/AdPreviewBox";
+import React from "react"
+import Navbar from "../../../components/user/Navbar/Navbar"
+import ProfileCard from "../../../components/user/Profile/ProfileCard"
+import Sidebar from "../../../components/user/sidebar/Sidebar"
+import AdPreviewBar from "../../../components/user/sidebar/AdPreviewBox"
 
 function Profile() {
     return (
-        <div className="bg-whiteOpacity02 min-h-screen">
+        <div className=" bg-white lg:bg-whiteOpacity02 min-h-screen">
             {/* Navbar */}
             <Navbar />
 
@@ -28,7 +28,7 @@ function Profile() {
                 </div>
             </div>
         </div>
-    );
+    )
 }
 
-export default Profile;
+export default Profile

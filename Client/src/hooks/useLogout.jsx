@@ -18,6 +18,8 @@ export const useLogout = () => {
                 throw new Error("Email is missing")
             }
 
+            console.log("LOGOUT")
+
             await axiosInstance.post('accounts/logout/', { refresh_token, email })
             dispatch(clearProfile())
             localStorage.removeItem("ACCESS_TOKEN")

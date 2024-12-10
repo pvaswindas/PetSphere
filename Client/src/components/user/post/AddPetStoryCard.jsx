@@ -1,16 +1,17 @@
-import React, { useState, useCallback } from "react";
-import Cropper from "react-easy-crop";
-import { ImageCropper } from "../../../utils/ImageCropper";
-import { ReactComponent as IconSquare } from "../../../assets/icon/aspect-ratio/square.svg";
-import { ReactComponent as IconStandard } from "../../../assets/icon/aspect-ratio/standard.svg";
-import { ReactComponent as IconPortrait } from "../../../assets/icon/aspect-ratio/portrait.svg";
-import axiosInstance from "../../../axios/axiosinstance";
+import React, { useState, useCallback } from "react"
+import Cropper from "react-easy-crop"
+import { ImageCropper } from "../../../utils/ImageCropper"
+import { ReactComponent as IconSquare } from "../../../assets/icon/aspect-ratio/square.svg"
+// import { ReactComponent as IconStandard } from "../../../assets/icon/aspect-ratio/standard.svg"
+// import { ReactComponent as IconPortrait } from "../../../assets/icon/aspect-ratio/portrait.svg"
+import axiosInstance from "../../../axios/axiosinstance"
+import { useNavigate } from "react-router-dom"
 
 const aspectRatios = [
     { label: "Square", value: 1, Icon: IconSquare },
-    { label: "Standard", value: 4 / 3, Icon: IconStandard },
-    { label: "Portrait", value: 3 / 2, Icon: IconPortrait },
-];
+    // { label: "Standard", value: 4 / 3, Icon: IconStandard },
+    // { label: "Portrait", value: 3 / 2, Icon: IconPortrait },
+]
 
 const AddPetStoryCard = () => {
     const [content, setContent] = useState("")
@@ -24,73 +25,75 @@ const AddPetStoryCard = () => {
         zoom: 1,
         aspect: 1,
     })
+    const navigate = useNavigate()
 
-    const handleContentChange = (e) => setContent(e.target.value);
+    const handleContentChange = (e) => setContent(e.target.value)
 
     const handleImageChange = (e) => {
-        const file = e.target.files[0];
+        const file = e.target.files[0]
         if (file) {
-            const imageUrl = URL.createObjectURL(file);
-            setCropSettings((prev) => ({ ...prev, image: imageUrl }));
-            setOriginalFileType(file.type);
+            const imageUrl = URL.createObjectURL(file)
+            setCropSettings((prev) => ({ ...prev, image: imageUrl }))
+            setOriginalFileType(file.type)
         }
-    };
+    }
 
     const handleAspectChange = (aspect) => {
-        setSelectedAspect(aspect);
-        setCropSettings((prev) => ({ ...prev, aspect }));
-    };
+        setSelectedAspect(aspect)
+        setCropSettings((prev) => ({ ...prev, aspect }))
+    }
 
     const handleCropComplete = useCallback(async (croppedArea, croppedAreaPixels) => {
-        const croppedImage = await ImageCropper(cropSettings.image, croppedAreaPixels);
-        setCropData(croppedImage);
-    }, [cropSettings.image]);
+        const croppedImage = await ImageCropper(cropSettings.image, croppedAreaPixels)
+        setCropData(croppedImage)
+    }, [cropSettings.image])
     
     const handleSaveCroppedImage = () => {
         if (cropData) {
-            const fileExtension = originalFileType.split("/")[1];
-            const fileName = `${Date.now()}.${fileExtension}`;
+            const fileExtension = originalFileType.split("/")[1]
+            const fileName = `${Date.now()}.${fileExtension}`
 
-            const file = new File([cropData], fileName, { type: originalFileType });
-            setImages((prevImages) => [...prevImages, file]);
-            setCropSettings({ image: null, crop: { x: 0, y: 0 }, zoom: 1, aspect: 1 });
-            setCropData(null);
+            const file = new File([cropData], fileName, { type: originalFileType })
+            setImages((prevImages) => [...prevImages, file])
+            setCropSettings({ image: null, crop: { x: 0, y: 0 }, zoom: 1, aspect: 1 })
+            setCropData(null)
         }
-    };
+    }
 
     const handleCancelCrop = () => {
-        setCropSettings({ image: null, crop: { x: 0, y: 0 }, zoom: 1, aspect: 1 });
-        setCropData(null);
-    };
+        setCropSettings({ image: null, crop: { x: 0, y: 0 }, zoom: 1, aspect: 1 })
+        setCropData(null)
+    }
 
     const handleRemoveImage = (index) => {
-        setImages(images.filter((_, i) => i !== index));
-    };
+        setImages(images.filter((_, i) => i !== index))
+    }
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e.preventDefault()
 
-        const formData = new FormData();
-        formData.append("content", content);
+        const formData = new FormData()
+        formData.append("content", content)
 
         images.forEach((image, index) => {
-            formData.append("images", image, image.name);
-        });
+            formData.append("images", image, image.name)
+        })
 
         try {
             const response = await axiosInstance.post("posts/", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
-            });
-            console.log("Response:", response);
+            })
+            console.log("Response:", response)
         } catch (error) {
-            console.error("Error uploading data:", error);
+            console.error("Error uploading data:", error)
         }
 
-        setContent("");
-        setImages([]);
-    };
+        setContent("")
+        setImages([])
+        navigate(-1)
+    }
 
     const renderAspectButtons = () => {
         return aspectRatios.map(({ label, value, Icon }) => (
@@ -112,8 +115,8 @@ const AddPetStoryCard = () => {
                 />
                 <span className="text-xs mt-1">{label}</span>
             </button>
-        ));
-    };
+        ))
+    }
 
     const renderSelectedImages = () => {
         return images.length > 0 && (
@@ -138,8 +141,8 @@ const AddPetStoryCard = () => {
                     ))}
                 </div>
             </div>
-        );
-    };
+        )
+    }
 
     return (
         <div className="p-6 bg-white rounded-lg shadow-lg mx-auto">
@@ -229,7 +232,7 @@ const AddPetStoryCard = () => {
                 </div>
             </form>
         </div>
-    );
-};
+    )
+}
 
-export default AddPetStoryCard;
+export default AddPetStoryCard

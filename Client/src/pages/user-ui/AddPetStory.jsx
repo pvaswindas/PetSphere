@@ -1,8 +1,8 @@
-import React from "react";
-import Navbar from "../../components/user/Navbar/Navbar";
-import Sidebar from "../../components/user/sidebar/Sidebar";
-import ProfileViewBar from "../../components/user/sidebar/ProfileViewBar";
-import AddPetStoryCard from "../../components/user/post/AddPetStoryCard";
+import React from "react"
+import Navbar from "../../components/user/Navbar/Navbar"
+import Sidebar from "../../components/user/sidebar/Sidebar"
+import ProfileViewBar from "../../components/user/sidebar/ProfileViewBar"
+import AddPetStoryCard from "../../components/user/post/AddPetStoryCard"
 
 function AddPetStory() {
     return (
@@ -28,7 +28,7 @@ function AddPetStory() {
                 </div>
             </div>
         </div>
-    );
+    )
 }
 
-export default AddPetStory;
+export default AddPetStory

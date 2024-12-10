@@ -5,6 +5,7 @@ function PasswordInput({
     id = 'password',
     name = 'password',
     placeholder = 'Enter your password',
+    mainBackground = 'bg-white',
     borderRadius = 'rounded-full',
     labelColor = 'text-labelGreen',
     borderColor = 'border-gray-300',
@@ -13,6 +14,7 @@ function PasswordInput({
     validationPattern = /.{8,}/,
     errorMessage = 'Password must be at least 8 characters',
     value,
+    margin = "my-4",
     onChange,
 }) {
     const [isValid, setIsValid] = useState(true);
@@ -29,7 +31,7 @@ function PasswordInput({
     };
 
     return (
-        <div className='flex flex-col space-y-2'>
+        <div className={`flex flex-col space-y-2 ${margin}`}>
             <label htmlFor={id} className={`text-sm font-medium ${labelColor}`}>
                 {label}
             </label>
@@ -41,7 +43,7 @@ function PasswordInput({
                     placeholder={placeholder}
                     value={value}
                     onChange={handleChange}
-                    className={`px-4 py-2 w-full ${borderColor}  ${textColor} ${borderRadius} shadow-sm focus:outline-none
+                    className={`px-4 py-2 w-full ${borderColor} ${mainBackground} ${textColor} ${borderRadius} shadow-sm focus:outline-none
                         focus:ring-1 ${focusBorderColor} ${!isValid ? 'border-red-500' : ''}`}
                 />
                 {/* Toggle password visibility */}

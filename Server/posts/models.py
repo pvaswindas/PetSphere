@@ -8,11 +8,15 @@ class Post(models.Model):
     user = models.ForeignKey(PetSphereUser, on_delete=models.CASCADE,
                              related_name='posts')
     content = models.TextField(null=True, blank=True)
+    slug = models.SlugField(unique=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     likes_count = models.PositiveBigIntegerField(default=0)
     comment_count = models.PositiveBigIntegerField(default=0)
     shares_count = models.PositiveBigIntegerField(default=0)
+
+    def __str__(self):
+        return self.content[:50]
 
 
 class PostImage(models.Model):

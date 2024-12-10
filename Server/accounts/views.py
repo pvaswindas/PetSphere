@@ -3,6 +3,9 @@ import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.conf import settings
+from google.oauth2 import id_token
+from google.auth.transport import requests
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -367,3 +370,55 @@ class ReactivateAccountView(APIView):
         user.is_active = True
         user.save()
         return Response({'success': 'Account reactivated successfully'})
+
+
+# ----------------------- Google Authentication -----------------------
+class GoogleLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        token = request.data.get('token')
+        if not token:
+            return Response({'error': 'Token is required'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            google_client_id = settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
+            idinfo = id_token.verify_oauth2_token(token, requests.Request(),
+                                                  google_client_id)
+            email = idinfo['email']
+            name = idinfo.get('name', '')
+
+            user = PetSphereUser.objects.filter(email=email).first()
+
+            if not user:
+                email_prefix = email.split('@')[0]
+                base_username = email_prefix
+                username = base_username
+                counter = 0
+                while PetSphereUser.objects.filter(username=username).exists():
+                    username = f"{base_username}_{counter}"
+                    counter += 1
+
+                user, created = PetSphereUser.objects.get_or_create(
+                    username=username,
+                    email=email,
+                    defaults={'name': name}
+                )
+
+            profile, created_profile = Profile.objects.get_or_create(user=user)
+
+            profile_data = ProfileSerializer(
+                profile,
+                context={'request': request}).data
+
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'profile': profile_data,
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'email': str(email),
+            }, status=status.HTTP_201_CREATED)
+        except ValueError as e:
+            return Response({'error': 'Invalid token', 'details': str(e)},
+                            status=status.HTTP_400_BAD_REQUEST)

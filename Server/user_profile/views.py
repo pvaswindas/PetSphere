@@ -13,21 +13,14 @@ class ProfileView(APIView):
 
     def get(self, request):
         user = request.user
-        if user:
-            try:
-                profile = Profile.objects.get(user=user)
-                serializer = ProfileSerializer(profile)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except Profile.DoesNotExist:
-                return Response({'error': 'Profile not found'},
-                                status=status.HTTP_404_NOT_FOUND)
-        else:
-            profile = Profile.objects.filter(user=request.user).first()
-            if not profile:
-                return Response({'error': 'Profile not found'},
-                                status=status.HTTP_404_NOT_FOUND)
-            serializer = ProfileSerializer(profile)
+        try:
+            profile = Profile.objects.get(user=user)
+            serializer = ProfileSerializer(profile,
+                                           context={'request': request})
             return Response(serializer.data, status=status.HTTP_200_OK)
+        except Profile.DoesNotExist:
+            return Response({'error': 'Profile not found'},
+                            status=status.HTTP_404_NOT_FOUND)
 
     def patch(self, request):
         try:

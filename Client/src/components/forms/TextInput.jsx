@@ -15,6 +15,7 @@ function TextFieldInput({
     errorMessage = 'This field is required',
     textColor = "text-labelGreen",
     value,
+    margin = "my-3",
     onChange,
 }) {
     const [isValid, setIsValid] = useState(true);
@@ -26,7 +27,7 @@ function TextFieldInput({
     };
 
     return (
-        <div className="flex flex-col space-y-2">
+        <div className={`flex flex-col space-y-2 ${margin}`}>
             <label htmlFor={id} className={`text-sm font-medium ${labelColor}`}>
                 {label}
             </label>
@@ -36,6 +37,7 @@ function TextFieldInput({
                 name={name}
                 placeholder={placeholder}
                 value={value}
+                autoComplete="off"
                 onChange={handleChange}
                 className={`px-4 py-2 ${borderColor} ${borderRadius} ${textColor} ${mainBackground} shadow-sm focus:outline-none
                     focus:ring-1 ${focusBorderColor} ${!isValid ? 'border-red-700' : ''}`}

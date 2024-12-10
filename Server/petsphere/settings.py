@@ -17,8 +17,11 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
 env = Env()
 env.read_env()
+
+BASE_URL = env.str("BASE_URL")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -46,6 +49,13 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'django_celery_results',
+    'django.contrib.sites',
+    'social_django',
+    'dj_rest_auth',
+    'allauth',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'rest_framework.authtoken',
     'accounts',
     'user_profile',
     'sellers',
@@ -111,6 +121,9 @@ CASHES = {
 
 AUTH_USER_MODEL = 'accounts.PetSphereUser'
 
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env.str("AUTH_CLIENT_ID")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env.str("AUTH_CLIENT_SECRET")
+
 
 # Celery settings
 CELERY_BROKER_URL = env("CBROKER_URL")
@@ -156,6 +169,13 @@ AUTH_PASSWORD_VALIDATORS = [
         ),
     },
 ]
+
+AUTHENTICATION_BACKENDS = [
+    'social_core.backends.google.GoogleOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+SITE_ID = 1
 
 
 REST_FRAMEWORK = {

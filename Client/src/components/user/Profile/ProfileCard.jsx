@@ -1,15 +1,25 @@
-import React, { useState, lazy, Suspense, memo } from "react";
-import ProfileFeedSelection from "./ProfileFeedSelection";
-import UserInfo from "./UserInfo";
-import ProfileHeader from "./ProfileHeader";
-const PawStories = lazy(() => import("./Content/PawStories"));
-const PetListings = lazy(() => import("./Content/PetListings"));
-const PetPals = lazy(() => import("./Content/PetPals"));
-const Friends = lazy(() => import("./Content/Friends"));
-const Badges = lazy(() => import("./Content/Badges"));
+import React, { useState, lazy, Suspense, memo, useEffect } from "react"
+import ProfileFeedSelection from "./ProfileFeedSelection"
+import UserInfo from "./UserInfo"
+import ProfileHeader from "./ProfileHeader"
+import { useDispatch } from "react-redux"
+import { fetchProfile } from "../../../redux/thunks/ProfileThunk"
+
+const PawStories = lazy(() => import("./Content/PawStories"))
+const PetListings = lazy(() => import("./Content/PetListings"))
+const PetPals = lazy(() => import("./Content/PetPals"))
+const Friends = lazy(() => import("./Content/Friends"))
+const Badges = lazy(() => import("./Content/Badges"))
+
 
 const ProfileCard = memo(() => {
-    const [selectedFeed, setSelectedFeed] = useState("PawStories");
+    const [selectedFeed, setSelectedFeed] = useState("PawStories")
+    const dispatch = useDispatch()
+
+    useEffect(() => {
+        dispatch(fetchProfile())
+    }, [dispatch])
+
 
     const renderSelectedFeed = () => {
         switch (selectedFeed) {
@@ -26,10 +36,10 @@ const ProfileCard = memo(() => {
             default:
                 return <PawStories />
         }
-    };
+    }
 
     return (
-        <div className="w-full bg-white lg:rounded-lg shadow-md overflow-hidden mb-1">
+        <div className="w-full bg-white lg:rounded-lg lg:shadow-md overflow-hidden mb-1">
             {/* Profile Header */}
             <ProfileHeader />
 
@@ -51,7 +61,7 @@ const ProfileCard = memo(() => {
                 </Suspense>
             </div>
         </div>
-    );
-});
+    )
+})
 
-export default ProfileCard;
+export default ProfileCard

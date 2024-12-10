@@ -15,11 +15,16 @@ module.exports = {
         lineTextGreen: 'rgba(0, 87, 71, 0.3)',
         whiteOpacity02: 'rgba(255, 255, 255, 0.2)',
         whiteOpacity05: 'rgba(255, 255, 255, 0.5)',
+        whiteOpacity95: 'rgba(255, 255, 255, 0.95)',
         blackOpacity85: 'rgba(0, 0, 0, 0.85)',
+        blackOpacity30: 'rgba(0, 0, 0, 0.3)',
+        blackOpacity40: 'rgba(0, 0, 0, 0.4)',
         lightTextGreyOpacity10: 'rgba(185, 185, 185, 0.1)',
         lightTextGreyOpacity20: 'rgba(185, 185, 185, 0.2)',
         lightTextGreyOpacity30: 'rgba(185, 185, 185, 0.3)',
         dimGray: '#626262',
+        deepOceanBlue: '#2959A1',
+        softSkyBlue: '#ECF4FF',
       },
       backgroundImage: {
         'og-gradient': 'linear-gradient(to right, #0FA59B, #904DAC)',
@@ -31,10 +36,11 @@ module.exports = {
         'btn-primary-gradient': 'linear-gradient(to right, #0FA59B, #42B69B)',
         'btn-secondary-gradient': 'linear-gradient(to right, #904DAC, #C76CC3)',
         'btn-hover-primary-gradient': 'linear-gradient(to right, #42B69B, #68C3A7)',
-        'btn-hover-secondary-gradient': 'linear-gradient(to right, #C76CC3, #E294D5)', // New hover gradient for secondary
+        'btn-hover-secondary-gradient': 'linear-gradient(to right, #C76CC3, #E294D5)',
         'btn-disabled-gradient': 'linear-gradient(to right, #B2B2B2, #E0E0E0)',
+        'deep-ocean-blue-gradient': 'linear-gradient(to bottom, #1153B4, #1151B1, #1150AE, #104DA8, #0F479B, #0C3B81, #08244E)',
       },
     },
   },
   plugins: [],
-};
+}
