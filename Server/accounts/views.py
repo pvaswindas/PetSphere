@@ -228,7 +228,8 @@ class LoginView(APIView):
                 "refresh": str(refresh),
                 "access": str(refresh.access_token)
             }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "Invalid Credentials"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutView(APIView):

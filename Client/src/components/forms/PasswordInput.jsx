@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import * as Yup from 'yup';
 
 function PasswordInput({
     label = 'Password',
@@ -11,19 +12,36 @@ function PasswordInput({
     borderColor = 'border-gray-300',
     textColor = 'text-labelGreen',
     focusBorderColor = 'focus:ring-borderGreen',
-    validationPattern = /.{8,}/,
-    errorMessage = 'Password must be at least 8 characters',
+    errorMessage = 'Invalid password',
     value,
     margin = "my-4",
     onChange,
 }) {
     const [isValid, setIsValid] = useState(true);
+    const [errorText, setErrorText] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleChange = (e) => {
+    const passwordSchema = Yup.string()
+        .required('Password is required')
+        .min(8, 'Password must be at least 8 characters')
+        .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+        .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+        .matches(/\d/, 'Password must contain at least one number')
+        .matches(/[@$!%*?&#]/, 'Password must contain at least one special character');
+
+    const handleChange = async (e) => {
         const inputValue = e.target.value;
-        setIsValid(validationPattern.test(inputValue.trim()))
-        onChange(inputValue)
+
+        try {
+            await passwordSchema.validate(inputValue);
+            setIsValid(true);
+            setErrorText('');
+        } catch (err) {
+            setIsValid(false);
+            setErrorText(err.message);
+        }
+
+        onChange(inputValue);
     };
 
     const togglePasswordVisibility = () => {
@@ -55,8 +73,8 @@ function PasswordInput({
                     {showPassword ? 'Hide' : 'Show'}
                 </button>
             </div>
-            {/* Show error message if invalid */}
-            {!isValid && <p className="text-sm text-red-500">{errorMessage}</p>}
+            {/* Error message if invalid */}
+            {!isValid && <p className="text-sm text-red-500">{errorText}</p>}
         </div>
     );
 }

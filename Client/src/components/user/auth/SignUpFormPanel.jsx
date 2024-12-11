@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import TextFieldInput from "../../forms/TextInput";
 import PasswordInput from "../../forms/PasswordInput";
 import Button from "../../forms/Button";
 import GoogleButton from "./GoogleButton";
@@ -7,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setEmail } from "../../../redux/slices/ProfileSlice"
+import EmailInput from "../../forms/EmailInput";
 
 function SignUpFormPanel() {
     const [formData, setFormData] = useState({
@@ -19,6 +19,7 @@ function SignUpFormPanel() {
 
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
 
     const handleChange = (field, value) => {
         setFormData((prev) => ({
@@ -69,7 +70,7 @@ function SignUpFormPanel() {
                 </div>
 
                 {/* Email Input */}
-                <TextFieldInput
+                <EmailInput 
                     label="Email"
                     id="email"
                     name="email"

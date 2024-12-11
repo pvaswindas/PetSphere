@@ -16,6 +16,7 @@ const PostDisplayCard = memo(() => {
     const [isDeleteModalOpen, setDeleteIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editedContent, setEditedContent] = useState("");
+    const [currentImageIndex, setCurrentImageIndex] = useState(0); // Track the current image index
 
     useEffect(() => {
         if (slug) {
@@ -23,9 +24,9 @@ const PostDisplayCard = memo(() => {
         }
     }, [slug, dispatch]);
 
-    const post = useSelector((state) => state.posts?.currentPawstory || null)
-    const profile = useSelector((state) => state.profile?.profile_data || null)
-    const navigate = useNavigate()
+    const post = useSelector((state) => state.posts?.currentPawstory || null);
+    const profile = useSelector((state) => state.profile?.profile_data || null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (post) {
@@ -41,13 +42,13 @@ const PostDisplayCard = memo(() => {
         );
     }
 
-    const toggleModal = () => setIsModalOpen((prev) => !prev)
-    const toggleDeleteModal = () => setDeleteIsModalOpen((prev) => !(prev))
+    const toggleModal = () => setIsModalOpen((prev) => !prev);
+    const toggleDeleteModal = () => setDeleteIsModalOpen((prev) => !(prev));
 
     const handleBothToggle = () => {
-        toggleModal()
-        toggleDeleteModal()
-    }
+        toggleModal();
+        toggleDeleteModal();
+    };
 
     const handleEditClick = () => {
         setIsEditing(true);
@@ -56,9 +57,9 @@ const PostDisplayCard = memo(() => {
 
     const handleSave = () => {
         if (post?.content !== editedContent) {
-            dispatch(updatePawstory({ slug: post.slug, content: editedContent }))
+            dispatch(updatePawstory({ slug: post.slug, content: editedContent }));
         }
-        setEditedContent(" ")
+        setEditedContent(" ");
         setIsEditing(false);
     };
 
@@ -69,8 +70,8 @@ const PostDisplayCard = memo(() => {
 
     const handleDeletePost = async () => {
         try {
-            await dispatch(deletePawstory(slug)).unwrap()
-            navigate(-1)
+            await dispatch(deletePawstory(slug)).unwrap();
+            navigate(-1);
         } catch (error) {
             Swal.fire({
                 icon: "error",
@@ -83,21 +84,77 @@ const PostDisplayCard = memo(() => {
                 customClass: {
                     popup: "swal-popup",
                 },
-            })
+            });
         }
-    }
+    };
 
+    const nextImage = () => {
+        if (currentImageIndex < post.images.length - 1) {
+            setCurrentImageIndex(currentImageIndex + 1);
+        }
+    };
+
+    const prevImage = () => {
+        if (currentImageIndex > 0) {
+            setCurrentImageIndex(currentImageIndex - 1);
+        }
+    };
 
     return (
         <>
             <div className="bg-white lg:shadow-lg w-full rounded-lg flex flex-col lg:flex-row">
                 {/* Left Section: Image */}
-                <div className="flex-shrink-0 w-full lg:w-1/2">
+                <div className="flex-shrink-0 w-full lg:w-1/2 relative">
+                    {/* Display current image */}
                     <img
-                        src={post.images[0].image}
+                        src={post.images[currentImageIndex].image}
                         alt={post.content}
                         className="w-full h-full rounded-s-lg object-cover"
                     />
+
+                    {/* Navigation buttons */}
+                    {currentImageIndex > 0 && (
+                        <button
+                            className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-700 text-white p-3 rounded-full"
+                            onClick={prevImage}
+                            aria-label="Previous Image"
+                        >
+                            <svg
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                className="w-3 h-3"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M15 19l-7-7 7-7"
+                                />
+                            </svg>
+                        </button>
+                    )}
+                    {currentImageIndex < post.images.length - 1 && (
+                        <button
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-700 text-white p-3 rounded-full"
+                            onClick={nextImage}
+                            aria-label="Next Image"
+                        >
+                            <svg
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                className="w-3 h-3"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M9 5l7 7-7 7"
+                                />
+                            </svg>
+                        </button>
+                    )}
                 </div>
 
                 {/* Right Section: Content */}
@@ -168,7 +225,6 @@ const PostDisplayCard = memo(() => {
                                     placeholder="Edit your post content..."
                                 />
                             </div>
-
                         ) : (
                             <h2 className="text-lg m-4">{post.content}</h2>
                         )}
@@ -250,7 +306,7 @@ const PostDisplayCard = memo(() => {
                         Delete
                     </li>
                     <hr />
-                </ul >
+                </ul>
             </PostOptionsModal>
         </>
     );
