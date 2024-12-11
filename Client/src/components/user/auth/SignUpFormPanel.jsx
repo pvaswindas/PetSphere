@@ -59,7 +59,7 @@ function SignUpFormPanel() {
     
 
     return (
-        <div className="w-full h-full p-6 flex flex-col justify-center items-center">
+        <div className="w-full h-90 p-6 flex flex-col justify-center items-center">
             {/* Form Wrapper */}
             <form onSubmit={handleSubmit} className="space-y-4 w-full lg:w-3/4 ">
                 {/* Heading Section */}

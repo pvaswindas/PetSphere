@@ -6,10 +6,23 @@ import { useLogout } from "../../../hooks/useLogout";
 import notificationIcon from "../../../assets/icon/notification-icon-active.svg";
 import saveIcon from "../../../assets/icon/save-icon.svg";
 import PostTypeModal from "../post/PostTypeModal";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
-  const logout = useLogout();
-  const [isModalOpen, setModalOpen] = useState(false);
+  const logout = useLogout()
+  const navigate = useNavigate()
+  const [isModalOpen, setModalOpen] = useState(false)
+
+  const handleLogout = async () => {
+    const response = await logout()
+
+    if (response.success) {
+      navigate("/login")
+    } else {
+      console.log(response.message);
+      
+    }
+  }
 
   const handlePostTypeSelect = (type) => {
     setModalOpen(false);
@@ -77,7 +90,7 @@ const Navbar = () => {
             {/* Dropdown Menu */}
             <div className="absolute right-0 mt-4 w-40 bg-white rounded-lg shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
               >
                 Logout

@@ -1,27 +1,28 @@
 import React from "react"
+import DashboardWelcome from "../../../assets/admin/dashboardcard.svg"
 
 const DashboardCard = () => {
     return (
-        <div className="bg-white shadow-lg rounded-2xl p-6 w-full">
+        <div className="bg-softSkyBlue shadow-lg flex items-center justify-center rounded-[2.5rem] h-64 w-full">
             <div className="grid grid-cols-2 gap-4">
                 {/* Card 1 */}
-                <div className="bg-blue-100 p-10 rounded-3xl flex items-center justify-center shadow">
-                    <p className="text-blue-700 font-medium">Card 1</p>
+                <div className="bg-white w-40 h-24 rounded-3xl flex items-center justify-center">
+
                 </div>
 
                 {/* Card 2 */}
-                <div className="bg-green-100 p-10 rounded-3xl flex items-center justify-center shadow">
-                    <p className="text-green-700 font-medium">Card 2</p>
+                <div className="w-40 h-24 rounded-3xl flex items-center justify-center overflow-hidden">
+                    <img src={DashboardWelcome} alt="" className="object-contain w-full" />
                 </div>
 
                 {/* Card 3 */}
-                <div className="bg-yellow-100 p-10 rounded-3xl flex items-center justify-center shadow">
-                    <p className="text-yellow-700 font-medium">Card 3</p>
+                <div className="bg-white w-40 h-24 rounded-3xl flex items-center justify-center">
+
                 </div>
 
                 {/* Card 4 */}
-                <div className="bg-red-100 p-10 rounded-3xl flex items-center justify-center shadow">
-                    <p className="text-red-700 font-medium">Card 4</p>
+                <div className="bg-pastelBlue w-40 h-24 rounded-3xl flex items-center justify-center">
+
                 </div>
             </div>
         </div>

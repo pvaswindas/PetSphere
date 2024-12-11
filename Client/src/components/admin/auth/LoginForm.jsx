@@ -34,14 +34,10 @@ const LoginForm = () => {
             const response = await axios.post(`${apiBaseUrl}accounts/login/`, formData);
     
             const { access, refresh, profile } = response.data;
-            console.log("PROFILE : ", profile)
-            if (!profile.user.is_superuser) {
-                console.log("Invalid admin");
+            if (!profile.user.is_staff) {
                 setError("Invalid credentials for a staff account.");
                 return;
             } else {
-                console.log("Valid");
-                
                 localStorage.setItem('ST_ACCESS_TOKEN', access);
                 localStorage.setItem('ST_REFRESH_TOKEN', refresh);
                 dispatch(setAdminProfile({ admin_profile : profile }));

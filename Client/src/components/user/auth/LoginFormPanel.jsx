@@ -37,12 +37,17 @@ function LoginFormPanel() {
 
             const { access, refresh, profile } = response.data;
 
-            localStorage.setItem('ACCESS_TOKEN', access);
-            localStorage.setItem('REFRESH_TOKEN', refresh);
-            dispatch(setProfile({ profile_data: profile }))
-            dispatch(setEmail({ email: profile.user.email}))
+            if (profile.user.is_staff) {
+                setError("Invalid credentials for a staff account.");
+                return;
+            } else {
+                localStorage.setItem('ACCESS_TOKEN', access);
+                localStorage.setItem('REFRESH_TOKEN', refresh);
+                dispatch(setProfile({ profile_data: profile }))
+                dispatch(setEmail({ email: profile.user.email}))
 
-            navigate('/profile')
+                navigate('/profile')
+            }
 
         } catch (error) {
             const errorMsg = error.response?.data?.detail || 'Failed to login. Please try again.';

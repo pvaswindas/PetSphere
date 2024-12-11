@@ -238,14 +238,16 @@ class LogoutView(APIView):
         try:
             refresh_token = request.data["refresh_token"]
             email = request.data["email"]
+            print("REFRESH : ", refresh_token)
+            print("EMAIL : ", email)
             if not refresh_token:
+                print("NO REFRESH TOKEN")
                 return Response({"error": "Refresh token is required"},
                                 status=status.HTTP_400_BAD_REQUEST)
             token = RefreshToken(refresh_token)
             token.blacklist()
             redis_key = f"user_data:{email}"
             redis_client.delete(redis_key)
-
             return Response({"message": "Successfully logged out"},
                             status=status.HTTP_200_OK)
         except Exception as e:
