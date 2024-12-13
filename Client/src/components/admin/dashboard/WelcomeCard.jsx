@@ -3,7 +3,7 @@ import WelcomeImage from "../../../assets/admin/admin-dashboard-welcome-card.svg
 import { useSelector } from "react-redux"
 
 const WelcomeCard = () => {
-    const admin = useSelector((state) => state.admin.admin_profile)
+    const admin = useSelector((state) => state.profile.profile_data)
 
     return (
         <div className="relative w-full h-24 lg:h-28 flex items-center justify-start bg-gray-100 my-4 lg:my-6 rounded-[2.5rem] shadow-md overflow-hidden">

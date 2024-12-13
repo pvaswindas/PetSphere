@@ -7,11 +7,13 @@ import notificationIcon from "../../../assets/icon/notification-icon-active.svg"
 import saveIcon from "../../../assets/icon/save-icon.svg";
 import PostTypeModal from "../post/PostTypeModal";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const Navbar = () => {
   const logout = useLogout()
   const navigate = useNavigate()
   const [isModalOpen, setModalOpen] = useState(false)
+  const user = useSelector((state) => state.profile.profile_data)
 
   const handleLogout = async () => {
     const response = await logout()
@@ -81,7 +83,7 @@ const Navbar = () => {
               className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-gray-300 focus:outline-none"
             >
               <img
-                src="https://via.placeholder.com/40"
+                src={user?.profile_picture}
                 alt="Profile"
                 className="w-full h-full object-cover"
               />

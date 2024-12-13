@@ -2,25 +2,23 @@ import React from "react"
 import symbolLogo from "../../assets/logo/symbol-logo.png"
 import adminLogoutIcon from "../../assets/icon/logout-icon.svg"
 import { useNavigate } from "react-router-dom"
-import { useDispatch, useSelector } from "react-redux"
-import axiosInstance from "../../axios/axiosinstance"
-import { clearAdminProfile } from "../../redux/slices/AdminProfileSlice"
+import { useLogout } from "../../hooks/useLogout"
 
 const AdminSidebar = () => {
     const navigate = useNavigate()
-    const dispatch = useDispatch()
-    const email = useSelector((state) => state.admin.email)
+    const logout = useLogout()
 
     const handleLogout = async () => {
-        const refresh_token = localStorage.getItem("ST_REFRESH_TOKEN")
-        const response = await axiosInstance.post('accounts/logout/', { refresh_token, email })
-        if (response.status === 200) {
-            dispatch(clearAdminProfile())
-            localStorage.removeItem("ST_ACCESS_TOKEN")
-            localStorage.removeItem("ST_REFRESH_TOKEN")
-            navigate('/admin/login')
+        const response = await logout()
+    
+        if (response.success) {
+            navigate("/login")
+        } else {
+            console.log(response.message);
+            
         }
     }
+        
 
     return (
         <div className="h-[650px] w-[80px] bg-deepOceanBlue hover:bg-deep-ocean-blue-gradient rounded-3xl flex flex-col items-center py-5">

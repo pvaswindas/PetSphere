@@ -6,7 +6,7 @@ import symbolLogo from "../../../assets/logo/symbol-logo.png"
 import axios from 'axios'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { setAdminEmail, setAdminProfile } from '../../../redux/slices/AdminProfileSlice'
+import { setEmail, setProfile } from '../../../redux/slices/ProfileSlice'
 
 const LoginForm = () => {
     const [formData, setFormData] = useState({
@@ -38,10 +38,10 @@ const LoginForm = () => {
                 setError("Invalid credentials for a staff account.");
                 return;
             } else {
-                localStorage.setItem('ST_ACCESS_TOKEN', access);
-                localStorage.setItem('ST_REFRESH_TOKEN', refresh);
-                dispatch(setAdminProfile({ admin_profile : profile }));
-                dispatch(setAdminEmail({ email: profile.user.email }));
+                localStorage.setItem('ACCESS_TOKEN', access);
+                localStorage.setItem('REFRESH_TOKEN', refresh);
+                dispatch(setProfile({ profile_data : profile }));
+                dispatch(setEmail({ email: profile.user.email }));
                 navigate('/admin')
             }
         } catch (err) {

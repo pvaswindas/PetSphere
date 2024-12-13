@@ -3,7 +3,7 @@ import { FaCalendarAlt, FaBell } from "react-icons/fa"
 import { useSelector } from "react-redux"
 
 const AdminNavbar = () => {
-    const admin = useSelector((state) => state.admin.admin_profile)
+    const admin = useSelector((state) => state.profile.profile_data)
 
     return (
         <div className="w-full flex items-center bg-softSkyBlue px-2 py-2 lg:p-3 rounded-full shadow-md">
