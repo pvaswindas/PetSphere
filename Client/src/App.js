@@ -18,13 +18,15 @@ import EditFieldPage from "./pages/user-ui/profile/EditFieldPage";
 import EditUsernamePage from "./pages/user-ui/profile/EditUsernamePage";
 import AddPetStory from "./pages/user-ui/AddPetStory";
 import PostDisplay from "./pages/user-ui/profile/PostDisplay";
-import AdminLoginPage from "./pages/admin-ui/auth/AdminLoginPage";
 
+import AdminLoginPage from "./pages/admin-ui/auth/AdminLoginPage";
 import AdminDashboard from "./pages/admin-ui/dashboard/AdminDashboard";
+import ManagePetType from "./pages/admin-ui/ManagePetType";
+import ManageUpdates from "./pages/admin-ui/ManageUpdates";
 
 function App() {
   return (
-      <div className="bg-white lg:bg-gray-100">
+      <div className="bg-white lg:bg-gray-100 w-full p-0 m-0">
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={
@@ -55,6 +57,8 @@ function App() {
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminRestrictedRoute><AdminLoginPage /></AdminRestrictedRoute>} />
           <Route path="/admin" element={<AdminOnlyRoute><AdminDashboard /></AdminOnlyRoute>} />
+          <Route path="/admin/manage/pet" element={<AdminOnlyRoute><ManagePetType /></AdminOnlyRoute>} />
+          <Route path="/admin/manage/updates" element={<AdminOnlyRoute><ManageUpdates /></AdminOnlyRoute>} />
         </Routes>
       </div>
   );

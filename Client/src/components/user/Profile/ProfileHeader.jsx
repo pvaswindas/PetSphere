@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import editIcon from "../../../assets/icon/edit-icon.svg"
 import axiosInstance from '../../../axios/axiosinstance'
 import { setProfile } from '../../../redux/slices/ProfileSlice'
+import userAvatar from "../../../assets/icon/user-avatar.svg"
 
 const ProfileHeader = () => {
     const profile = useSelector((state) => state.profile.profile_data)
@@ -82,17 +83,11 @@ const ProfileHeader = () => {
 
             {/* Profile Image */}
             <div className="absolute bottom-[-50px] left-4 lg:left-8">
-                {profile?.profile_picture ? (
-                    <img
-                        src={profile.profile_picture}
-                        alt="Profile"
-                        className="w-[100px] h-[100px] lg:w-[140px] lg:h-[140px] rounded-full border-4 border-white object-cover"
-                    />
-                ) : (
-                    <div className="w-[100px] h-[100px] lg:w-[140px] lg:h-[140px] rounded-full border-4 border-white bg-gray-300 flex items-center justify-center">
-                        <span className="text-gray-600 font-bold text-lg"></span>
-                    </div>
-                )}
+                <img
+                    src={profile?.profile_picture || userAvatar}
+                    alt="Profile"
+                    className="w-[100px] h-[100px] lg:w-[140px] lg:h-[140px] rounded-full border-4 border-white object-cover"
+                />
             </div>
 
             {/* Confirm Card */}

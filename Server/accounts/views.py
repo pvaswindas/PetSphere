@@ -140,6 +140,25 @@ class UserDataStoreView(APIView):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+def validateUser(request):
+    username = request.data.get('username')
+    if not username:
+        return Response({"error": "Username is required"},
+                        status=status.HTTP_400_BAD_REQUEST)
+    try:
+        user = PetSphereUser.objects.get(username)
+        if user.is_staff:
+            return Response({"user_type": "admin"},
+                            status=status.HTTP_200_OK)
+        return Response({"user_type": "user"},
+                        status=status.HTTP_200_OK)
+    except PetSphereUser.DoesNotExist:
+        return Response({"error": "User not found"},
+                        status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def check_username(request):
     username = request.data.get('username', '').strip()
     if not username:
@@ -239,10 +258,7 @@ class LogoutView(APIView):
         try:
             refresh_token = request.data["refresh_token"]
             email = request.data["email"]
-            print("REFRESH : ", refresh_token)
-            print("EMAIL : ", email)
             if not refresh_token:
-                print("NO REFRESH TOKEN")
                 return Response({"error": "Refresh token is required"},
                                 status=status.HTTP_400_BAD_REQUEST)
             token = RefreshToken(refresh_token)

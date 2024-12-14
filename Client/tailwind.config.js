@@ -25,7 +25,9 @@ module.exports = {
         deepOceanBlue: '#2959A1',
         midnightBlue: '#08244E',
         softSkyBlue: '#ECF4FF',
-        pastelBlue: '#89ABE1'
+        pastelBlue: '#89ABE1',
+        darkDenimBlue: '#1E4681',
+        midnightNavy: '#1B3E73',
       },
       backgroundImage: {
         'og-gradient': 'linear-gradient(to right, #0FA59B, #904DAC)',

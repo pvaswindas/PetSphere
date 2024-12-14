@@ -8,6 +8,7 @@ import saveIcon from "../../../assets/icon/save-icon.svg";
 import PostTypeModal from "../post/PostTypeModal";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import userAvatar from "../../../assets/icon/user-avatar.svg"
 
 const Navbar = () => {
   const logout = useLogout()
@@ -83,7 +84,7 @@ const Navbar = () => {
               className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-gray-300 focus:outline-none"
             >
               <img
-                src={user?.profile_picture}
+                src={user?.profile_picture || userAvatar}
                 alt="Profile"
                 className="w-full h-full object-cover"
               />

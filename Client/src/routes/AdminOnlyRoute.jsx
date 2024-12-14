@@ -20,7 +20,7 @@ function AdminOnlyRoute({ children }) {
                 return true;
             }
         } catch (error) {
-            console.error('Token refresh failed:', error);
+            return false
         }
         return false;
     }, []);

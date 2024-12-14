@@ -7,6 +7,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { setEmail, setProfile } from "../../../redux/slices/ProfileSlice";
 import { useDispatch } from "react-redux";
+import AlertSnackbar from "../../Snackbar/AlertSnackbar";
 
 function LoginFormPanel() {
     const [formData, setFormData] = useState({
@@ -14,8 +15,9 @@ function LoginFormPanel() {
         password: ''
     });
 
-    const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false)
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -26,13 +28,14 @@ function LoginFormPanel() {
         }));
     };
 
+
     const isFormValid = 
         formData.username.trim().length >= 3 && 
         formData.password.length >= 8;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
+        setSnackbarMessage('');
         setIsLoading(true);
 
         try {
@@ -43,7 +46,8 @@ function LoginFormPanel() {
                 const { access, refresh, profile } = response.data;
 
                 if (profile.user.is_staff) {
-                    setError("Invalid credentials for a staff account.");
+                    setSnackbarMessage("Invalid credentials")
+                    setSnackbarOpen(true)
                     return;
                 } else {
                     localStorage.setItem('ACCESS_TOKEN', access);
@@ -54,10 +58,12 @@ function LoginFormPanel() {
                     navigate('/profile');
                 }
             } else {
-                setError("Invalid Credentials")
+                setSnackbarMessage("Invalid Credentials")
+                setSnackbarOpen(true)
             }
         } catch (error) {
-            setError('Invalid Credentials');
+            setSnackbarMessage('Invalid Credentials');
+            setSnackbarOpen(true)
         } finally {
             setIsLoading(false);
         }
@@ -65,6 +71,13 @@ function LoginFormPanel() {
 
     return (
         <div className="w-full h-full p-6 flex flex-col justify-center items-center">
+            <AlertSnackbar 
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type="error"
+                onClose={() => setSnackbarOpen(false)}
+            />
+
             <form onSubmit={handleSubmit} className="space-y-4 w-full lg:w-3/4">
                 <div className="items-left">
                     <h1 className="text-2xl text-labelGreen lg:text-4xl font-bold mt-4 lg:mt-6">Welcome Back!</h1>
@@ -95,7 +108,6 @@ function LoginFormPanel() {
                     </a>
                 </div>
 
-                {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
                 <Button
                     type="submit"

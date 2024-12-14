@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { FiEdit, FiTrash } from "react-icons/fi";
 import axiosInstance from "../../../axios/axiosinstance";
 import { setProfile } from "../../../redux/slices/ProfileSlice";
+import adminAvatar from "../../../assets/icon/user-avatar.svg"
 
 const EditProfileCard = () => {
     const profile = useSelector((state) => state.profile.profile_data);
@@ -102,17 +103,12 @@ const EditProfileCard = () => {
                 {/* Profile Picture */}
                 <div className="flex flex-col items-center mb-8">
                     <div className="relative group">
-                        {formData.profile_picture ? (
-                            <img
-                                src={formData.profile_picture}
-                                alt="Profile"
-                                className="w-36 h-36 lg:w-40 lg:h-40 rounded-full border-4 border-white object-cover hover:scale-105 transition-all duration-300"
-                            />
-                        ) : (
-                            <div className="w-36 h-36 lg:w-40 lg:h-40 rounded-full border-4 border-white bg-gray-300 flex items-center justify-center">
-                                <span className="text-gray-600">No Image</span>
-                            </div>
-                        )}
+                        <img
+                            src={formData?.profile_picture || adminAvatar}
+                            alt="Profile"
+                            className="w-36 h-36 lg:w-40 lg:h-40 rounded-full border-4 border-white object-cover hover:scale-105 transition-all duration-300"
+                        />
+
                         {/* Edit Icon */}
                         <FiEdit
                             className="absolute bottom-0 right-12 mb-2 mr-1 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full p-2 w-8 h-8 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300"

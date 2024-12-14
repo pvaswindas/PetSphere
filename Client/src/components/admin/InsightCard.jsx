@@ -1,7 +1,7 @@
 import React from "react"
-import DashboardWelcome from "../../../assets/admin/dashboardcard.svg"
+import DashboardWelcome from "../../assets/admin/dashboardcard.svg"
 
-const DashboardCard = () => {
+const InsightCard = () => {
     return (
         <div className="bg-softSkyBlue shadow-lg flex items-center justify-center rounded-[2.5rem] h-64 w-full">
             <div className="grid grid-cols-2 gap-4">
@@ -29,4 +29,4 @@ const DashboardCard = () => {
     )
 }
 
-export default DashboardCard
+export default InsightCard

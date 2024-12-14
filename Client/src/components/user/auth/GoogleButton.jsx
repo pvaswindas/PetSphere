@@ -1,13 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setEmail, setProfile } from "../../../redux/slices/ProfileSlice";
+import AlertSnackbar from "../../Snackbar/AlertSnackbar";
 
 function GoogleButton() {
     const navigate = useNavigate()
     const dispatch = useDispatch()
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
 
     const handleLoginSuccess = async (response) => {
         try {
@@ -25,22 +28,34 @@ function GoogleButton() {
     
             navigate('/profile/');
         } catch (error) {
-            console.error('Login failed:', error);
-            alert("Login failed.");
+            setSnackbarMessage("Login Failed, Please try again")
+            setSnackbarOpen(true)
         }
     };    
 
     const handleLoginFailure = (error) => {
-        console.error("Google login failed:", error);
+        setSnackbarMessage("Google Login Failed, Please try again")
+        setSnackbarOpen(true)
     };
-
     return (
-        <GoogleLogin
-            onSuccess={handleLoginSuccess}
-            onError={handleLoginFailure}
-            useOneTap
-        >
-        </GoogleLogin>
+        <div>
+            <AlertSnackbar 
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type="error"
+                onClose={() => setSnackbarOpen(false)}
+            />
+
+            <GoogleLogin
+                onSuccess={handleLoginSuccess}
+                onError={handleLoginFailure}
+                clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}
+                useOneTap
+                shape="pill"
+            >
+            </GoogleLogin>
+        </div>
+        
     );
 }
 

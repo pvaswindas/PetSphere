@@ -7,6 +7,7 @@ import axios from 'axios'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { setEmail, setProfile } from '../../../redux/slices/ProfileSlice'
+import AlertSnackbar from '../../Snackbar/AlertSnackbar'
 
 const LoginForm = () => {
     const [formData, setFormData] = useState({
@@ -18,13 +19,15 @@ const LoginForm = () => {
     const navigate = useNavigate()
 
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("")
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
     
         if (!formData.username || !formData.password) {
-            setError("Username and password are required.");
+            setSnackbarMessage("Username and password are required.");
+            setSnackbarOpen(true)
             return;
         }
     
@@ -32,11 +35,18 @@ const LoginForm = () => {
             setIsLoading(true);
             const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
             const response = await axios.post(`${apiBaseUrl}accounts/login/`, formData);
+
+            if (response.status === 400) {
+                setSnackbarMessage("Invalid credentials for a staff account.")
+                setSnackbarOpen(true)
+                return
+            }
     
             const { access, refresh, profile } = response.data;
             if (!profile.user.is_staff) {
-                setError("Invalid credentials for a staff account.");
-                return;
+                setSnackbarMessage("Invalid credentials for a staff account.");
+                setSnackbarOpen(true)
+                return
             } else {
                 localStorage.setItem('ACCESS_TOKEN', access);
                 localStorage.setItem('REFRESH_TOKEN', refresh);
@@ -45,7 +55,8 @@ const LoginForm = () => {
                 navigate('/admin')
             }
         } catch (err) {
-            setError("Login failed. Please try again.");
+            setSnackbarMessage("Login failed. Please try again.");
+            setSnackbarOpen(true)
             return
         } finally {
             setIsLoading(false);
@@ -59,8 +70,16 @@ const LoginForm = () => {
         }));
     };
 
+
     return (
         <div className="flex items-center w-full py-10 justify-center">
+            <AlertSnackbar 
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type="error"
+                onClose={() => setSnackbarOpen(false)}
+            />
+
             <div className="bg-blackOpacity30 p-6 rounded-2xl shadow-lg w-full max-w-sm sm:py-6 md:w-2/3">
                 <div className="flex flex-col items-center">
                     <img src={symbolLogo} alt="Symbol Logo" className="w-24"/>
@@ -97,7 +116,6 @@ const LoginForm = () => {
                         onChange={(value) => handleChange("password", value)}
                     />
 
-                    {error && <p className="text-red-500 text-center text-sm">{error}</p>}
 
                     <Button 
                         type="submit"
