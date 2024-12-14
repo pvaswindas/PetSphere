@@ -1,34 +1,55 @@
 from celery import shared_task
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 from django.conf import settings
 from django.template.loader import render_to_string
 from .utils.tokens import token_generator
 
 
 @shared_task
-def send_otp_email(user_email, otp):
-    subject = 'Your OTP for Email Verification'
-    message = f'Your OTP is {otp}. Please use this OTP to verify your email.'
+def send_otp_email(user_email, otp, expiry_minutes):
+    subject = 'Your OTP for Registration on PetSphere'
+    message = render_to_string(
+        "emails/registration/registration_otp.html",
+        {"otp": otp, "expiry_minutes": expiry_minutes}
+    )
     from_email = settings.EMAIL_HOST_USER
     recipient_list = [user_email]
 
+    email = EmailMessage(
+        subject=subject,
+        body=message,
+        from_email=from_email,
+        to=recipient_list,
+    )
+    email.content_subtype = "html"
+
     try:
-        send_mail(subject, message, from_email, recipient_list)
+        email.send()
         return f'OTP sent to {user_email}'
     except Exception as e:
         return f'Failed to send OTP: {str(e)}'
 
 
 @shared_task
-def send_password_otp_email(user_email, otp):
+def send_password_otp_email(user_email, otp, username, expiry_minutes):
     subject = 'Reset Your Password: Verification Code Inside'
-    message = render_to_string("emails/forgot_password_email.txt",
-                               {"otp": otp})
+    message = render_to_string(
+        "emails/forgot_password/forgot_password_email.html",
+        {"otp": otp, "username": username, "expiry_minutes": expiry_minutes}
+    )
     from_email = settings.EMAIL_HOST_USER
     recipient_list = [user_email]
 
+    email = EmailMessage(
+        subject=subject,
+        body=message,
+        from_email=from_email,
+        to=recipient_list,
+    )
+    email.content_subtype = "html"
+
     try:
-        send_mail(subject, message, from_email, recipient_list)
+        email.send()
         return f'OTP sent to {user_email}'
     except Exception as e:
         return f'Failed to send OTP: {str(e)}'

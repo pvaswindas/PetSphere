@@ -3,9 +3,14 @@ import React from "react";
 function Button({
     type="button",
     text="Submit",
+    textColor = "text-white",
+    rounded = "rounded-full",
+    paddingx = "px-4",
+    paddingy = "py-2",
     onClick = () => {},
     isLoading = false,
     disabled = false,
+    isLoadingBackground = 'bg-labelGreen ',
     className = "",
     loadingText = "Loading...",
     backgroundColor = "bg-labelGreen",
@@ -17,9 +22,9 @@ function Button({
             onClick={onClick}
             disabled={isLoading || disabled}
             className={`
-                px-4 py-2 rounded-full text-white trasition-colors duration-300
+                ${paddingx} ${paddingy} ${rounded} ${textColor} transition-colors duration-300
                 ${isLoading || disabled
-                    ? "bg-gray-400 cursor-not-allowed"
+                    ? `${isLoadingBackground} cursor-not-allowed`
                     : `${backgroundColor} ${hoverBackgroundColor}`}
                 } ${className}
             `}
@@ -28,6 +33,5 @@ function Button({
         </button>
     )
 }
-
 
 export default Button;

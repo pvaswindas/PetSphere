@@ -9,10 +9,22 @@ class PetSphereUserSerializer(serializers.ModelSerializer):
         model = PetSphereUser
         fields = [
             'id', 'username', 'email', 'name', 'mobile_no',
-            'profile_picture', 'updated_at', 'is_pending',
-            'is_suspended'
+            'updated_at', 'is_pending', 'is_suspended',
+            'is_superuser', 'is_staff', 'is_active',
         ]
         read_only_fields = ['id', 'updated_at']
+
+
+class UserDataStoreSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True,
+                                     min_length=8)
+
+    class Meta:
+        model = PetSphereUser
+        fields = ['email', 'password']
+
+    def validate_password(self, value):
+        return validate_password(value)
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -21,7 +33,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PetSphereUser
-        fields = ['username', 'email', 'password']
+        fields = ['email', 'username', 'password']
 
     def validate_password(self, value):
         return validate_password(value)

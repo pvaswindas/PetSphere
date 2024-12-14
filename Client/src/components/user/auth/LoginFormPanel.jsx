@@ -4,6 +4,10 @@ import PasswordInput from "../../forms/PasswordInput";
 import Button from "../../forms/Button";
 import GoogleButton from "./GoogleButton";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { setEmail, setProfile } from "../../../redux/slices/ProfileSlice";
+import { useDispatch } from "react-redux";
+import AlertSnackbar from "../../Snackbar/AlertSnackbar";
 
 function LoginFormPanel() {
     const [formData, setFormData] = useState({
@@ -11,8 +15,11 @@ function LoginFormPanel() {
         password: ''
     });
 
-    const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false)
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const handleChange = (field, value) => {
         setFormData((prev) => ({
@@ -21,25 +28,42 @@ function LoginFormPanel() {
         }));
     };
 
+
+    const isFormValid = 
+        formData.username.trim().length >= 3 && 
+        formData.password.length >= 8;
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
+        setSnackbarMessage('');
         setIsLoading(true);
 
         try {
-            const apiBaseUrl = process.env.REACT_APP_API_BASE_URL
+            const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
             const response = await axios.post(`${apiBaseUrl}accounts/login/`, formData);
 
-            const { access, refresh, user } = response.data;
+            if (response.status === 200) {
+                const { access, refresh, profile } = response.data;
 
-            localStorage.setItem('access_token', access);
-            localStorage.setItem('refresh_token', refresh);
-            localStorage.setItem('user', JSON.stringify(user));
+                if (profile.user.is_staff) {
+                    setSnackbarMessage("Invalid credentials")
+                    setSnackbarOpen(true)
+                    return;
+                } else {
+                    localStorage.setItem('ACCESS_TOKEN', access);
+                    localStorage.setItem('REFRESH_TOKEN', refresh);
+                    dispatch(setProfile({ profile_data: profile }));
+                    dispatch(setEmail({ email: profile.user.email }));
 
-            console.log('Logged in user : ', user);
+                    navigate('/profile');
+                }
+            } else {
+                setSnackbarMessage("Invalid Credentials")
+                setSnackbarOpen(true)
+            }
         } catch (error) {
-            const errorMsg = error.response?.data?.detail || 'Failed to login. Please try again.';
-            setError(errorMsg);
+            setSnackbarMessage('Invalid Credentials');
+            setSnackbarOpen(true)
         } finally {
             setIsLoading(false);
         }
@@ -47,15 +71,19 @@ function LoginFormPanel() {
 
     return (
         <div className="w-full h-full p-6 flex flex-col justify-center items-center">
-            {/* Form Wrapper */}
-            <form onSubmit={handleSubmit} className="space-y-4 w-full lg:w-3/4 ">
-                {/* Heading Section */}
+            <AlertSnackbar 
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type="error"
+                onClose={() => setSnackbarOpen(false)}
+            />
+
+            <form onSubmit={handleSubmit} className="space-y-4 w-full lg:w-3/4">
                 <div className="items-left">
                     <h1 className="text-2xl text-labelGreen lg:text-4xl font-bold mt-4 lg:mt-6">Welcome Back!</h1>
                     <h4 className="text-lightGreen mb-4 lg:mb-9">Sign in to your account</h4>
                 </div>
-                
-                {/* Username Input */}
+
                 <TextFieldInput
                     label="Username"
                     id="username"
@@ -66,7 +94,6 @@ function LoginFormPanel() {
                     errorMessage="Username is required"
                 />
 
-                {/* Password Input */}
                 <PasswordInput
                     label="Password"
                     id="password"
@@ -75,26 +102,22 @@ function LoginFormPanel() {
                     onChange={(value) => handleChange("password", value)}
                 />
 
-                {/* Forgot Password link */}
                 <div className="flex justify-end">
                     <a href="/forgot-password" className="text-lightGreen hover:text-labelGreen text-sm">
                         Forgot Password?
                     </a>
                 </div>
 
-                {/* Error Message */}
-                {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
-                {/* Submit Button */}
                 <Button
                     type="submit"
                     text="Login"
                     isLoading={isLoading}
                     loadingText="Logging in..."
                     className="w-full"
+                    disabled={!isFormValid}
                 />
 
-                {/* OR Separator */}
                 <div className="flex items-center justify-center space-x-2">
                     <span className="h-px w-1/2 bg-lineGreen"></span>
                     <span className="text-lineTextGreen">OR</span>
@@ -103,7 +126,6 @@ function LoginFormPanel() {
 
                 <GoogleButton />
 
-                {/* Sign Up Link */}
                 <div className="flex justify-center">
                     <p className="text-sm text-lightGreen text-center">
                         Don’t have an account?{" "}

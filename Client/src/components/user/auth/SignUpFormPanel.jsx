@@ -1,22 +1,25 @@
 import React, { useState } from "react";
-import TextFieldInput from "../../forms/TextInput";
 import PasswordInput from "../../forms/PasswordInput";
 import Button from "../../forms/Button";
 import GoogleButton from "./GoogleButton";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { setEmail } from "../../../redux/slices/ProfileSlice"
+import EmailInput from "../../forms/EmailInput";
 
 function SignUpFormPanel() {
     const [formData, setFormData] = useState({
-        username: '',
         password: '',
         email: '',
     });
 
     const navigate = useNavigate()
+    const dispatch = useDispatch()
 
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
 
     const handleChange = (field, value) => {
         setFormData((prev) => ({
@@ -29,27 +32,35 @@ function SignUpFormPanel() {
         e.preventDefault();
         setError('');
         setIsLoading(true);
-
         try {
-            const response = await axios.post('http://localhost:8000/api/accounts/register/', formData);
-
-            const { access, refresh, user } = response.data;
-
-            localStorage.setItem('access_token', access);
-            localStorage.setItem('refresh_token', refresh);
-            localStorage.setItem('user', JSON.stringify(user));
-            navigate('/feed')
-            
+            const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+            const response = await axios.post(`${apiBaseUrl}accounts/user-data-store/`, {
+                user_data: formData,
+                email: formData.email,
+            });
+            if (response.status === 201) {
+                dispatch(setEmail(formData.email));
+                const response_otp = await axios.post(`${apiBaseUrl}accounts/sendotp/`, {
+                    email: formData.email,
+                });
+                if (response_otp.status === 200) {
+                    navigate('/signup/otp');
+                } else {
+                    setError('Failed to send OTP, please try again.');
+                }
+            } else {
+                setError("Failed to create account, please try again.");
+            }
         } catch (error) {
-            const errorMsg = error.response?.data?.detail || 'Failed to sign up. Please try again.';
-            setError(errorMsg);
+            setError("An error occurred. Please try again later.");
         } finally {
             setIsLoading(false);
         }
     };
+    
 
     return (
-        <div className="w-full h-full p-6 flex flex-col justify-center items-center">
+        <div className="w-full h-90 p-6 flex flex-col justify-center items-center">
             {/* Form Wrapper */}
             <form onSubmit={handleSubmit} className="space-y-4 w-full lg:w-3/4 ">
                 {/* Heading Section */}
@@ -57,20 +68,9 @@ function SignUpFormPanel() {
                     <h1 className="text-2xl text-labelGreen lg:text-4xl font-bold mt-4 lg:mt-6">Create an Account</h1>
                     <h4 className="text-lightGreen mb-4 lg:mb-9">Sign up to get started</h4>
                 </div>
-                
-                {/* Username Input */}
-                <TextFieldInput
-                    label="Username"
-                    id="username"
-                    name="username"
-                    placeholder="Enter your username"
-                    value={formData.username}
-                    onChange={(value) => handleChange('username', value)}
-                    errorMessage="Username is required"
-                />
 
                 {/* Email Input */}
-                <TextFieldInput
+                <EmailInput 
                     label="Email"
                     id="email"
                     name="email"

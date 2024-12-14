@@ -11,6 +11,11 @@ class Profile(models.Model):
         null=True,
         blank=True,
     )
+    profile_picture = models.ImageField(
+        upload_to="profile_pics/",
+        null=True,
+        blank=True
+    )
     is_private = models.BooleanField(default=False)
     push_notification = models.BooleanField(default=False)
     follower_count = models.PositiveBigIntegerField(default=0)

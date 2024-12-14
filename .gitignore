@@ -1,6 +1,7 @@
 #BACKEND IGNORE
 venv
 Server/.env
+Server/media
 
 
 # FRONTEND IGNORES
