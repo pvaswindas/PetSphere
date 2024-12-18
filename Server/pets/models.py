@@ -27,3 +27,8 @@ class PetBreed(models.Model):
     slug = models.SlugField(max_length=255, unique=True)
     icon = models.ImageField(upload_to='pet_breed_icons/', blank=True,
                              null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)

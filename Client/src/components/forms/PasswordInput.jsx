@@ -63,6 +63,7 @@ function PasswordInput({
                     onChange={handleChange}
                     className={`px-4 py-2 w-full ${borderColor} ${mainBackground} ${textColor} ${borderRadius} shadow-sm focus:outline-none
                         focus:ring-1 ${focusBorderColor} ${!isValid ? 'border-red-500' : ''}`}
+                    autoComplete="current-password"
                 />
                 {/* Toggle password visibility */}
                 <button

@@ -1,12 +1,10 @@
-import React, { useState } from "react"
-import AdminLayout from "../../components/admin/AdminLayout"
-import FlexiCard from "./FlexiCard" 
+import React from "react"
+import FlexiCard from "../FlexiCard"
 
-const ManageUpdates = () => {
-    const [activeIcon, setActiveIcon] = useState("manage-updates")
+const AnnouncementContent = () => {
 
     return (
-        <AdminLayout activeIcon={activeIcon} setActiveIcon={setActiveIcon}>
+        <div>
             {/* Content Section */}
             <div className="flex flex-col my-4">
                 <h1 className="text-xl lg:text-2xl font-medium text-midnightBlue">Manage Feed Updates</h1>
@@ -15,11 +13,11 @@ const ManageUpdates = () => {
                 </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FlexiCard />
-                <FlexiCard />
+                <FlexiCard title={"Add Updates"} description={"Add new updates for users to stay engaged and informed."} />
+                <FlexiCard title={"Recent Updates"} description={"View and manage the latest updates."} />
             </div>
-        </AdminLayout>
+        </div>
     )
 }
 
-export default ManageUpdates
+export default AnnouncementContent

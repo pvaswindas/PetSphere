@@ -28,6 +28,8 @@ const AdminNavbar = () => {
                 <div className="flex items-center w-4/5 lg:w-full bg-white px-4 py-2 rounded-full shadow-sm">
                     <input
                         type="text"
+                        id="search"
+                        name="search"
                         placeholder="Search..."
                         className="flex-1 bg-transparent w-10 outline-none text-gray-700 text-sm lg:text-base"
                     />

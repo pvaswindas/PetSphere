@@ -21,8 +21,8 @@ import PostDisplay from "./pages/user-ui/profile/PostDisplay";
 
 import AdminLoginPage from "./pages/admin-ui/auth/AdminLoginPage";
 import AdminDashboard from "./pages/admin-ui/dashboard/AdminDashboard";
-import ManagePetType from "./pages/admin-ui/ManagePetType";
-import ManageUpdates from "./pages/admin-ui/ManageUpdates";
+import PetCatalogManager from "./pages/admin-ui/PetCatalogManager";
+import AnnouncementsManager from "./pages/admin-ui/AnnouncementsManager";
 
 function App() {
   return (
@@ -57,8 +57,8 @@ function App() {
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminRestrictedRoute><AdminLoginPage /></AdminRestrictedRoute>} />
           <Route path="/admin" element={<AdminOnlyRoute><AdminDashboard /></AdminOnlyRoute>} />
-          <Route path="/admin/manage/pet" element={<AdminOnlyRoute><ManagePetType /></AdminOnlyRoute>} />
-          <Route path="/admin/manage/updates" element={<AdminOnlyRoute><ManageUpdates /></AdminOnlyRoute>} />
+          <Route path="/admin/manage/pet" element={<AdminOnlyRoute><PetCatalogManager /></AdminOnlyRoute>} />
+          <Route path="/admin/manage/updates" element={<AdminOnlyRoute><AnnouncementsManager /></AdminOnlyRoute>} />
         </Routes>
       </div>
   );

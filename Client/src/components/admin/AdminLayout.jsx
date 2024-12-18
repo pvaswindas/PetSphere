@@ -3,6 +3,7 @@ import WelcomeCard from "./dashboard/WelcomeCard"
 import AdminSidebar from "./AdminSidebar"
 import AdminNavbar from "./navbar/AdminNavbar"
 import InsightCard from "./InsightCard"
+import CalendarViewCard from "./CalendarViewCard"
 
 const AdminLayout = ({ activeIcon, setActiveIcon, children, showWelcomeCard }) => {
     return (
@@ -31,8 +32,9 @@ const AdminLayout = ({ activeIcon, setActiveIcon, children, showWelcomeCard }) =
             </div>
 
             {/* Right Section */}
-            <div className="hidden lg:block fixed top-0 right-0 h-full w-[25%] m-7">
+            <div className="hidden lg:flex flex-col fixed top-0 right-0 h-full w-[25%] m-7">
                 <InsightCard />
+                <CalendarViewCard />
             </div>
         </div>
     )

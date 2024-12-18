@@ -4,11 +4,13 @@ import storage from 'redux-persist/lib/storage';
 import profileReducer from './slices/ProfileSlice'
 import postReducer from './slices/PostSlice'
 import adminReducer from "./slices/AdminProfileSlice"
+import petReducer from "./slices/PetSlice"
 
 const rootReducer = combineReducers({
     profile: profileReducer,
     posts: postReducer,
     admin: adminReducer,
+    pets: petReducer,
 });
 
 const persistConfig = {

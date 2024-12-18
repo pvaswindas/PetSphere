@@ -25,6 +25,7 @@ module.exports = {
         deepOceanBlue: '#2959A1',
         midnightBlue: '#08244E',
         softSkyBlue: '#ECF4FF',
+        denimBlue: '#7191C5',
         pastelBlue: '#89ABE1',
         darkDenimBlue: '#1E4681',
         midnightNavy: '#1B3E73',
