@@ -13,7 +13,7 @@ const AdminDashboard = () => {
                 <h1 className="text-xl lg:text-2xl font-medium text-midnightBlue">Recent Metrics</h1>
                 <Button
                     type="button"
-                    text="Export"
+                    text="Export"   
                     textColor="text-white"
                     rounded="rounded-full"
                     paddingx="px-5 lg:px-10"

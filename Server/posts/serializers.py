@@ -25,10 +25,6 @@ class PostImageSerializer(serializers.ModelSerializer):
             representation['image'] = self.get_absolute_url(
                 instance.image.url
             )
-        if instance.image:
-            representation['image'] = self.get_absolute_url(
-                instance.image.url
-            )
         return representation
 
 

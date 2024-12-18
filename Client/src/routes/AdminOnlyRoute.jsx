@@ -20,9 +20,9 @@ function AdminOnlyRoute({ children }) {
                 return true;
             }
         } catch (error) {
-            return false
+            console.error('Token refresh failed:', error);
+            return false;
         }
-        return false;
     }, []);
 
     const validateAccessToken = useCallback(async () => {
@@ -43,19 +43,19 @@ function AdminOnlyRoute({ children }) {
     }, [refreshAccessToken]);
 
     useEffect(() => {
-        (async () => {
+        const checkAuthorization = async () => {
             const isValid = await validateAccessToken();
             if (isValid && admin?.user?.is_staff) {
                 setIsAuthorized(true);
             } else {
                 setIsAuthorized(false);
+                localStorage.removeItem('ACCESS_TOKEN');
+                localStorage.removeItem('REFRESH_TOKEN');
+                navigate('/admin/login');
             }
-        })();
-    }, [validateAccessToken, admin]);
-
-    useEffect(() => {
-        if (isAuthorized === false) navigate('/admin/login');
-    }, [isAuthorized, navigate]);
+        };
+        checkAuthorization();
+    }, [validateAccessToken, admin, navigate]);
 
     if (isAuthorized === null) return <div>Loading...</div>;
 

@@ -14,6 +14,7 @@ function TextFieldInput({
     errorNull = true,
     errorMessage = 'This field is required',
     textColor = "text-labelGreen",
+    padding = "px-4 py-2",
     value,
     margin = "my-3",
     onChange,
@@ -39,8 +40,9 @@ function TextFieldInput({
                 value={value}
                 autoComplete="off"
                 onChange={handleChange}
-                className={`px-4 py-2 ${borderColor} ${borderRadius} ${textColor} ${mainBackground} shadow-sm focus:outline-none
+                className={`${padding} ${borderColor} ${borderRadius} ${textColor} ${mainBackground} shadow-sm focus:outline-none
                     focus:ring-1 ${focusBorderColor} ${!isValid ? 'border-red-700' : ''}`}
+                maxLength={25}
             />
             {/* Show error only if errorNull is true */}
             {errorNull && !isValid && (

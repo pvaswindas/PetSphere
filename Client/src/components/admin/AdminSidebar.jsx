@@ -73,21 +73,21 @@ const AdminSidebar = ({ activeIcon, setActiveIcon }) => {
                     />
                 </div>
                 <div
-                    className={getIconClasses("reports")}
-                >
-                    <img
-                        src={reportsIcon}
-                        alt="reports"
-                        className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"
-                    />
-                </div>
-                <div
                     className={getIconClasses("manage-pet-type")}
                     onClick={() => navigate('/admin/manage/pet')}
                 >
                     <img
                         src={petsIcon}
                         alt="pets"
+                        className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"
+                    />
+                </div>
+                <div
+                    className={getIconClasses("reports")}
+                >
+                    <img
+                        src={reportsIcon}
+                        alt="reports"
                         className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"
                     />
                 </div>
