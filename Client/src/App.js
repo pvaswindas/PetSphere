@@ -23,11 +23,15 @@ import AdminLoginPage from "./pages/admin-ui/auth/AdminLoginPage";
 import AdminDashboard from "./pages/admin-ui/dashboard/AdminDashboard";
 import PetCatalogManager from "./pages/admin-ui/PetCatalogManager";
 import AnnouncementsManager from "./pages/admin-ui/AnnouncementsManager";
+import Landing from "./pages/Landing";
 
 function App() {
   return (
       <div className="bg-white lg:bg-gray-100 w-full p-0 m-0">
         <Routes>
+          {/* Landing Route */}
+          <Route path="" element={<RestrictedRoute><Landing /></RestrictedRoute>} />
+
           {/* Public Routes */}
           <Route path="/login" element={
             <RestrictedRoute>

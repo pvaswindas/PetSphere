@@ -50,7 +50,7 @@ function ProtectedRoute({ children }) {
     useEffect(() => {
         if (isAuthorized === null) return;
         if (!isAuthorized) {
-            navigate('/login');
+            navigate('/');
         }
     }, [isAuthorized, navigate]);
 
