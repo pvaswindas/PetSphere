@@ -16,6 +16,9 @@ class Pet(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return self.name
+
 
 class PetBreed(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -25,10 +28,11 @@ class PetBreed(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     slug = models.SlugField(max_length=255, unique=True)
-    icon = models.ImageField(upload_to='pet_breed_icons/', blank=True,
-                             null=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name

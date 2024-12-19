@@ -26,6 +26,9 @@ class PetListView(APIView):
 
     def post(self, request):
         data = request.data
+        if not data:
+            return Response({"error": "Proper data is needed"},
+                            status=status.HTTP_400_BAD_REQUEST)
         serializer = PetSerializer(data=data,
                                    context={'request': request})
         if serializer.is_valid():
@@ -35,7 +38,6 @@ class PetListView(APIView):
 
 
 class PetBreedListView(APIView):
-    parser_classes = [MultiPartParser, FormParser]
 
     def get_permissions(self):
         if self.request.method == 'POST':
@@ -47,8 +49,15 @@ class PetBreedListView(APIView):
         if not petbreeds:
             return Response({"detail": "No pet breed found"},
                             status=status.HTTP_204_NO_CONTENT)
-        serializer = PetBreedSerializer(petbreeds, many=True,
-                                        context={'request': request})
+        serializer = PetBreedSerializer(petbreeds, many=True,)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def post(self, request):
+        data = request.data
+        if not data:
+            return Response({"error": "Proper data is needed"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        serializer = PetBreedSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

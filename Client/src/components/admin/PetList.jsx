@@ -9,20 +9,22 @@ const PetList = ({ data, handleEdit, handleDelete, type, title, description }) =
             title={title}
             description={description}
         >
-            {data.length === 0 ? (
-                <p className="text-center text-sm text-darkDenimBlue">No {type} available.</p>
+            {data?.length === 0 ? (
+                <p className="text-center text-sm mt-40 text-darkDenimBlue">No {type} available.</p>
             ) : (
                 <ul className="space-y-4 my-4">
-                    {data.map((item, index) => (
+                    {data?.map((item, index) => (
                         <React.Fragment key={item.id}>
                             <li className="flex items-center justify-between">
                                 {/* Left side: Image and Name */}
                                 <div className="flex items-center space-x-4">
-                                    <img 
-                                        src={item.icon} 
-                                        alt={`${item.name} icon`} 
-                                        className="w-10 h-10 rounded-full object-contain border border-gray-300"
-                                    />
+                                    {type !== 'pet breed' && (
+                                        <img 
+                                            src={item.icon} 
+                                            alt={`${item.name} icon`} 
+                                            className="w-10 h-10 rounded-full object-contain border border-gray-300"
+                                        />
+                                    )}
                                     <div>
                                         <p className="font-medium text-sm">{item.name}</p>
                                         <p className="text-xs text-gray-500 max-w-[222px] break-words">

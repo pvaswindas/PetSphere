@@ -13,7 +13,8 @@ class PetAdmin(admin.ModelAdmin):
 
 @admin.register(PetBreed)
 class PetBreedAdmin(admin.ModelAdmin):
-    list_display = ('name', 'pet_type', 'slug', 'created_at', 'updated_at')
+    list_display = ('name', 'pet_type__name', 'slug', 'created_at',
+                    'updated_at')
     search_fields = ('name', 'pet_type__name')
     prepopulated_fields = {'slug': ('name',)}
     list_filter = ('created_at', 'updated_at', 'pet_type')

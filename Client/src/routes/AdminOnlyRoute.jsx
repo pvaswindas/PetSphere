@@ -45,8 +45,13 @@ function AdminOnlyRoute({ children }) {
     useEffect(() => {
         const checkAuthorization = async () => {
             const isValid = await validateAccessToken();
-            if (isValid && admin?.user?.is_staff) {
-                setIsAuthorized(true);
+            if (isValid) {
+                if (admin?.user?.is_staff) {
+                    setIsAuthorized(true);
+                } else {
+                    setIsAuthorized(false);
+                    navigate('/admin/login');
+                }
             } else {
                 setIsAuthorized(false);
                 localStorage.removeItem('ACCESS_TOKEN');
@@ -57,7 +62,9 @@ function AdminOnlyRoute({ children }) {
         checkAuthorization();
     }, [validateAccessToken, admin, navigate]);
 
-    if (isAuthorized === null) return <div>Loading...</div>;
+    if (isAuthorized === null) {
+        return <div>Loading...</div>
+    }
 
     return isAuthorized ? children : null;
 }
