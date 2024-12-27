@@ -1,15 +1,13 @@
 import axiosInstance from "../axios/axiosinstance"
-import { setPetBreed } from "../redux/slices/PetSlice"
 
 
-export const retrieveAvailablePetBreeds = async (dispatch, pet_type) => {
+export const retrievePetBreeds = async (pet_type_id) => {
     try {
-        const response = await axiosInstance.get(`pet/breeds/${pet_type}`)
+        const response = await axiosInstance.get(`pet/breeds/${pet_type_id}`)
 
         if (response.status === 204) {
             return []
         } else {
-            dispatch(setPetBreed({ petBreeds: response.data }))
             return response.data
         }
     } catch (error) {

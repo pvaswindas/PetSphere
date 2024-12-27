@@ -1,10 +1,10 @@
 import React from "react"
-import Navbar from "../../components/user/Navbar/Navbar"
-import Sidebar from "../../components/user/sidebar/Sidebar"
-import ProfileViewBar from "../../components/user/sidebar/ProfileViewBar"
-import AddPetStoryCard from "../../components/user/post/AddPetStoryCard"
+import Navbar from "../../../components/user/Navbar/Navbar"
+import Sidebar from "../../../components/user/sidebar/Sidebar"
+import ProfileViewBar from "../../../components/user/sidebar/ProfileViewBar"
+import AddPetListingCard from "../../../components/user/post/AddPetListingCard"
 
-function AddPetStory() {
+function AddPetListing() {
     return (
         <div className="bg-whiteOpacity02 min-h-screen">
             {/* Navbar */}
@@ -24,11 +24,11 @@ function AddPetStory() {
                 {/* Content Section */}
                 <div className="flex-1 w-full lg:w-3/5 mx-auto lg:px-2 overflow-y-auto">
                     {/* Profile Card */}
-                    <AddPetStoryCard />
+                    <AddPetListingCard />
                 </div>
             </div>
         </div>
     )
 }
 
-export default AddPetStory
+export default AddPetListing

@@ -1,8 +1,13 @@
 from django.urls import path
-from .views import UserPostListCreateView, UserPostDetailView
+from .views import (
+     UserPostListCreateView, UserPostDetailView,
+     listingdatastore
+)
 
 urlpatterns = [
      path('', UserPostListCreateView.as_view(), name='user-post-list-create'),
+     path('listingdatastore/', listingdatastore,
+          name='pet-listing-data-store'),
      path('<str:slug>/', UserPostDetailView.as_view(),
           name='user-post-detail'),
 ]

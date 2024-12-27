@@ -44,12 +44,17 @@ class PetBreedListView(APIView):
             return [IsAdminUser()]
         return [IsAuthenticated()]
 
-    def get(self, request):
-        petbreeds = PetBreed.objects.all()
-        if not petbreeds:
+    def get(self, request, pet_type=None):
+        if pet_type:
+            pet_breeds = PetBreed.objects.filter(pet_type__name=pet_type)
+        else:
+            pet_breeds = PetBreed.objects.all()
+
+        if not pet_breeds:
             return Response({"detail": "No pet breed found"},
                             status=status.HTTP_204_NO_CONTENT)
-        serializer = PetBreedSerializer(petbreeds, many=True,)
+
+        serializer = PetBreedSerializer(pet_breeds, many=True,)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def post(self, request):

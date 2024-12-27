@@ -23,18 +23,8 @@ const Navbar = () => {
       navigate("/login")
     } else {
       console.log(response.message);
-      
     }
   }
-
-  const handlePostTypeSelect = (type) => {
-    setModalOpen(false);
-    if (type === "PetStories") {
-      console.log("Redirecting to PetStories post creation...");
-    } else if (type === "PetListings") {
-      console.log("Redirecting to PetListings post creation...");
-    }
-  };
 
   return (
     <>
@@ -107,7 +97,6 @@ const Navbar = () => {
       <PostTypeModal
         isOpen={isModalOpen}
         onClose={() => setModalOpen(false)}
-        onSelect={handlePostTypeSelect}
       />
     </>
   );

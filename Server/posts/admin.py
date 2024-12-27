@@ -54,6 +54,6 @@ class PetListingImageAdmin(admin.ModelAdmin):
 
 @admin.register(PetListingLocation)
 class PetListingLocationAdmin(admin.ModelAdmin):
-    list_display = ('pet_listing', 'location_name', 'city', 'state',
+    list_display = ('pet_listing', 'address', 'city', 'state',
                     'zip_code', 'latitude', 'longitude')
-    search_fields = ('location_name', 'city', 'state', 'pet_listing__pet_name')
+    search_fields = ('address', 'city', 'state', 'pet_listing__pet_name')

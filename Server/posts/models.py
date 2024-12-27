@@ -34,6 +34,7 @@ class PetListing(models.Model):
     pet_type = models.ForeignKey(Pet, on_delete=models.DO_NOTHING)
     breed = models.ForeignKey(PetBreed, on_delete=models.DO_NOTHING)
     description = models.TextField(null=True, blank=True)
+    slug = models.SlugField(unique=True, blank=True, null=True)
     gender = models.CharField(max_length=15)
     age = models.PositiveBigIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -53,7 +54,7 @@ class PetListingImage(models.Model):
 class PetListingLocation(models.Model):
     pet_listing = models.ForeignKey(PetListing, on_delete=models.CASCADE,
                                     related_name='location')
-    location_name = models.CharField(max_length=255)
+    address = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
     state = models.CharField(max_length=255)
     zip_code = models.CharField(max_length=15)

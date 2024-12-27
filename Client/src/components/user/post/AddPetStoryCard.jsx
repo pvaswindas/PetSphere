@@ -80,7 +80,7 @@ const AddPetStoryCard = () => {
         })
 
         try {
-            const response = await axiosInstance.post("posts/", formData, {
+            const response = await axiosInstance.post("posts/", {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -92,7 +92,7 @@ const AddPetStoryCard = () => {
 
         setContent("")
         setImages([])
-        navigate(-1)
+        navigate('/profile')
     }
 
     const renderAspectButtons = () => {
