@@ -36,6 +36,9 @@ function OtpInput({ length = 6, onChange }) {
                     className="w-10 h-10 text-center text-lg border border-gray-300 rounded focus:outline-none
                     focus:ring-2 focus:ring-hoverGreen sm:w-14 sm:h-14 md:w-15 md:h-15"
                     aria-label={`OTP input ${index + 1}`}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck="false"
                 />
             ))}
         </div>

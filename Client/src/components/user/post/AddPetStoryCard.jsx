@@ -92,7 +92,7 @@ const AddPetStoryCard = () => {
 
         setContent("")
         setImages([])
-        navigate(-1)
+        navigate('/profile')
     }
 
     const renderAspectButtons = () => {

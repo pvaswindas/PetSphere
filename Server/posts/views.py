@@ -1,10 +1,27 @@
+import redis
+import json
+from datetime import datetime
+from sellers.models import Seller
 from rest_framework import status
+from cryptography.fernet import Fernet
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
-from .models import Post
-from .serializers import PostSerializer, PostImageSerializer
+from .models import (
+    Post, PetListing, PetListingImageTemp
+)
+from .serializers import (
+    PostSerializer, PostImageSerializer, PetListingSerializer,
+    PetListingImageSerializer, PetListingImageTempSerializer
+)
+
+
+key = Fernet.generate_key()
+cipher_suite = Fernet(key)
+
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0,
+                                 decode_responses=True)
 
 
 class UserPostListCreateView(APIView):
@@ -47,7 +64,7 @@ class UserPostListCreateView(APIView):
 
 
 class UserPostDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny,]
 
     def get(self, request, slug):
         try:
@@ -90,3 +107,98 @@ class UserPostDetailView(APIView):
         post.delete()
         return Response({'detail': 'Post Deleted Successfully'},
                         status=status.HTTP_204_NO_CONTENT)
+
+
+class PetListingDataStoreView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        try:
+            data = {key: value for key, value in request.data.items()}
+            pet_name = request.data.get('pet_name')
+            pet_type = request.data.get('pet_type')
+            post_type = request.data.get('post_type')
+
+            if not pet_name or not pet_type or not post_type:
+                return Response({"error": "Data is missing"},
+                                status=status.HTTP_400_BAD_REQUEST)
+            user = request.user
+            if not user:
+                return Response({"error": "User not found"},
+                                status=status.HTTP_400_BAD_REQUEST)
+            images = request.FILES.getlist('images')
+            if not images:
+                return Response({"error": "Images are required"},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            data.pop('images')
+            time_now = datetime.now()
+            formatted_time = time_now.strftime("%H:%M:%S %d-%m-%Y")
+            redis_key = (
+                f"{user.username}:"
+                f"{formatted_time}"
+                f"{pet_name}"
+                f"{pet_type}"
+                f"{post_type}"
+            )
+            encrypted_redis_key = cipher_suite.encrypt(
+                redis_key.encode())
+            for image in images:
+                image_data = {
+                    'redis_key': redis_key,
+                    'image': image
+                }
+                image_serializer = PetListingImageTempSerializer(
+                    data=image_data
+                )
+                if image_serializer.is_valid():
+                    image_serializer.save()
+                else:
+                    return Response({"error": image_serializer.errors},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            redis_client.set(redis_key, json.dumps(data))
+            redis_client.expire(redis_key, 1200)
+            return Response(
+                {"encrypted_redis_key": encrypted_redis_key.decode()},
+                status=status.HTTP_201_CREATED
+            )
+        except KeyError as e:
+            return Response({"error": f"Missing required key: {str(e)}"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get(self, request):
+        try:
+            username = request.user.username
+            petlistingkey = request.query_params.get('petlistingkey')
+
+            if not username or not petlistingkey:
+                return Response(
+                    {"detail": "Username and petlistingkey are required"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            redis_key = f"{username}:{petlistingkey}"
+            decrypted_redis_key = cipher_suite.decrypt(
+                redis_key.encode()).decode()
+            data = redis.get(decrypted_redis_key)
+            if not data:
+                return Response({"detail": "Data not found"},
+                                status=status.HTTP_404_NOT_FOUND)
+            return Response({"petListing": data.decode('utf-8')},
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PetListingsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        pet_listings = PetListing.objects.filter(seller__user=user)
+        serializer = PetListingSerializer(pet_listings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

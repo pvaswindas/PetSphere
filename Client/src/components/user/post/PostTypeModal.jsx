@@ -9,7 +9,7 @@ const PostTypeModal = ({ isOpen, onClose }) => {
     const handleSelect = (type) => {
         if (type === "PetStories") {
             navigate("/add-pet-story")
-        } else if (type === "PetistiLngs") {
+        } else if (type === "PetListings") {
             navigate("/add-pet-listing")
         }
         onClose()

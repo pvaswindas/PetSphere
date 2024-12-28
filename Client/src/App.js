@@ -16,18 +16,24 @@ import Profile from "./pages/user-ui/profile/Profile";
 import EditProfile from "./pages/user-ui/profile/EditProfile";
 import EditFieldPage from "./pages/user-ui/profile/EditFieldPage";
 import EditUsernamePage from "./pages/user-ui/profile/EditUsernamePage";
-import AddPetStory from "./pages/user-ui/AddPetStory";
+import AddPetStory from "./pages/user-ui/post/AddPetStory";
 import PostDisplay from "./pages/user-ui/profile/PostDisplay";
 
 import AdminLoginPage from "./pages/admin-ui/auth/AdminLoginPage";
 import AdminDashboard from "./pages/admin-ui/dashboard/AdminDashboard";
 import PetCatalogManager from "./pages/admin-ui/PetCatalogManager";
 import AnnouncementsManager from "./pages/admin-ui/AnnouncementsManager";
+import Landing from "./pages/Landing";
+import AddPetListing from "./pages/user-ui/post/AddPetListing";
+import MapExplorer from "./pages/user-ui/MapExplorer";
 
 function App() {
   return (
       <div className="bg-white lg:bg-gray-100 w-full p-0 m-0">
         <Routes>
+          {/* Landing Route */}
+          <Route path="" element={<RestrictedRoute><Landing /></RestrictedRoute>} />
+
           {/* Public Routes */}
           <Route path="/login" element={
             <RestrictedRoute>
@@ -52,7 +58,10 @@ function App() {
           <Route path="/edit" element={<ProtectedRoute><EditFieldPage /></ProtectedRoute>} />
           <Route path="/edit-username" element={<ProtectedRoute><EditUsernamePage /></ProtectedRoute>} />
           <Route path="/add-pet-story" element={<ProtectedRoute><AddPetStory /></ProtectedRoute>} />
+          <Route path="/add-pet-listing" element={<ProtectedRoute><AddPetListing /></ProtectedRoute>} />
           <Route path="/post/:slug" element={<ProtectedRoute><PostDisplay /></ProtectedRoute>} />
+          <Route path="/mapexplore" element={<ProtectedRoute><MapExplorer /></ProtectedRoute>} />
+
 
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminRestrictedRoute><AdminLoginPage /></AdminRestrictedRoute>} />
