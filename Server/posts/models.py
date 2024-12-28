@@ -51,6 +51,12 @@ class PetListingImage(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+class PetListingImageTemp(models.Model):
+    redis_key = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='pet_listing_images_temp/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
 class PetListingLocation(models.Model):
     pet_listing = models.ForeignKey(PetListing, on_delete=models.CASCADE,
                                     related_name='location')

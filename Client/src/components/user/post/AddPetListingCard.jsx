@@ -119,11 +119,17 @@ const AddPetListingCard = () => {
                 price: petDetails.saleOrAdoption === "sale" ? parseFloat(petDetails.price) : null
             };
             
-            formData.append('petListing', JSON.stringify(petListing));
+            Object.entries(petListing).forEach(([key, value]) => {
+                formData.append(key, value)
+            })
             images.forEach((image) => {
                 formData.append('images', image);
             });
-            const response = await axiosInstance.post("posts/listingdatastore/", formData);
+            const response = await axiosInstance.post("posts/listingdatastore/", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                }
+            })
             if (response.status === 201) {
                 handleSuccess(response.data.encrypted_redis_key);
             }
@@ -238,7 +244,7 @@ const AddPetListingCard = () => {
                     <input
                         id="pet-name"
                         type="text"
-                        name="pet-name"
+                        name="pet_name"
                         autoComplete="off"
                         value={petDetails.name}
                         onChange={(e) => handleChange(e.target.value, 'name')}

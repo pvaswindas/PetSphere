@@ -80,7 +80,7 @@ const AddPetStoryCard = () => {
         })
 
         try {
-            const response = await axiosInstance.post("posts/", {
+            const response = await axiosInstance.post("posts/", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
