@@ -3,6 +3,7 @@ import redis
 import json
 from environs import Env
 from datetime import datetime
+from django.core.files.base import ContentFile
 
 # Third-party libraries
 from rest_framework import status
@@ -13,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 
 # Internal modules
-from .models import Post, PetListing, PetListingImageTemp
+from .models import Post, PetListing, PetListingImageTemp, PetListingImage
 from pets.models import Pet, PetBreed
 from sellers.models import Seller
 from .serializers import (
@@ -435,6 +436,7 @@ class PetListingsView(APIView):
             }
             data['pet_type'] = Pet.objects.get(name=data['pet_type']).id
             data['breed'] = PetBreed.objects.get(name=data['breed']).id
+            print(f"DATA : {data}")
             petListingSerializer = PetListingCreateSerializer(data=data)
             if petListingSerializer.is_valid():
                 pet_listing = petListingSerializer.save()
@@ -447,25 +449,30 @@ class PetListingsView(APIView):
                 else:
                     return Response({"error": location_serializer.errors},
                                     status=status.HTTP_400_BAD_REQUEST)
-
                 for image in images:
-                    image_data = {
-                        'pet_listing': pet_listing.id,
-                        'image': image.image
-                    }
-                    image_serializer = PetListingImageSerializer(
-                        data=image_data)
-                    if image_serializer.is_valid():
-                        image_serializer.save()
-                    else:
-                        return Response({"error": image_serializer.errors},
+                    try:
+                        image_file = image.image.read()
+                        file_name = f"{image.image.name.split('/')[-1]}"
+                        new_file = ContentFile(image_file, name=file_name)
+                        pet_listing_image = PetListingImage.objects.create(
+                            pet_listing=pet_listing,
+                            image=new_file
+                        )
+                        pet_listing_image.save()
+
+                        image.delete()
+                    except Exception as e:
+                        print(str(e))
+                        return Response({"error": str(e)},
                                         status=status.HTTP_400_BAD_REQUEST)
 
                 return Response({"detail": PetListingRetrieveSerializer(
                     pet_listing).data}, status=status.HTTP_201_CREATED)
             else:
+                print(petListingSerializer.errors)
                 return Response({"error": petListingSerializer.errors},
                                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            print(str(e))
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)

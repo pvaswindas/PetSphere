@@ -44,6 +44,9 @@ class PetListing(models.Model):
     is_available = models.BooleanField(default=True)
     is_sold_or_adopted = models.BooleanField(default=False)
 
+    def __str__(self):
+        return f"{self.pet_name} {self.post_type} {self.pet_type} {self.breed}"
+
 
 class PetListingImage(models.Model):
     pet_listing = models.ForeignKey(PetListing, on_delete=models.CASCADE,

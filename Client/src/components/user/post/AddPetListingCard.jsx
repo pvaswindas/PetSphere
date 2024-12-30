@@ -31,7 +31,7 @@ const AddPetListingCard = () => {
         age: "",
         name: "",
         description: "",
-        saleOrAdoption: "sale",
+        saleOrAdoption: "Selling",
         price: "",
     })
     const [isCropping, setIsCropping] = useState(false)
@@ -123,7 +123,7 @@ const AddPetListingCard = () => {
                 gender: petDetails.gender,
                 description: petDetails.description,
                 age: parseInt(petDetails.age),
-                price: petDetails.saleOrAdoption === "sale" ? parseFloat(petDetails.price) : null
+                price: petDetails.saleOrAdoption === "Selling" ? parseFloat(petDetails.price) : 0
             };
             
             Object.entries(petListing).forEach(([key, value]) => {
@@ -150,7 +150,7 @@ const AddPetListingCard = () => {
         if (petDetails.type === "" || petDetails.breed === "" || 
             petDetails.gender === "" || petDetails.name === "" || 
             petDetails.age === "" || petDetails.description === "" || 
-            (petDetails.saleOrAdoption === "sale" && petDetails.price === "") || 
+            (petDetails.saleOrAdoption === "Selling" && petDetails.price === "") || 
             images.length === 0) {
             setSnackbarMessage("Please fill all the fields")
             setSnackbarOpen(true)
@@ -163,7 +163,7 @@ const AddPetListingCard = () => {
             return false
         }
 
-        if (petDetails.saleOrAdoption === "sale") {
+        if (petDetails.saleOrAdoption === "Selling") {
             if (petDetails.price < 1000 || petDetails.price > 500000) {
                 setSnackbarMessage("Price must be between 1,000 and 5,00,000")
                 setSnackbarOpen(true)
@@ -327,19 +327,19 @@ const AddPetListingCard = () => {
                             <input
                                 type="radio"
                                 name="saleOrAdoption"
-                                value="sale"
-                                checked={petDetails.saleOrAdoption === "sale"}
+                                value="Selling"
+                                checked={petDetails.saleOrAdoption === "Selling"}
                                 onChange={(e) => handleChange(e.target.value, 'saleOrAdoption')}
                                 className="mr-2"
                             />
-                            Sale
+                            Selling
                         </label>
                         <label>
                             <input
                                 type="radio"
                                 name="saleOrAdoption"
-                                value="adoption"
-                                checked={petDetails.saleOrAdoption === "adoption"}
+                                value="Adoption"
+                                checked={petDetails.saleOrAdoption === "Adoption"}
                                 onChange={(e) => handleChange(e.target.value, 'saleOrAdoption')}
                                 className="mr-2"
                             />
@@ -348,7 +348,7 @@ const AddPetListingCard = () => {
                     </div>
                 </div>
 
-                {petDetails.saleOrAdoption === "sale" && (
+                {petDetails.saleOrAdoption === "Selling" && (
                     <div>
                         <label htmlFor="pet-price" className="block text-sm font-medium text-gray-600">Price</label>
                         <input

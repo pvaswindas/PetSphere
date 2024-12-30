@@ -90,9 +90,11 @@ class PetListingCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PetListing
-        fields = ['id', 'seller', 'pet_name', 'pet_type', 'breed', 'slug',
-                  'description', 'gender', 'age', 'price', 'created_at',
-                  'updated_at', 'is_available', 'is_sold_or_adopted']
+        fields = [
+            'id', 'post_type', 'seller', 'pet_name', 'pet_type', 'breed',
+            'slug', 'description', 'gender', 'age', 'price', 'created_at',
+            'updated_at', 'is_available', 'is_sold_or_adopted'
+        ]
         read_only_fields = ['slug']
 
 
@@ -102,8 +104,10 @@ class PetListingRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PetListing
-        fields = ['id', 'seller', 'pet_name', 'pet_type', 'breed', 'slug',
-                  'description', 'gender', 'age', 'price', 'created_at',
-                  'updated_at', 'is_available', 'is_sold_or_adopted',
-                  'images', 'location']
+        fields = [
+            'id', 'post_type', 'seller', 'pet_name', 'pet_type', 'breed',
+            'slug', 'description', 'gender', 'age', 'price', 'created_at',
+            'updated_at', 'is_available', 'is_sold_or_adopted', 'images',
+            'location'
+        ]
         read_only_fields = ['slug']
