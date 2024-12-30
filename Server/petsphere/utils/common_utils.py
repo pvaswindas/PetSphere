@@ -30,9 +30,10 @@ def validate_request_data(request, required_fields):
     data = request.data
     missing_fields = [
         field for field in required_fields
-        if field not in data or not data[field]
+        if field not in data
     ]
     if missing_fields:
+        print(f"MISSING FIELDS : {missing_fields}")
         return Response(
             {"error": f"Missing required fields: {', '.join(missing_fields)}"},
             status=status.HTTP_400_BAD_REQUEST

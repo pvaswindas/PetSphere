@@ -1,6 +1,7 @@
 # Standard libraries
 import redis
 import json
+from environs import Env
 from datetime import datetime
 
 # Third-party libraries
@@ -13,20 +14,29 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 # Internal modules
 from .models import Post, PetListing, PetListingImageTemp
+from pets.models import Pet, PetBreed
+from sellers.models import Seller
 from .serializers import (
-    PostSerializer, PostImageSerializer, PetListingSerializer,
-    PetListingImageSerializer, PetListingImageTempSerializer
+    PostSerializer, PostImageSerializer, PetListingCreateSerializer,
+    PetListingRetrieveSerializer, PetListingImageSerializer,
+    PetListingImageTempSerializer, PetListingLocationSerializer
 )
-from petsphere.utils.common_utils import validate_authenticated_user
+from petsphere.utils.common_utils import (
+    validate_authenticated_user, validate_request_data
+)
 
 
-# Generate a new encryption key using the Fernet symmetric encryption
-# algorithm
-key = Fernet.generate_key()
+# Initialize environ
+env = Env()
 
-# Create a cipher suite instance using the generated key for encryption
-# and decryption
-cipher_suite = Fernet(key)
+# Read .env file
+env.read_env()
+
+# Load the ENCRYPTION_KEY
+encryption_key = env.str("ENCRYPTION_KEY")
+
+# Create a Fernet cipher suite instance
+cipher_suite = Fernet(encryption_key)
 
 # Initialize a Redis client to connect to a local Redis server running
 # on port 6379. The client will use database 0 and decode responses
@@ -314,7 +324,7 @@ class PetListingDataStoreView(APIView):
                     return Response({"error": image_serializer.errors},
                                     status=status.HTTP_400_BAD_REQUEST)
             redis_client.set(redis_key, json.dumps(data))
-            redis_client.expire(redis_key, 1200)
+            redis_client.expire(redis_key, 3600)
             return Response(
                 {"encrypted_redis_key": encrypted_redis_key.decode()},
                 status=status.HTTP_201_CREATED
@@ -357,15 +367,15 @@ class PetListingDataStoreView(APIView):
         """
         try:
             petlistingkey = request.query_params.get('petListingKey')
-            redis_key = petlistingkey
+
             decrypted_redis_key = cipher_suite.decrypt(
-                redis_key.encode()).decode()
-            data = redis.get(decrypted_redis_key)
+                petlistingkey.encode()).decode()
+            data = redis_client.get(decrypted_redis_key)
             if not data:
                 return Response({"detail": "Data not found"},
                                 status=status.HTTP_404_NOT_FOUND)
-            return Response({"petListing": data.decode('utf-8')},
-                            status=status.HTTP_200_OK)
+            data = json.loads(data)
+            return Response({"petListing": data}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -373,6 +383,7 @@ class PetListingDataStoreView(APIView):
 
 class PetListingsView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
         user = validate_authenticated_user(request)
@@ -382,10 +393,79 @@ class PetListingsView(APIView):
         if not pet_listings:
             return Response({"detail": "No data found"},
                             status=status.HTTP_204_NO_CONTENT)
-        serializer = PetListingSerializer(pet_listings, many=True)
+        serializer = PetListingRetrieveSerializer(pet_listings, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        user = validate_authenticated_user(request)
-        if isinstance(user, Response):
-            return user
+        try:
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
+            required_fields = [
+                'post_type', 'pet_name', 'pet_type', 'breed',
+                'description', 'gender', 'age', 'price',
+                'address', 'city', 'state', 'zip_code', 'latitude',
+                'longitude'
+            ]
+            data = validate_request_data(request, required_fields)
+            if isinstance(data, Response):
+                return data
+            data = dict(data)
+            cleaned_data = {key: value[0] if isinstance(value, list) and len(
+                value) == 1 else value for key, value in data.items()}
+            data.update(cleaned_data)
+            seller, created = Seller.objects.get_or_create(user=user)
+            data['seller'] = seller.id
+            petListingKey = data.pop('petListingKey')
+            decrypted_redis_key = cipher_suite.decrypt(
+                petListingKey.encode()).decode()
+            images = PetListingImageTemp.objects.filter(
+                redis_key=decrypted_redis_key
+            )
+            if not images.exists():
+                return Response({"detail": "Data not found"},
+                                status=status.HTTP_404_NOT_FOUND)
+            location_data = {
+                'address': data.pop('address'),
+                'city': data.pop('city'),
+                'state': data.pop('state'),
+                'zip_code': data.pop('zip_code'),
+                'latitude': round(float(data.pop('latitude')), 6),
+                'longitude': round(float(data.pop('longitude')), 6),
+            }
+            data['pet_type'] = Pet.objects.get(name=data['pet_type']).id
+            data['breed'] = PetBreed.objects.get(name=data['breed']).id
+            petListingSerializer = PetListingCreateSerializer(data=data)
+            if petListingSerializer.is_valid():
+                pet_listing = petListingSerializer.save()
+
+                location_data['pet_listing'] = pet_listing.id
+                location_serializer = PetListingLocationSerializer(
+                    data=location_data)
+                if location_serializer.is_valid():
+                    location_serializer.save()
+                else:
+                    return Response({"error": location_serializer.errors},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+                for image in images:
+                    image_data = {
+                        'pet_listing': pet_listing.id,
+                        'image': image.image
+                    }
+                    image_serializer = PetListingImageSerializer(
+                        data=image_data)
+                    if image_serializer.is_valid():
+                        image_serializer.save()
+                    else:
+                        return Response({"error": image_serializer.errors},
+                                        status=status.HTTP_400_BAD_REQUEST)
+
+                return Response({"detail": PetListingRetrieveSerializer(
+                    pet_listing).data}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"error": petListingSerializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)

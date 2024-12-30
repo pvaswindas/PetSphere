@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import timedelta
 from accounts.models import PetSphereUser
 from sellers.models import Seller
 from pets.models import Pet, PetBreed
@@ -56,10 +57,22 @@ class PetListingImageTemp(models.Model):
     image = models.ImageField(upload_to='pet_listing_images_temp/')
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        from .tasks import delete_old_images
+
+        delete_old_images.apply_async(
+            eta=self.created_at + timedelta(minutes=20)
+        )
+
+    def __str__(self):
+        return self.redis_key
+
 
 class PetListingLocation(models.Model):
-    pet_listing = models.ForeignKey(PetListing, on_delete=models.CASCADE,
-                                    related_name='location')
+    pet_listing = models.OneToOneField(PetListing, on_delete=models.CASCADE,
+                                       related_name='location')
     address = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
     state = models.CharField(max_length=255)
@@ -67,6 +80,11 @@ class PetListingLocation(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
 
+    def save(self, *args, **kwargs):
+        self.latitude = round(self.latitude, 6)
+        self.longitude = round(self.longitude, 6)
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.pet_listing.pet_name} - {self.location_name}" \
+        return f"{self.pet_listing.pet_name} - {self.address}" \
             f" - {self.city}"

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import GeoMap from '../../map/GeoMap';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../../../axios/axiosinstance';
+import AlertSnackbar from '../../Snackbar/AlertSnackbar';
 
 const MapboxLocationPicker = () => {
     const navigate = useNavigate()
@@ -11,6 +13,9 @@ const MapboxLocationPicker = () => {
         latitude: 28.613,
         zoom: 12,
     });
+    const [snackbarMessage, setSnackbarMessage] = useState("")
+    const [snackbarOpen, setSnackbarOpen] = useState(false)
+    const [alertType, setAlertType] = useState("error")
 
     const [location, setLocation] = useState({
         longitude: 77.209,
@@ -72,13 +77,70 @@ const MapboxLocationPicker = () => {
         await fetchLocationDetails(lat, lng);
     };
 
-    const handleSubmit = () => {
-        console.log('Location Submitted:', location);
-        alert(`Location saved: ${location.address}`);
+    const handleSubmit = async () => {
+        try {
+            const response = await axiosInstance.get(`posts/listingdatastore/`, {
+                params: { petListingKey }
+            })
+            if (response.status === 200){
+                const petListing = response.data.petListing
+                console.log(petListing)
+                const formData = new FormData()
+                const updatedPetListing = {
+                    longitude: location.longitude,
+                    latitude: location.latitude,
+                    address: location.address,
+                    city: location.city,
+                    state: location.state,
+                    country: location.country,
+                    zip_code: location.pincode,
+                }
+                Object.entries(petListing).forEach(([key, value]) => {
+                    if (Array.isArray(value)) {
+                        value.forEach(image => {
+                            formData.append('images', image);
+                        });
+                    } else {
+                        formData.append(key, value);
+                    }
+                })
+                Object.entries(updatedPetListing).forEach(([key, value]) => {
+                    formData.append(key, value)
+                })
+                formData.append('petListingKey', petListingKey)
+                const petListingData = await axiosInstance.post('posts/petlisting/', formData, {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    }
+                })
+                if (petListingData.status === 201) {
+                    setSnackbarMessage("Pet listing successfully created!")
+                    setAlertType("success")
+                    setSnackbarOpen(true)
+                    setTimeout(() => navigate("/profile"), 2000)
+                    localStorage.removeItem('petListingKey')
+                } else {
+                    setSnackbarMessage("Failed to create post")
+                    setSnackbarOpen(true)
+                    localStorage.removeItem('petListingKey')
+                }
+            }
+            alert(`Location saved: ${location.address}`)
+        } catch (error) {
+            setSnackbarMessage("Failed to create pet listing");
+            setSnackbarOpen(true);
+            localStorage.removeItem('petListingKey')
+        }
     };
 
     return (
         <div className="flex flex-col p-6 bg-white rounded-lg shadow-md">
+            <AlertSnackbar
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type={alertType}
+                onClose={() => setSnackbarOpen(false)}
+            />
             <h2 className="text-3xl font-semibold text-gray-900 mb-6">Select Your Location</h2>
             
             <div className='flex flex-col lg:flex-row'>
@@ -127,7 +189,7 @@ const MapboxLocationPicker = () => {
                 onClick={handleSubmit}
                 className="mt-6 p-2 bg-og-gradient hover:bg-og-gradient-opp text-white rounded-lg shadow-lg hover:bg-blue-700"
             >
-                Save Location
+                Next
             </button>
         </div>
     );

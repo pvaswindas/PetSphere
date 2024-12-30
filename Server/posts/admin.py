@@ -1,6 +1,8 @@
 from django.contrib import admin
-from .models import (Post, PostImage, PetListing, PetListingImage,
-                     PetListingLocation)
+from .models import (
+    Post, PostImage, PetListing, PetListingImage,
+    PetListingLocation, PetListingImageTemp
+)
 
 
 class PostImageInline(admin.TabularInline):
@@ -50,6 +52,13 @@ class PetListingImageAdmin(admin.ModelAdmin):
     list_display = ('pet_listing', 'image', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('pet_listing__pet_name',)
+
+
+@admin.register(PetListingImageTemp)
+class PetListingImageTempAdmin(admin.ModelAdmin):
+    list_display = ('redis_key', 'image', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('redis_key',)
 
 
 @admin.register(PetListingLocation)
