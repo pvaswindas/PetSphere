@@ -31,7 +31,7 @@ const AddPetListingCard = () => {
         age: "",
         name: "",
         description: "",
-        saleOrAdoption: "sale",
+        saleOrAdoption: "Selling",
         price: "",
     })
     const [isCropping, setIsCropping] = useState(false)
@@ -60,14 +60,21 @@ const AddPetListingCard = () => {
     }, [dispatch])
 
     const handleImageChange = (e) => {
-        const file = e.target.files[0]
+        const file = e.target.files[0];
         if (file) {
-            const imageUrl = URL.createObjectURL(file)
-            setCropSettings((prev) => ({ ...prev, image: imageUrl }))
-            setOriginalFileType(file.type)
-            setIsCropping(true)
+            const validFormats = ["image/jpeg", "image/png"];
+            if (!validFormats.includes(file.type)) {
+                setSnackbarMessage("Please select an image in JPEG or PNG format");
+                setSnackbarOpen(true);
+                return;
+            }
+            const imageUrl = URL.createObjectURL(file);
+            setCropSettings((prev) => ({ ...prev, image: imageUrl }));
+            setOriginalFileType(file.type);
+            setIsCropping(true);
         }
-    }
+    };
+    
 
 
     const handleCropComplete = useCallback(async (croppedArea, croppedAreaPixels) => {
@@ -116,7 +123,7 @@ const AddPetListingCard = () => {
                 gender: petDetails.gender,
                 description: petDetails.description,
                 age: parseInt(petDetails.age),
-                price: petDetails.saleOrAdoption === "sale" ? parseFloat(petDetails.price) : null
+                price: petDetails.saleOrAdoption === "Selling" ? parseFloat(petDetails.price) : 0
             };
             
             Object.entries(petListing).forEach(([key, value]) => {
@@ -134,7 +141,7 @@ const AddPetListingCard = () => {
                 handleSuccess(response.data.encrypted_redis_key);
             }
         } catch (error) {
-            setSnackbarMessage(error.response?.data?.error || "Failed to create pet listing");
+            setSnackbarMessage("Failed to create pet listing");
             setSnackbarOpen(true);
         }
     }    
@@ -143,18 +150,27 @@ const AddPetListingCard = () => {
         if (petDetails.type === "" || petDetails.breed === "" || 
             petDetails.gender === "" || petDetails.name === "" || 
             petDetails.age === "" || petDetails.description === "" || 
-            (petDetails.saleOrAdoption === "sale" && petDetails.price === "") || 
+            (petDetails.saleOrAdoption === "Selling" && petDetails.price === "") || 
             images.length === 0) {
             setSnackbarMessage("Please fill all the fields")
             setSnackbarOpen(true)
             return false
         }
         
-        if (!Number.isInteger(parseFloat(petDetails.age)) || isNaN(petDetails.age) || petDetails.age < 0) {
-            setSnackbarMessage("Age must be a whole number")
+        if (!Number.isInteger(parseFloat(petDetails.age)) || isNaN(petDetails.age) || petDetails.age < 0 || petDetails.age > 200) {
+            setSnackbarMessage("Age must be between 0 and 200")
             setSnackbarOpen(true)
             return false
         }
+
+        if (petDetails.saleOrAdoption === "Selling") {
+            if (petDetails.price < 1000 || petDetails.price > 500000) {
+                setSnackbarMessage("Price must be between 1,000 and 5,00,000")
+                setSnackbarOpen(true)
+                return false
+            }
+        }
+
         return true
     }
     
@@ -248,7 +264,7 @@ const AddPetListingCard = () => {
                         autoComplete="off"
                         value={petDetails.name}
                         onChange={(e) => handleChange(e.target.value, 'name')}
-                        maxLength={70}
+                        maxLength={25}
                         rows="4"
                         placeholder="Name of the pet"
                         className="w-full px-4 py-2 mt-1 border border-gray-300 rounded-lg focus:outline-none"
@@ -262,7 +278,7 @@ const AddPetListingCard = () => {
                         name="description"
                         value={petDetails.description}
                         onChange={(e) => handleChange(e.target.value, 'description')}
-                        maxLength={70}
+                        maxLength={50}
                         rows="4"
                         placeholder="Write a short description about the pet"
                         className="w-full px-4 py-2 mt-1 border border-gray-300 rounded-lg focus:outline-none"
@@ -311,19 +327,19 @@ const AddPetListingCard = () => {
                             <input
                                 type="radio"
                                 name="saleOrAdoption"
-                                value="sale"
-                                checked={petDetails.saleOrAdoption === "sale"}
+                                value="Selling"
+                                checked={petDetails.saleOrAdoption === "Selling"}
                                 onChange={(e) => handleChange(e.target.value, 'saleOrAdoption')}
                                 className="mr-2"
                             />
-                            Sale
+                            Selling
                         </label>
                         <label>
                             <input
                                 type="radio"
                                 name="saleOrAdoption"
-                                value="adoption"
-                                checked={petDetails.saleOrAdoption === "adoption"}
+                                value="Adoption"
+                                checked={petDetails.saleOrAdoption === "Adoption"}
                                 onChange={(e) => handleChange(e.target.value, 'saleOrAdoption')}
                                 className="mr-2"
                             />
@@ -332,7 +348,7 @@ const AddPetListingCard = () => {
                     </div>
                 </div>
 
-                {petDetails.saleOrAdoption === "sale" && (
+                {petDetails.saleOrAdoption === "Selling" && (
                     <div>
                         <label htmlFor="pet-price" className="block text-sm font-medium text-gray-600">Price</label>
                         <input

@@ -71,7 +71,6 @@ class PetListingImageTempSerializer(serializers.ModelSerializer):
     class Meta:
         model = PetListingImageTemp
         fields = '__all__'
-        read_only_fields = [field.name for field in model._meta.get_fields()]
 
 
 class PetListingLocationSerializer(serializers.ModelSerializer):
@@ -87,14 +86,28 @@ class PetListingLocationSerializer(serializers.ModelSerializer):
         read_only_fields = ['pet_listing']
 
 
-class PetListingSerializer(serializers.ModelSerializer):
+class PetListingCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PetListing
+        fields = [
+            'id', 'post_type', 'seller', 'pet_name', 'pet_type', 'breed',
+            'slug', 'description', 'gender', 'age', 'price', 'created_at',
+            'updated_at', 'is_available', 'is_sold_or_adopted'
+        ]
+        read_only_fields = ['slug']
+
+
+class PetListingRetrieveSerializer(serializers.ModelSerializer):
     images = PetListingImageSerializer(many=True, read_only=True)
     location = PetListingLocation()
 
     class Meta:
         model = PetListing
-        fields = ['id', 'seller', 'pet_name', 'pet_type', 'breed', 'slug',
-                  'description', 'gender', 'age', 'price', 'created_at',
-                  'updated_at', 'is_available', 'is_sold_or_adopted',
-                  'images', 'location']
+        fields = [
+            'id', 'post_type', 'seller', 'pet_name', 'pet_type', 'breed',
+            'slug', 'description', 'gender', 'age', 'price', 'created_at',
+            'updated_at', 'is_available', 'is_sold_or_adopted', 'images',
+            'location'
+        ]
         read_only_fields = ['slug']

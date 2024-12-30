@@ -134,6 +134,13 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TIMEZONE = 'UTC'
 
+CELERY_BEAT_SCHEDULE = {
+    'delete-old-images-every-minute': {
+        'task': 'app_name.tasks.delete_old_images',
+        'schedule': 60.0,
+    },
+}
+
 
 # Email backend settings (if you want to use a real email service)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

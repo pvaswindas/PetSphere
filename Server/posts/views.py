@@ -1,34 +1,76 @@
+# Standard libraries
 import redis
 import json
+from environs import Env
 from datetime import datetime
-from sellers.models import Seller
+from django.core.files.base import ContentFile
+
+# Third-party libraries
 from rest_framework import status
 from cryptography.fernet import Fernet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
-from .models import (
-    Post, PetListing, PetListingImageTemp
-)
+
+# Internal modules
+from .models import Post, PetListing, PetListingImageTemp, PetListingImage
+from pets.models import Pet, PetBreed
+from sellers.models import Seller
 from .serializers import (
-    PostSerializer, PostImageSerializer, PetListingSerializer,
-    PetListingImageSerializer, PetListingImageTempSerializer
+    PostSerializer, PostImageSerializer, PetListingCreateSerializer,
+    PetListingRetrieveSerializer, PetListingImageSerializer,
+    PetListingImageTempSerializer, PetListingLocationSerializer
+)
+from petsphere.utils.common_utils import (
+    validate_authenticated_user, validate_request_data
 )
 
 
-key = Fernet.generate_key()
-cipher_suite = Fernet(key)
+# Initialize environ
+env = Env()
 
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0,
-                                 decode_responses=True)
+# Read .env file
+env.read_env()
+
+# Load the ENCRYPTION_KEY
+encryption_key = env.str("ENCRYPTION_KEY")
+
+# Create a Fernet cipher suite instance
+cipher_suite = Fernet(encryption_key)
+
+# Initialize a Redis client to connect to a local Redis server running
+# on port 6379. The client will use database 0 and decode responses
+# automatically
+redis_client = redis.StrictRedis(
+    host='localhost', port=6379, db=0, decode_responses=True
+)
 
 
 class UserPostListCreateView(APIView):
+    """
+    Handles listing and creating user posts.
+    Permissions:
+        - Requires user to be authenticated.
+    Parsers:
+        - MultiPartParser
+        - FormParser
+    """
+
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
+        """
+        Retrieves a list of posts created by the authenticated user.
+
+        Parameters:
+            - request: The HTTP request object containing user information.
+
+        Returns:
+            - Response: A list of posts if they exist.
+            - Response: A 204 status if no posts are found.
+        """
         user = request.user
         posts = Post.objects.filter(user=user)
         if not posts:
@@ -39,7 +81,23 @@ class UserPostListCreateView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        user = request.user
+        """
+        Creates a new post for the authenticated user.
+
+        Parameters:
+            - request: The HTTP request object with post data and images.
+
+        Required Fields:
+            - content: Content/body of the post.
+            - images: List of image files (optional).
+
+        Returns:
+            - Response: Created post data on success.
+            - Response: Error details on failure.
+        """
+        user = validate_authenticated_user(request)
+        if isinstance(user, Response):
+            return user
         data = request.data
         data['user'] = user.id
         images = request.FILES.getlist('images')
@@ -64,9 +122,37 @@ class UserPostListCreateView(APIView):
 
 
 class UserPostDetailView(APIView):
+    """
+    Handles retrieving, updating, and deleting a post by slug.
+
+    Permissions:
+        - AllowAny: Any user can access the view (no authentication required).
+
+    Methods:
+        - GET: Retrieves the details of a specific post.
+        - PATCH: Updates the details of a specific post.
+        - DELETE: Deletes the specified post.
+    """
+
     permission_classes = [AllowAny,]
 
     def get(self, request, slug):
+        """
+        Retrieves the details of a specific post.
+
+        Parameters:
+            - request: The HTTP request object.
+            - slug (str): The unique slug for the post to retrieve.
+
+        Workflow:
+            1. Attempts to fetch the post object using the provided slug.
+            2. If the post is found, serializes and returns the data.
+            3. If the post does not exist, returns a 404 response.
+
+        Returns:
+            - Response: Post details if found (200 OK).
+            - Response: Error message if post not found (404 Not Found).
+        """
         try:
             post = Post.objects.get(slug=slug)
         except Post.DoesNotExist:
@@ -77,6 +163,25 @@ class UserPostDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, slug):
+        """
+        Updates the details of a specific post.
+
+        Parameters:
+            - request: The HTTP request object with the update data.
+            - slug (str): The unique slug of the post to update.
+
+        Workflow:
+            1. Fetches the post by its slug.
+            2. Removes the slug from the data to prevent modification.
+            3. Serializes the data with the partial update option.
+            4. If the data is valid, saves and returns the updated post.
+            5. If the data is invalid, returns validation errors.
+
+        Returns:
+            - Response: Updated post data if successful (200 OK).
+            - Response: Validation errors if update fails (400 Bad Request).
+            - Response: Error message if post not found (404 Not Found).
+        """
         try:
             post = Post.objects.get(slug=slug)
         except Post.DoesNotExist:
@@ -96,6 +201,24 @@ class UserPostDetailView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, slug):
+        """
+        Deletes the specified post.
+
+        Parameters:
+            - request: The HTTP request object.
+            - slug (str): The unique slug of the post to delete.
+
+        Workflow:
+            1. Attempts to fetch the post by slug.
+            2. Checks if the current user owns the post.
+            3. If authorized, deletes the post and returns a success message.
+            4. If not authorized, returns a permission denied message.
+
+        Returns:
+            - Response: Success message if post is deleted (204 No Content).
+            - Response: Forbidden if user is not the owner (403 Forbidden).
+            - Response: Error message if post not found (404 Not Found).
+        """
         try:
             post = Post.objects.get(slug=slug)
         except Post.DoesNotExist:
@@ -110,10 +233,55 @@ class UserPostDetailView(APIView):
 
 
 class PetListingDataStoreView(APIView):
+    """
+    Manages temporary storage of pet listing data and images using Redis.
+    Permissions:
+        - Requires user to be authenticated.
+    Parsers:
+        - MultiPartParser
+        - FormParser
+    """
+
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
+        """
+        Stores pet listing data temporarily in Redis.
+
+        Parameters:
+            - request: The HTTP request object with listing data and images.
+
+        Required Fields:
+            - post_type: Type of post (e.g., sale, adoption).
+            - pet_name: Name of the pet.
+            - pet_type: Type of the pet (e.g., Dog, Cat).
+            - breed: Breed of the pet (e.g., Labrador, Persian).
+            - description: Description of the pet listing.
+            - gender: Gender of the pet (e.g., Male, Female).
+            - age: Age of the pet.
+            - price: Price of the pet listing.
+            - images: List of image files (at least one is required).
+
+        Workflow:
+        1. Extract required data (e.g., `pet_name`, `pet_type`) from request.
+        2. Check if required fields are present, return error if missing.
+        3. Authenticate the user using `validate_authenticated_user` function.
+        4. Validate if images are provided in the request.
+        5. Generate unique Redis key by combining user, time, and pet details.
+        6. Encrypt the Redis key using the cipher suite.
+        7. Serialize and save each image to the temporary storage.
+        8. Store listing data in Redis with expiration time.
+        9. Return the encrypted Redis key as the response on success.
+
+        Returns:
+            - Response: Encrypted Redis key on success.
+            - Response: Error details on failure.
+
+        Exceptions:
+            - KeyError: Missing required key in request data.
+            - Exception: Any other unexpected error.
+        """
         try:
             data = {key: value for key, value in request.data.items()}
             pet_name = request.data.get('pet_name')
@@ -123,10 +291,9 @@ class PetListingDataStoreView(APIView):
             if not pet_name or not pet_type or not post_type:
                 return Response({"error": "Data is missing"},
                                 status=status.HTTP_400_BAD_REQUEST)
-            user = request.user
-            if not user:
-                return Response({"error": "User not found"},
-                                status=status.HTTP_400_BAD_REQUEST)
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
             images = request.FILES.getlist('images')
             if not images:
                 return Response({"error": "Images are required"},
@@ -158,7 +325,7 @@ class PetListingDataStoreView(APIView):
                     return Response({"error": image_serializer.errors},
                                     status=status.HTTP_400_BAD_REQUEST)
             redis_client.set(redis_key, json.dumps(data))
-            redis_client.expire(redis_key, 1200)
+            redis_client.expire(redis_key, 3600)
             return Response(
                 {"encrypted_redis_key": encrypted_redis_key.decode()},
                 status=status.HTTP_201_CREATED
@@ -171,24 +338,45 @@ class PetListingDataStoreView(APIView):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def get(self, request):
-        try:
-            username = request.user.username
-            petlistingkey = request.query_params.get('petlistingkey')
+        """
+        Retrieves pet listing data temporarily stored in Redis.
 
-            if not username or not petlistingkey:
-                return Response(
-                    {"detail": "Username and petlistingkey are required"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            redis_key = f"{username}:{petlistingkey}"
+        Parameters:
+            - request: The HTTP request object with query parameters.
+
+        Query Parameters:
+            - petListingKey: Encrypted Redis key representing the pet listing
+            data.
+
+        Workflow:
+            1. Extracts the `petListingKey` from query parameters.
+            2. Decrypts the provided `petListingKey` using the cipher suite.
+            3. Fetches the decrypted key's associated data from Redis.
+            4. Returns the pet listing data if found.
+
+        Returns:
+            - Response: A dictionary containing the pet listing data if
+            successful.
+            - Response: A 404 status with an error message if the key is not
+            found.
+            - Response: A 500 status for unexpected errors.
+
+        Exceptions:
+            - KeyError: If the `petListingKey` is not provided in the query
+            parameters.
+            - Exception: For any unexpected error during the process.
+        """
+        try:
+            petlistingkey = request.query_params.get('petListingKey')
+
             decrypted_redis_key = cipher_suite.decrypt(
-                redis_key.encode()).decode()
-            data = redis.get(decrypted_redis_key)
+                petlistingkey.encode()).decode()
+            data = redis_client.get(decrypted_redis_key)
             if not data:
                 return Response({"detail": "Data not found"},
                                 status=status.HTTP_404_NOT_FOUND)
-            return Response({"petListing": data.decode('utf-8')},
-                            status=status.HTTP_200_OK)
+            data = json.loads(data)
+            return Response({"petListing": data}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -196,9 +384,95 @@ class PetListingDataStoreView(APIView):
 
 class PetListingsView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
-        user = request.user
+        user = validate_authenticated_user(request)
+        if isinstance(user, Response):
+            return user
         pet_listings = PetListing.objects.filter(seller__user=user)
-        serializer = PetListingSerializer(pet_listings, many=True)
+        if not pet_listings:
+            return Response({"detail": "No data found"},
+                            status=status.HTTP_204_NO_CONTENT)
+        serializer = PetListingRetrieveSerializer(pet_listings, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        try:
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
+            required_fields = [
+                'post_type', 'pet_name', 'pet_type', 'breed',
+                'description', 'gender', 'age', 'price',
+                'address', 'city', 'state', 'zip_code', 'latitude',
+                'longitude'
+            ]
+            data = validate_request_data(request, required_fields)
+            if isinstance(data, Response):
+                return data
+            data = dict(data)
+            cleaned_data = {key: value[0] if isinstance(value, list) and len(
+                value) == 1 else value for key, value in data.items()}
+            data.update(cleaned_data)
+            seller, created = Seller.objects.get_or_create(user=user)
+            data['seller'] = seller.id
+            petListingKey = data.pop('petListingKey')
+            decrypted_redis_key = cipher_suite.decrypt(
+                petListingKey.encode()).decode()
+            images = PetListingImageTemp.objects.filter(
+                redis_key=decrypted_redis_key
+            )
+            if not images.exists():
+                return Response({"detail": "Data not found"},
+                                status=status.HTTP_404_NOT_FOUND)
+            location_data = {
+                'address': data.pop('address'),
+                'city': data.pop('city'),
+                'state': data.pop('state'),
+                'zip_code': data.pop('zip_code'),
+                'latitude': round(float(data.pop('latitude')), 6),
+                'longitude': round(float(data.pop('longitude')), 6),
+            }
+            data['pet_type'] = Pet.objects.get(name=data['pet_type']).id
+            data['breed'] = PetBreed.objects.get(name=data['breed']).id
+            print(f"DATA : {data}")
+            petListingSerializer = PetListingCreateSerializer(data=data)
+            if petListingSerializer.is_valid():
+                pet_listing = petListingSerializer.save()
+
+                location_data['pet_listing'] = pet_listing.id
+                location_serializer = PetListingLocationSerializer(
+                    data=location_data)
+                if location_serializer.is_valid():
+                    location_serializer.save()
+                else:
+                    return Response({"error": location_serializer.errors},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                for image in images:
+                    try:
+                        image_file = image.image.read()
+                        file_name = f"{image.image.name.split('/')[-1]}"
+                        new_file = ContentFile(image_file, name=file_name)
+                        pet_listing_image = PetListingImage.objects.create(
+                            pet_listing=pet_listing,
+                            image=new_file
+                        )
+                        pet_listing_image.save()
+
+                        image.delete()
+                    except Exception as e:
+                        print(str(e))
+                        return Response({"error": str(e)},
+                                        status=status.HTTP_400_BAD_REQUEST)
+
+                return Response({"detail": PetListingRetrieveSerializer(
+                    pet_listing).data}, status=status.HTTP_201_CREATED)
+            else:
+                print(petListingSerializer.errors)
+                return Response({"error": petListingSerializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(str(e))
+            return Response({"error": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)

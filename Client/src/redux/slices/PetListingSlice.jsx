@@ -7,10 +7,10 @@ const petListingSlice = createSlice({
         petListings: [],
     },
     reducers: {
-        setPetListing(state, action) {
+        setCurrentPetListing(state, action) {
             state.petListing = action.payload.petListing
         },
-        clearPetListing(state) {
+        clearCurrentPetListing(state) {
             state.petListing = []
         },
         setPetListings(state, action) {
@@ -22,5 +22,5 @@ const petListingSlice = createSlice({
     },
 })
 
-export const { setPetListing, clearPetListing, setPetListings, clearsetPetListings } = petListingSlice.actions
+export const { setCurrentPetListing, clearCurrentPetListing, setPetListings, clearsetPetListings } = petListingSlice.actions
 export default petListingSlice.reducer 
