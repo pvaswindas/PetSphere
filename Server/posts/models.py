@@ -20,6 +20,26 @@ class Post(models.Model):
         return self.content[:50]
 
 
+class Like(models.Model):
+    user = models.ForeignKey(PetSphereUser, on_delete=models.CASCADE,
+                             related_name='likes')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE,
+                             related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Comment(models.Model):
+    user = models.ForeignKey(PetSphereUser, on_delete=models.CASCADE,
+                             related_name='comments')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE,
+                             related_name='comments')
+    content = models.TextField()
+    parent = models.ForeignKey('self', on_delete=models.CASCADE,
+                               null=True, blank=True, related_name='replies')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
 class PostImage(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE,
                              related_name='images')
