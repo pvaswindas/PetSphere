@@ -12,6 +12,7 @@ import Swal from "sweetalert2";
 import axiosInstance from "../../../axios/axiosinstance";
 import AlertSnackbar from "../../Snackbar/AlertSnackbar";
 import { fetchLikedUsers } from "../../../redux/thunks/FetchLikedUsers";
+import { CommentArea } from "../CommentArea/CommentArea";
 
 const PostDisplayCard = memo(() => {
     const { slug } = useParams();
@@ -22,6 +23,7 @@ const PostDisplayCard = memo(() => {
     const [editedContent, setEditedContent] = useState("");
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [isLiked, setIsLiked] = useState(false)
+    const [showComment, setShowComment] = useState(false)
 
     const [snackbarMessage, setSnackbarMessage] = useState("")
     const [snackbarOpen, setSnackbarOpen] = useState(false)
@@ -206,109 +208,115 @@ const PostDisplayCard = memo(() => {
                     )}
                 </div>
 
-                {/* Right Section: Content */}
-                <div className="flex-grow w-full flex flex-col justify-between my-2">
-                    {/* User Info */}
-                    <div>
-                        <div className="flex items-center justify-between my-2 mx-4">
-                            {/* Left Section: Profile and Date */}
-                            <div className="flex items-center">
-                                <img
-                                    src={profile.profile_picture || ""}
-                                    alt={profile.user.username || "User"}
-                                    className="w-10 h-10 rounded-full object-cover mr-3"
-                                />
-                                <div className="flex flex-col">
-                                    <p className="text-lg text-gray-800 font-semibold">
-                                        {profile.user.username || "Anonymous"}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        {post.created_at
-                                            ? new Date(post.created_at).toLocaleDateString("en-GB", {
-                                                day: "2-digit",
-                                                month: "short",
-                                                year: "numeric",
-                                            })
-                                            : ""}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Right Section: Dot Menu */}
-                            <button
-                                className="flex items-center"
-                                aria-label="Dot-Menu"
-                                onClick={toggleModal}
-                            >
-                                <img src={dotMenuIcon} alt="Dot-Menu" className="w-5" />
-                            </button>
-                        </div>
-
-                        <hr className="mt-2" />
-                        {/* Post Content */}
-                        {isEditing ? (
-                            <div className="relative m-4">
-                                {/* Done and Cancel Links */}
-                                <div className="flex justify-between items-center mb-2">
-                                    <span
-                                        onClick={handleCancel}
-                                        className="text-gray-500 hover:text-gray-700 cursor-pointer text-sm"
-                                    >
-                                        Cancel
-                                    </span>
-                                    <span
-                                        onClick={handleSave}
-                                        className="text-gray-500 hover:text-gray-700 cursor-pointer text-sm"
-                                    >
-                                        Done
-                                    </span>
+                {!showComment ? (
+                    // Right Section: Content
+                    <div className="flex-grow w-full flex flex-col justify-between my-2">
+                        {/* User Info */}
+                        <div>
+                            <div className="flex items-center justify-between my-2 mx-4">
+                                {/* Left Section: Profile and Date */}
+                                <div className="flex items-center">
+                                    <img
+                                        src={profile.profile_picture || ""}
+                                        alt={profile.user.username || "User"}
+                                        className="w-10 h-10 rounded-full object-cover mr-3"
+                                    />
+                                    <div className="flex flex-col">
+                                        <p className="text-lg text-gray-800 font-semibold">
+                                            {profile.user.username || "Anonymous"}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            {post.created_at
+                                                ? new Date(post.created_at).toLocaleDateString("en-GB", {
+                                                    day: "2-digit",
+                                                    month: "short",
+                                                    year: "numeric",
+                                                })
+                                                : ""}
+                                        </p>
+                                    </div>
                                 </div>
 
-                                {/* Editable Input Field */}
-                                <input
-                                    type="text"
-                                    value={editedContent}
-                                    onChange={(e) => setEditedContent(e.target.value)}
-                                    maxLength={100}
-                                    className="w-full h-12 rounded-lg p-2 text-lg focus:outline-none"
-                                    placeholder="Edit your post content..."
-                                />
+                                {/* Right Section: Dot Menu */}
+                                <button
+                                    className="flex items-center"
+                                    aria-label="Dot-Menu"
+                                    onClick={toggleModal}
+                                >
+                                    <img src={dotMenuIcon} alt="Dot-Menu" className="w-5" />
+                                </button>
                             </div>
-                        ) : (
-                            <h2 className="text-lg m-4">{post.content}</h2>
-                        )}
-                    </div>
 
-                    {/* Action Icons */}
-                    <div>
-                        <hr />
-                        <div className="flex items-center gap-6 m-4 text-gray-600">
-                            <button
-                                className="flex items-center gap-1 p-2 bg-gray-100 hover:bg-gray-200 rounded-full"
-                                aria-label="Like"
-                                onClick={handleLike}
-                            >
-                                <img
-                                    src={isLiked ? likedIcon : likeIcon}
-                                    alt="Like"
-                                    className="w-5"
-                                />
-                            </button>
-                            <button
-                                className="flex items-center gap-1 p-1 bg-gray-100 hover:bg-gray-200 rounded-full"
-                                aria-label="Comment"
-                            >
-                                <img src={commentIcon} alt="Comment" className="w-7" />
-                            </button>
-                            <button
-                                className="flex items-center gap-1 p-1 bg-gray-100 hover:bg-gray-200 rounded-full"
-                                aria-label="Save"
-                            >
-                                <img src={saveIcon} alt="Save" className="w-7" />
-                            </button>
+                            <hr className="mt-2" />
+                            {/* Post Content */}
+                            {isEditing ? (
+                                <div className="relative m-4">
+                                    {/* Done and Cancel Links */}
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span
+                                            onClick={handleCancel}
+                                            className="text-gray-500 hover:text-gray-700 cursor-pointer text-sm"
+                                        >
+                                            Cancel
+                                        </span>
+                                        <span
+                                            onClick={handleSave}
+                                            className="text-gray-500 hover:text-gray-700 cursor-pointer text-sm"
+                                        >
+                                            Done
+                                        </span>
+                                    </div>
+
+                                    {/* Editable Input Field */}
+                                    <input
+                                        type="text"
+                                        value={editedContent}
+                                        onChange={(e) => setEditedContent(e.target.value)}
+                                        maxLength={100}
+                                        className="w-full h-12 rounded-lg p-2 text-lg focus:outline-none"
+                                        placeholder="Edit your post content..."
+                                    />
+                                </div>
+                            ) : (
+                                <h2 className="text-lg m-4">{post.content}</h2>
+                            )}
+                        </div>
+
+                        {/* Action Icons */}
+                        <div>
+                            <hr />
+                            <div className="flex items-center gap-6 m-4 text-gray-600">
+                                <button
+                                    className="flex items-center gap-1 p-2 bg-gray-100 hover:bg-gray-200 rounded-full"
+                                    aria-label="Like"
+                                    onClick={handleLike}
+                                >
+                                    <img
+                                        src={isLiked ? likedIcon : likeIcon}
+                                        alt="Like"
+                                        className="w-5"
+                                    />
+                                </button>
+                                <button
+                                    className="flex items-center gap-1 p-1 bg-gray-100 hover:bg-gray-200 rounded-full"
+                                    aria-label="Comment"
+                                    onClick={() => setShowComment(true)}
+                                >
+                                    <img src={commentIcon} alt="Comment" className="w-7" />
+                                </button>
+                                <button
+                                    className="flex items-center gap-1 p-1 bg-gray-100 hover:bg-gray-200 rounded-full"
+                                    aria-label="Save"
+                                >
+                                    <img src={saveIcon} alt="Save" className="w-7" />
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <CommentArea onClose={() => setShowComment(false)} postId={post.id} />
+                )}
+
             </div>
 
             {/* Reusable Modal */}

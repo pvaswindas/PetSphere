@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Post, PostImage, PetListing, PetListingImage, PetListingLocation,
-    PetListingImageTemp
+    PetListingImageTemp, Comment
 )
 from urllib.parse import urljoin
 from django.conf import settings
@@ -39,6 +39,26 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'content', 'slug', 'created_at', 'updated_at',
                   'likes_count', 'comment_count', 'shares_count', 'images']
         read_only_fields = ['slug']
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    replies = serializers.SerializerMethodField()
+    username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = [
+            'id', 'user', 'username', 'post', 'content', 'parent', 'replies',
+            'created_at', 'updated_at'
+        ]
+
+    def get_replies(self, obj):
+        if obj.replies.exists():
+            return CommentSerializer(obj.replies.all(), many=True).data
+        return []
+
+    def get_username(self, obj):
+        return obj.user.username
 
 
 class PetListingImageSerializer(serializers.ModelSerializer):
