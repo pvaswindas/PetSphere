@@ -10,7 +10,7 @@ const UserInfo = () => {
     const navigate = useNavigate();
 
     const handleEditProfile = () => {
-        navigate('/edit-profile');
+        navigate('/profile/edit');
     };
 
     const handleShareProfile = () => {

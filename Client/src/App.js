@@ -1,5 +1,5 @@
-import React from "react"
-import { Routes, Route } from "react-router-dom"
+import React, { useEffect } from "react"
+import { Routes, Route, useLocation } from "react-router-dom"
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -26,51 +26,82 @@ import AnnouncementsManager from "./pages/admin-ui/AnnouncementsManager";
 import Landing from "./pages/Landing";
 import AddPetListing from "./pages/user-ui/post/AddPetListing";
 import MapExplorer from "./pages/user-ui/MapExplorer";
+import ExplorePage from "./pages/user-ui/ExplorePage";
 
 function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+      if (location.pathname === "/") {
+          document.body.classList.remove("overflow-hidden");
+          document.body.classList.add("overflow-y-auto");
+      } else {
+          document.body.classList.add("overflow-hidden");
+          document.body.classList.remove("overflow-y-auto");
+      }
+  }, [location]);
   return (
-      <div className="bg-white lg:bg-gray-100 w-full p-0 m-0">
-        <Routes>
-          {/* Landing Route */}
-          <Route path="" element={<RestrictedRoute><Landing /></RestrictedRoute>} />
+    <div className="bg-white lg:bg-gray-100 h-screen">
+      <Routes>
+        {/* Landing Route */}
+        <Route path="/" element={<RestrictedRoute><Landing /></RestrictedRoute>} />
 
-          {/* Public Routes */}
-          <Route path="/login" element={
-            <RestrictedRoute>
-              <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
-                <LoginPage />
-              </GoogleOAuthProvider>
-            </RestrictedRoute>
-          } />
-          <Route path="/signup" element={
-            <RestrictedRoute>
-              <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
-                <SignupPage />
-              </GoogleOAuthProvider>
-            </RestrictedRoute>
-          } />
-          <Route path="/signup/otp" element={<RestrictedRoute><VerifyOtp /></RestrictedRoute>} />
-          <Route path="/signup/username" element={<RestrictedRoute><CreateUsername /></RestrictedRoute>} />
+        {/* Public Routes */}
+        <Route path="/login" element={
+          <RestrictedRoute>
+            <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+              <LoginPage />
+            </GoogleOAuthProvider>
+          </RestrictedRoute>
+        } />
+        <Route path="/signup" element={
+          <RestrictedRoute>
+            <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+              <SignupPage />
+            </GoogleOAuthProvider>
+          </RestrictedRoute>
+        } />
+        <Route path="/signup/otp" element={<RestrictedRoute><VerifyOtp /></RestrictedRoute>} />
+        <Route path="/signup/username" element={<RestrictedRoute><CreateUsername /></RestrictedRoute>} />
 
-          {/* User Protected Routes */}
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
-          <Route path="/edit" element={<ProtectedRoute><EditFieldPage /></ProtectedRoute>} />
-          <Route path="/edit-username" element={<ProtectedRoute><EditUsernamePage /></ProtectedRoute>} />
-          <Route path="/add-pet-story" element={<ProtectedRoute><AddPetStory /></ProtectedRoute>} />
-          <Route path="/add-pet-listing" element={<ProtectedRoute><AddPetListing /></ProtectedRoute>} />
-          <Route path="/post/:slug" element={<ProtectedRoute><PostDisplay /></ProtectedRoute>} />
-          <Route path="/mapexplore" element={<ProtectedRoute><MapExplorer /></ProtectedRoute>} />
+        {/* User Protected Routes */}
+        <Route 
+          path="/profile/*"
+          element={
+            <ProtectedRoute>
+              <Routes>
+                <Route path="" element={<Profile />} />
+                <Route path="edit" element={<EditProfile />} />
+                <Route path="edit/:dynamicString" element={<EditFieldPage />} />
+                <Route path="edit/username" element={<EditUsernamePage />} />
+                <Route path="add-pet-story" element={<AddPetStory />} />
+                <Route path="add-pet-listing" element={<AddPetListing />} />
+                <Route path="post/:slug" element={<PostDisplay />} />
+                <Route path="mapexplore" element={<MapExplorer />} />
+                <Route path="explore" element={<ExplorePage />} />
+              </Routes>
+            </ProtectedRoute>
+          } 
+        />
 
-
-          {/* Admin Routes */}
-          <Route path="/admin/login" element={<AdminRestrictedRoute><AdminLoginPage /></AdminRestrictedRoute>} />
-          <Route path="/admin" element={<AdminOnlyRoute><AdminDashboard /></AdminOnlyRoute>} />
-          <Route path="/admin/manage/pet" element={<AdminOnlyRoute><PetCatalogManager /></AdminOnlyRoute>} />
-          <Route path="/admin/manage/updates" element={<AdminOnlyRoute><AnnouncementsManager /></AdminOnlyRoute>} />
-        </Routes>
-      </div>
+        {/* Admin Routes */}
+        <Route
+          path="/admin/*"
+          element={
+            <div className="overflow-y-auto h-screen">
+              <Routes>
+                <Route path="login" element={<AdminRestrictedRoute><AdminLoginPage /></AdminRestrictedRoute>} />
+                <Route path="" element={<AdminOnlyRoute><AdminDashboard /></AdminOnlyRoute>} />
+                <Route path="manage/pet" element={<AdminOnlyRoute><PetCatalogManager /></AdminOnlyRoute>} />
+                <Route path="manage/updates" element={<AdminOnlyRoute><AnnouncementsManager /></AdminOnlyRoute>} />
+              </Routes>
+            </div>
+          }
+        />
+      </Routes>
+    </div>
   );
 }
 
 export default App;
+

@@ -28,7 +28,9 @@ const AdminLayout = ({ activeIcon, setActiveIcon, children, showWelcomeCard }) =
                 </div>
 
                 {/* Content Section */}
-                <div>{children}</div>
+                <div className="lg:px-4 lg:py-4 flex-grow lg:overflow-y-auto" style={{ maxHeight: 'calc(100vh - 56px)' }}>
+                    {children}
+                </div>
             </div>
 
             {/* Right Section */}

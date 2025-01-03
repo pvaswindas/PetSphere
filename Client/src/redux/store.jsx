@@ -8,7 +8,7 @@ import petReducer from "./slices/PetSlice";
 import locationReducer from "./slices/LocationSlice";
 import petListingReducer from "./slices/PetListingSlice"
 
-const EXPIRY_TIME = 60 * 60 * 250
+const EXPIRY_TIME = 60 * 60 * 25
 
 const expiryTransform = createTransform(
     (inboundState) => {
@@ -56,4 +56,10 @@ const store = configureStore({
 });
 
 export const persistor = persistStore(store);
+
+export function clearStore() {
+    store.dispatch({ type: 'RESET' })
+    persistor.purge()
+}
+
 export default store;

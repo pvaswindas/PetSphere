@@ -1,11 +1,11 @@
 import { Send } from 'lucide-react';
 
-export function CommentInput({ value, onChange, onSubmit, replyingTo }) {
+export function CommentInput({ value, onChange, onSubmit, replyingTo,replyUsername }) {
     return (
         <div className="p-4 border-t bg-gray-50">
             {replyingTo && (
                 <p className="text-xs text-gray-500 mb-2">
-                    Replying to comment ID: {replyingTo}
+                    Replying to @{replyUsername}
                 </p>
             )}
             <div className="flex gap-2">

@@ -5,8 +5,9 @@ import { CommentInput } from './CommentInput';
 import axiosInstance from '../../../axios/axiosinstance';
 
 export function CommentArea({ onClose, postId }) {
-    const [newComment, setNewComment] = useState('');
-    const [replyingTo, setReplyingTo] = useState(null);
+    const [newComment, setNewComment] = useState('')
+    const [replyingTo, setReplyingTo] = useState(null)
+    const [replyUsername, setReplyUsername] = useState("")
     const [comments, setComments] = useState([]);
 
     const fetchComments = useCallback(async () => {
@@ -48,19 +49,30 @@ export function CommentArea({ onClose, postId }) {
         }
     };
 
-    const handleReply = (commentId) => {
+    const handleReply = (commentId, username) => {
         setReplyingTo(commentId);
+        setReplyUsername(username)
     };
 
+    const onDelete = async (comment_id) => {
+        try {
+            await axiosInstance.delete(`posts/comments/delete/${comment_id}/`);
+            await fetchComments();
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+        }
+    };
+    
     return (
         <div className="w-full flex flex-col bg-white rounded-e-lg">
             <CommentHeader onClose={onClose} />
-            <CommentList comments={comments} onReply={handleReply} />
+            <CommentList comments={comments} onReply={handleReply} onDelete={onDelete} />
             <CommentInput
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 onSubmit={handleSubmitComment}
                 replyingTo={replyingTo}
+                replyUsername={replyUsername}
             />
         </div>
     );

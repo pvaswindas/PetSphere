@@ -13,16 +13,18 @@ function PostDisplay() {
             {/* Main Layout */}
             <div className="flex flex-col lg:flex-row lg:px-2 lg:py-6">
                 {/* Sidebar Section */}
-                <div className="hidden lg:flex flex-col space-y-4 lg:px-4 lg:w-1/5">
-                    {/* ProfileViewBar */}
-                    <AdPreviewBar />
+                <div className="hidden lg:flex flex-col lg:px-4 lg:w-1/5">
+                    <div className="space-y-4 lg:h-[calc(100vh-56px)] lg:overflow-y-auto rounded-lg pb-12">
+                        {/* ProfileViewBar */}
+                        <AdPreviewBar />
 
-                    {/* Sidebar */}
-                    <Sidebar />
+                        {/* Sidebar */}
+                        <Sidebar />
+                    </div>
                 </div>
 
                 {/* Content Section */}
-                <div className="flex-1 w-full lg:w-3/5 mx-auto lg:px-2 overflow-y-auto">
+                <div className="flex-1 w-full lg:w-3/5 lg:mx-3 lg:overflow-y-auto lg:h-[calc(100vh-56px)] lg:rounded-lg pb-12">
                     {/* Profile Card */}
                     <PostDisplayCard />
                 </div>

@@ -3,6 +3,7 @@ import redis
 import json
 from environs import Env
 from datetime import datetime
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
 
@@ -10,7 +11,7 @@ from django.core.files.base import ContentFile
 from rest_framework import status
 from cryptography.fernet import Fernet
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -29,7 +30,8 @@ from .serializers import (
     PetListingImageTempSerializer, PetListingLocationSerializer
 )
 from petsphere.utils.common_utils import (
-    validate_authenticated_user, validate_request_data
+    validate_authenticated_user, validate_request_data,
+    validate_post_user_permission
 )
 
 
@@ -125,6 +127,22 @@ class UserPostListCreateView(APIView):
                                     status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PostListView(APIView):
+    def get(self, request):
+        search_query = request.query_params.get('search', None)
+
+        if search_query:
+            posts = Post.objects.filter(
+                Q(content__icontains=search_query) | Q(
+                    slug__icontains=search_query)
+            )
+        else:
+            posts = Post.objects.all()
+
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserPostDetailView(APIView):
@@ -303,7 +321,7 @@ def fetch_liked_users(request, post_id):
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class CreateCommentView(APIView):
+class CommentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -335,6 +353,38 @@ class CreateCommentView(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(str)
+            return Response({"error": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, comment_id):
+        try:
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
+
+            try:
+                comment = Comment.objects.get(id=comment_id)
+            except Comment.DoesNotExist:
+                return Response({"error": "Comment not found"},
+                                status=status.HTTP_404_NOT_FOUND)
+
+            post = comment.post
+
+            permission_response = validate_post_user_permission(
+                user, comment, post
+            )
+            if permission_response:
+                return permission_response
+
+            reply_count = comment.replies.count()
+            post.comment_count = max(post.comment_count - reply_count - 1, 0)
+            post.save()
+
+            comment.delete()
+            return Response({"success": "Comment deleted successfully"},
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            print(str(e))
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -595,3 +645,19 @@ class PetListingsView(APIView):
             print(str(e))
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PetListingListView(APIView):
+    def get(self, request):
+        search_query = request.query_params.get('search', None)
+
+        if search_query:
+            pet_listings = PetListing.objects.filter(
+                Q(description__icontains=search_query) | Q(
+                    slug__icontains=search_query)
+            )
+        else:
+            pet_listings = PetListing.objects.all()
+
+        serializer = PetListingRetrieveSerializer(pet_listings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

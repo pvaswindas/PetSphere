@@ -1,0 +1,42 @@
+export function ExplorePeopleList() {
+    const friends = [
+        {
+            id: 1,
+            name: "Sarah Wilson",
+            username: "@sarahw",
+            avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
+            mutualFriends: 12,
+        },
+        {
+            id: 2,
+            name: "Alex Thompson",
+            username: "@alexthompson",
+            avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
+            mutualFriends: 8,
+        },
+    ];
+
+    return (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {friends.map((friend) => (
+                <div key={friend.id} className="p-4 border border-gray-300 rounded-lg shadow-sm">
+                    <div className="flex items-center gap-4">
+                        <img
+                            src={friend.avatar}
+                            alt={friend.name}
+                            className="h-12 w-12 rounded-full object-cover"
+                        />
+                        <div className="flex-1">
+                            <h3 className="font-semibold">{friend.name}</h3>
+                            <p className="text-sm text-gray-500">{friend.username}</p>
+                            <p className="text-sm text-gray-500">{friend.mutualFriends} mutual friends</p>
+                        </div>
+                        <button className="px-3 py-1 border border-gray-300 rounded-lg text-sm">
+                            Follow
+                        </button>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}

@@ -120,7 +120,7 @@ class PetListingCreateSerializer(serializers.ModelSerializer):
 
 class PetListingRetrieveSerializer(serializers.ModelSerializer):
     images = PetListingImageSerializer(many=True, read_only=True)
-    location = PetListingLocation()
+    location = PetListingLocationSerializer()
 
     class Meta:
         model = PetListing

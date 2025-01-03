@@ -7,10 +7,15 @@
     * {
         @apply m-0 p-0 box-border;
     }
+    
 
     /* Prevent horizontal scrolling globally */
     html, body {
         @apply overflow-x-hidden;
+    }
+
+    ::-webkit-scrollbar-button {
+        display: none;
     }
 
     /* Customize the scrollbar globally */
@@ -32,6 +37,9 @@
     *::-webkit-scrollbar-track {
         background-color: transparent;
     }
+    ::-webkit-scrollbar-button {
+        display: none;
+    }
     }
 
     /* Chrome, Safari, Edge, Opera */
@@ -45,3 +53,5 @@
     input[type="number"] {
     -moz-appearance: textfield;
 }
+
+

@@ -13,7 +13,7 @@ const PawStories = memo(() => {
     }, [dispatch]);
 
     const handlePostClick = (slug) => {
-        navigate(`/post/${slug}`);
+        navigate(`/profile/post/${slug}`);
     };
 
     return (

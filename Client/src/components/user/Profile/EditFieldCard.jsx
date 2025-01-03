@@ -41,7 +41,7 @@ const EditFieldCard = () => {
 
     return (
         <div className="flex flex-col items-center justify-start w-full min-h-screen">
-            <div className="w-full bg-white p-6 lg:rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="w-full bg-white p-6 lg:rounded-2xl lg:shadow-sm lg:hover:shadow-lg transition-all duration-300">
                 <h1 className="text-lg lg:text-2xl font-semibold text-gray-800 mt-4 mb-8 text-start">Edit {label}</h1>
 
                 {/* Input Field */}

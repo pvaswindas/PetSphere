@@ -1,26 +1,25 @@
 import { useState } from "react";
+import { Trash } from "lucide-react";
 
-export function CommentList({ comments, onReply }) {
+export function CommentList({ comments, onReply, onDelete }) {
     const [visibleChildren, setVisibleChildren] = useState({});
-
-    console.log(comments)
 
     function formatDate(dateString) {
         const date = new Date(dateString);
-    
+
         const options = {
             hour: 'numeric',
             minute: 'numeric',
             hour12: true,
         };
-    
+
         const time = new Intl.DateTimeFormat('en-US', options).format(date);
         const day = date.getDate();
         const month = date.getMonth() + 1;
         const year = date.getFullYear();
-    
+
         return `${time.replace(':', '.')} ${month}/${day}/${year}`;
-    }    
+    }
 
     const renderComments = (comments) => {
         return comments.map((comment) => (
@@ -31,12 +30,20 @@ export function CommentList({ comments, onReply }) {
                 </div>
                 <p className="text-sm text-gray-700">{comment.content}</p>
 
-                <button
-                    onClick={() => onReply(comment.id)}
-                    className="text-blue-500 text-xs mt-1"
-                >
-                    Reply
-                </button>
+                <div className="flex items-center gap-2 mt-2">
+                    <button
+                        onClick={() => onReply(comment.id, comment.username)}
+                        className="text-blue-500 text-xs"
+                    >
+                        Reply
+                    </button>
+                    <button
+                        onClick={() => onDelete(comment.id)}
+                        className="text-red-500 text-xs flex items-center gap-1"
+                    >
+                        Delete
+                    </button>
+                </div>
 
                 {comment.replies && comment.replies.length > 0 && (
                     <div className="ml-4 mt-2">
@@ -47,9 +54,14 @@ export function CommentList({ comments, onReply }) {
                                     <div className="flex justify-between items-start mb-1">
                                         <span className="font-medium text-sm">{reply.username || `User ${reply.user}`}</span>
                                         <span className="text-xs text-gray-500">{formatDate(reply.created_at)}</span>
-
                                     </div>
                                     <p className="text-sm text-gray-700">{reply.content}</p>
+                                    <button
+                                        onClick={() => onDelete(reply.id)}
+                                        className="text-red-500 text-xs flex items-center gap-1 mt-1"
+                                    >
+                                        Delete
+                                    </button>
                                 </div>
                             ))}
 

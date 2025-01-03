@@ -38,5 +38,36 @@ def validate_request_data(request, required_fields):
             {"error": f"Missing required fields: {', '.join(missing_fields)}"},
             status=status.HTTP_400_BAD_REQUEST
         )
-
     return data
+
+
+def validate_post_user_permission(user, comment, post):
+    """
+    Validates if the user has permission to modify a comment.
+    Permissions:
+        - User is the author of the comment
+        - User is the owner of the post
+        - User is an admin
+
+    Args:
+        user (User): The authenticated user making the request.
+        comment (Comment): The comment to be modified.
+        post (Post): The post that the comment belongs to.
+
+    Returns:
+        Response object with an error if the user lacks permission.
+        None if the user has permission.
+    """
+    if comment.user == user:
+        return None
+
+    if post.user == user:
+        return None
+
+    if user.is_superuser:
+        return None
+
+    return Response(
+        {"error": "Permission denied"},
+        status=status.HTTP_403_FORBIDDEN
+    )
