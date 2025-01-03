@@ -2,24 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
-
 @layer base {
+    /* Reset default margins and padding for all elements */
     * {
         @apply m-0 p-0 box-border;
     }
+
+    /* Prevent horizontal scrolling globally */
     html, body {
         @apply overflow-x-hidden;
     }
-}
 
-/* Chrome, Safari, Edge, Opera */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
+    /* Customize the scrollbar globally */
+    * {
+        scrollbar-width: none;
+        scrollbar-color: #ececec transparent;
+    }
+
+    /* Webkit scrollbars for Chrome, Safari, Edge */
+    *::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    *::-webkit-scrollbar-thumb {
+        background-color: #d1d5db;
+        border-radius: 10px;
+    }
+
+    *::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
+    }
+
+    /* Chrome, Safari, Edge, Opera */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
-}
+    }
 
-/* Firefox */
-input[type="number"] {
+    /* Firefox */
+    input[type="number"] {
     -moz-appearance: textfield;
 }

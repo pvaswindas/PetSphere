@@ -4,10 +4,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import commentIcon from "../../../assets/icon/post/comment-icon.svg";
 import saveIcon from "../../../assets/icon/post/post-save-icon.svg";
 import likeIcon from "../../../assets/icon/post/like-icon.svg";
+import likedIcon from "../../../assets/icon/post/liked-icon.svg";
 import dotMenuIcon from "../../../assets/icon/post/dot-menu-icon.svg";
 import { deletePawstory, fetchPawstory, updatePawstory } from "../../../redux/thunks/PostThunk";
 import PostOptionsModal from "./PostOptionsModal";
 import Swal from "sweetalert2";
+import axiosInstance from "../../../axios/axiosinstance";
+import AlertSnackbar from "../../Snackbar/AlertSnackbar";
+import { fetchLikedUsers } from "../../../redux/thunks/FetchLikedUsers";
+import { CommentArea } from "../CommentArea/CommentArea";
 
 const PostDisplayCard = memo(() => {
     const { slug } = useParams();
@@ -16,23 +21,45 @@ const PostDisplayCard = memo(() => {
     const [isDeleteModalOpen, setDeleteIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editedContent, setEditedContent] = useState("");
-    const [currentImageIndex, setCurrentImageIndex] = useState(0); // Track the current image index
+    const [currentImageIndex, setCurrentImageIndex] = useState(0)
+    const [isLiked, setIsLiked] = useState(false)
+    const [showComment, setShowComment] = useState(false)
+
+    const [snackbarMessage, setSnackbarMessage] = useState("")
+    const [snackbarOpen, setSnackbarOpen] = useState(false)
+
+    const post = useSelector((state) => state.posts?.currentPawstory || null);
+    const profile = useSelector((state) => state.profile?.profile_data || null);
+    const navigate = useNavigate();
+    const post_id = post?.id || null
+
 
     useEffect(() => {
         if (slug) {
             dispatch(fetchPawstory(slug));
         }
     }, [slug, dispatch]);
-
-    const post = useSelector((state) => state.posts?.currentPawstory || null);
-    const profile = useSelector((state) => state.profile?.profile_data || null);
-    const navigate = useNavigate();
-
+    
     useEffect(() => {
         if (post) {
             setEditedContent(post.content);
         }
     }, [post]);
+    
+    useEffect(() => {
+        if (post_id) {
+            const isUserLike = async () => {
+                const response = await dispatch(fetchLikedUsers(post_id)).unwrap();
+                if (response.is_liked_by_user) {
+                    setIsLiked(true);
+                } else {
+                    setIsLiked(false);
+                }
+            };
+            isUserLike();
+        }
+    }, [post_id, dispatch]);
+
 
     if (!post || !post.images || post.images.length === 0) {
         return (
@@ -100,16 +127,40 @@ const PostDisplayCard = memo(() => {
         }
     };
 
+    const handleLike = async () => {
+        const post_id = post.id
+        try {
+            const likePostResponse = await axiosInstance.post('posts/likepost/', { post_id })
+            if (likePostResponse.status === 201) {
+                setIsLiked(true)
+            } else if (likePostResponse.status === 200) {
+                setIsLiked(false)
+            } else {
+                setSnackbarMessage("Something went wrong. Try again.")
+                setSnackbarOpen(true)
+            }
+        } catch (error) {
+            setSnackbarMessage("Something went wrong. Try again.")
+            setSnackbarOpen(true)
+        }
+    }
+
     return (
         <>
             <div className="bg-white lg:shadow-lg w-full rounded-lg flex flex-col lg:flex-row">
+                <AlertSnackbar
+                    open={snackbarOpen}
+                    message={snackbarMessage}
+                    alert_type="error"
+                    onClose={() => setSnackbarOpen(false)}
+                />
                 {/* Left Section: Image */}
                 <div className="flex-shrink-0 w-full lg:w-1/2 relative">
                     {/* Display current image */}
                     <img
                         src={post.images[currentImageIndex].image}
                         alt={post.content}
-                        className="w-full h-full rounded-s-lg object-cover"
+                        className="w-full h-full lg:rounded-s-lg object-cover"
                     />
 
                     {/* Navigation buttons */}
@@ -157,104 +208,115 @@ const PostDisplayCard = memo(() => {
                     )}
                 </div>
 
-                {/* Right Section: Content */}
-                <div className="flex-grow w-full flex flex-col justify-between my-2">
-                    {/* User Info */}
-                    <div>
-                        <div className="flex items-center justify-between my-2 mx-4">
-                            {/* Left Section: Profile and Date */}
-                            <div className="flex items-center">
-                                <img
-                                    src={profile.profile_picture || ""}
-                                    alt={profile.user.username || "User"}
-                                    className="w-10 h-10 rounded-full object-cover mr-3"
-                                />
-                                <div className="flex flex-col">
-                                    <p className="text-lg text-gray-800 font-semibold">
-                                        {profile.user.username || "Anonymous"}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        {post.created_at
-                                            ? new Date(post.created_at).toLocaleDateString("en-GB", {
-                                                day: "2-digit",
-                                                month: "short",
-                                                year: "numeric",
-                                            })
-                                            : ""}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Right Section: Dot Menu */}
-                            <button
-                                className="flex items-center"
-                                aria-label="Dot-Menu"
-                                onClick={toggleModal}
-                            >
-                                <img src={dotMenuIcon} alt="Dot-Menu" className="w-5" />
-                            </button>
-                        </div>
-
-                        <hr className="mt-2" />
-                        {/* Post Content */}
-                        {isEditing ? (
-                            <div className="relative m-4">
-                                {/* Done and Cancel Links */}
-                                <div className="flex justify-between items-center mb-2">
-                                    <span
-                                        onClick={handleCancel}
-                                        className="text-gray-500 hover:text-gray-700 cursor-pointer text-sm"
-                                    >
-                                        Cancel
-                                    </span>
-                                    <span
-                                        onClick={handleSave}
-                                        className="text-gray-500 hover:text-gray-700 cursor-pointer text-sm"
-                                    >
-                                        Done
-                                    </span>
+                {!showComment ? (
+                    // Right Section: Content
+                    <div className="flex-grow w-full flex flex-col justify-between my-2">
+                        {/* User Info */}
+                        <div>
+                            <div className="flex items-center justify-between my-2 mx-4">
+                                {/* Left Section: Profile and Date */}
+                                <div className="flex items-center">
+                                    <img
+                                        src={profile.profile_picture || ""}
+                                        alt={profile.user.username || "User"}
+                                        className="w-10 h-10 rounded-full object-cover mr-3"
+                                    />
+                                    <div className="flex flex-col">
+                                        <p className="text-lg text-gray-800 font-semibold">
+                                            {profile.user.username || "Anonymous"}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            {post.created_at
+                                                ? new Date(post.created_at).toLocaleDateString("en-GB", {
+                                                    day: "2-digit",
+                                                    month: "short",
+                                                    year: "numeric",
+                                                })
+                                                : ""}
+                                        </p>
+                                    </div>
                                 </div>
 
-                                {/* Editable Input Field */}
-                                <input
-                                    type="text"
-                                    value={editedContent}
-                                    onChange={(e) => setEditedContent(e.target.value)}
-                                    maxLength={100}
-                                    className="w-full h-12 rounded-lg p-2 text-lg focus:outline-none"
-                                    placeholder="Edit your post content..."
-                                />
+                                {/* Right Section: Dot Menu */}
+                                <button
+                                    className="flex items-center"
+                                    aria-label="Dot-Menu"
+                                    onClick={toggleModal}
+                                >
+                                    <img src={dotMenuIcon} alt="Dot-Menu" className="w-5" />
+                                </button>
                             </div>
-                        ) : (
-                            <h2 className="text-lg m-4">{post.content}</h2>
-                        )}
-                    </div>
 
-                    {/* Action Icons */}
-                    <div>
-                        <hr />
-                        <div className="flex items-center gap-6 m-4 text-gray-600">
-                            <button
-                                className="flex items-center gap-1 p-2 bg-gray-100 hover:bg-gray-200 rounded-full"
-                                aria-label="Like"
-                            >
-                                <img src={likeIcon} alt="Like" className="w-5" />
-                            </button>
-                            <button
-                                className="flex items-center gap-1 p-1 bg-gray-100 hover:bg-gray-200 rounded-full"
-                                aria-label="Comment"
-                            >
-                                <img src={commentIcon} alt="Comment" className="w-7" />
-                            </button>
-                            <button
-                                className="flex items-center gap-1 p-1 bg-gray-100 hover:bg-gray-200 rounded-full"
-                                aria-label="Save"
-                            >
-                                <img src={saveIcon} alt="Save" className="w-7" />
-                            </button>
+                            <hr className="mt-2" />
+                            {/* Post Content */}
+                            {isEditing ? (
+                                <div className="relative m-4">
+                                    {/* Done and Cancel Links */}
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span
+                                            onClick={handleCancel}
+                                            className="text-gray-500 hover:text-gray-700 cursor-pointer text-sm"
+                                        >
+                                            Cancel
+                                        </span>
+                                        <span
+                                            onClick={handleSave}
+                                            className="text-gray-500 hover:text-gray-700 cursor-pointer text-sm"
+                                        >
+                                            Done
+                                        </span>
+                                    </div>
+
+                                    {/* Editable Input Field */}
+                                    <input
+                                        type="text"
+                                        value={editedContent}
+                                        onChange={(e) => setEditedContent(e.target.value)}
+                                        maxLength={100}
+                                        className="w-full h-12 rounded-lg p-2 text-lg focus:outline-none"
+                                        placeholder="Edit your post content..."
+                                    />
+                                </div>
+                            ) : (
+                                <h2 className="text-lg m-4">{post.content}</h2>
+                            )}
+                        </div>
+
+                        {/* Action Icons */}
+                        <div>
+                            <hr />
+                            <div className="flex items-center gap-6 m-4 text-gray-600">
+                                <button
+                                    className="flex items-center gap-1 p-2 bg-gray-100 hover:bg-gray-200 rounded-full"
+                                    aria-label="Like"
+                                    onClick={handleLike}
+                                >
+                                    <img
+                                        src={isLiked ? likedIcon : likeIcon}
+                                        alt="Like"
+                                        className="w-5"
+                                    />
+                                </button>
+                                <button
+                                    className="flex items-center gap-1 p-1 bg-gray-100 hover:bg-gray-200 rounded-full"
+                                    aria-label="Comment"
+                                    onClick={() => setShowComment(true)}
+                                >
+                                    <img src={commentIcon} alt="Comment" className="w-7" />
+                                </button>
+                                <button
+                                    className="flex items-center gap-1 p-1 bg-gray-100 hover:bg-gray-200 rounded-full"
+                                    aria-label="Save"
+                                >
+                                    <img src={saveIcon} alt="Save" className="w-7" />
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <CommentArea onClose={() => setShowComment(false)} postId={post.id} />
+                )}
+
             </div>
 
             {/* Reusable Modal */}

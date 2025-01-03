@@ -3,23 +3,29 @@ import redis
 import json
 from environs import Env
 from datetime import datetime
+from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
 
 # Third-party libraries
 from rest_framework import status
 from cryptography.fernet import Fernet
 from rest_framework.views import APIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import api_view, permission_classes
 
 # Internal modules
-from .models import Post, PetListing, PetListingImageTemp, PetListingImage
+from .models import (
+    Post, PetListing, PetListingImageTemp, PetListingImage,
+    Like, Comment
+)
 from pets.models import Pet, PetBreed
 from sellers.models import Seller
 from .serializers import (
     PostSerializer, PostImageSerializer, PetListingCreateSerializer,
-    PetListingRetrieveSerializer, PetListingImageSerializer,
+    PetListingRetrieveSerializer, CommentSerializer,
     PetListingImageTempSerializer, PetListingLocationSerializer
 )
 from petsphere.utils.common_utils import (
@@ -230,6 +236,119 @@ class UserPostDetailView(APIView):
         post.delete()
         return Response({'detail': 'Post Deleted Successfully'},
                         status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def like_post(request):
+    try:
+        user = validate_authenticated_user(request)
+        if isinstance(user, Response):
+            return user
+
+        required_fields = ['post_id']
+        data = validate_request_data(request, required_fields)
+        if isinstance(data, Response):
+            return data
+        post_id = data['post_id']
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        like = Like.objects.filter(user=user, post=post)
+        if like.exists():
+            like.delete()
+            post.likes_count = max(0, post.likes_count - 1)
+            post.save()
+            return Response({'detail': 'Post Unliked Successfully'},
+                            status=status.HTTP_200_OK)
+        else:
+            Like.objects.create(user=user, post=post)
+            post.likes_count += 1
+            post.save()
+            return Response({'detail': 'Post Liked Successfully'},
+                            status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        print(str(e))
+        return Response({"error": str(e)},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['get'])
+@permission_classes([IsAuthenticated])
+def fetch_liked_users(request, post_id):
+    try:
+        user = validate_authenticated_user(request)
+        if isinstance(user, Response):
+            return user
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        liked_users = Like.objects.filter(post=post).select_related(
+            'user').values_list('user__username', flat=True)
+        is_liked_by_user = user.username in liked_users
+        return Response(
+            {'liked_users': list(liked_users),
+             'is_liked_by_user': is_liked_by_user},
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response({"error": str(e)},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CreateCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
+            required_fields = ['content', 'post', 'parent']
+            data = validate_request_data(request, required_fields)
+            data['user'] = user.id
+            if isinstance(user, Response):
+                return data
+            post_id = data['post']
+            try:
+                post = Post.objects.get(id=post_id)
+            except Post.DoesNotExist:
+                return Response({"error": "Post not found"},
+                                status=status.HTTP_400_BAD_REQUEST)
+            serializer = CommentSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                post.comment_count += 1
+                post.save()
+                return Response({"success": serializer.data},
+                                status=status.HTTP_201_CREATED)
+            else:
+                print(f"SERIALIZER ERROR : {serializer.errors}")
+                return Response({"error": serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(str)
+            return Response({"error": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ListCommentsForPostView(ListAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        post_id = self.kwargs['post_id']
+        get_object_or_404(Post, id=post_id)
+        return Comment.objects.filter(
+            post__id=post_id, parent=None
+        ).order_by('-created_at')
 
 
 class PetListingDataStoreView(APIView):
