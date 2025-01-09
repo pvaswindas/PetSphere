@@ -7,6 +7,8 @@ import adminReducer from "./slices/AdminProfileSlice";
 import petReducer from "./slices/PetSlice";
 import locationReducer from "./slices/LocationSlice";
 import petListingReducer from "./slices/PetListingSlice"
+import globalSearchReducer from "./slices/GlobalSearchSlice"
+import subscriptionReducer from "./slices/SubscriptionSlice"
 
 const EXPIRY_TIME = 60 * 60 * 25
 
@@ -35,14 +37,16 @@ const rootReducer = combineReducers({
     petListings: petListingReducer,
     admin: adminReducer,
     pets: petReducer,
-    location: locationReducer
+    location: locationReducer,
+    globalSearch: globalSearchReducer,
+    subscriptions: subscriptionReducer,
 });
 
 const persistConfig = {
     key: 'root',
     storage,
     transforms: [expiryTransform],
-    whitelist: ['profile', 'admin',],
+    whitelist: ['profile', 'admin', 'globalSearch', 'subscriptions',],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

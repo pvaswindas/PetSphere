@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense, memo, useEffect } from "react"
+import React, { useState, lazy, memo, useEffect, Suspense } from "react"
 import ProfileFeedSelection from "./ProfileFeedSelection"
 import UserInfo from "./UserInfo"
 import ProfileHeader from "./ProfileHeader"
@@ -56,9 +56,9 @@ const ProfileCard = memo(() => {
 
             {/* Feed Content */}
             <div className="lg:px-4 lg:pt-4 lg:pb-8">
-                <Suspense fallback={<div>Loading...</div>}>
-                    {renderSelectedFeed()}
-                </Suspense>
+            <Suspense fallback={<div>Loading...</div>}>
+                {renderSelectedFeed()}
+            </ Suspense>
             </div>
         </div>
     )

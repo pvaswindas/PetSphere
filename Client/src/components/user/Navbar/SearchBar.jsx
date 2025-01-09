@@ -1,20 +1,67 @@
-import React from "react";
-import searchIcon from "../../../assets/icon/search-icon.svg"
+import React, { useRef, useState, useEffect } from "react";
+import searchIcon from "../../../assets/icon/search-icon.svg";
+import { useDispatch, useSelector } from "react-redux";
+import { clearGlobalSearch, setGlobalSearch } from "../../../redux/slices/GlobalSearchSlice";
+import { debounce } from "lodash";
+import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const SearchBar = ({ placeholder = "Search", onChange, value }) => {
+const SearchBar = ({ placeholder = "Search", addedStyles = "w-1/2 mx-12" }) => {
+  const search = useSelector((state) => state.globalSearch.search)
+  const [inputValue, setInputValue] = useState(search || "")
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
+  const debouncedSetSearch = useRef(
+    debounce((value) => {
+      dispatch(setGlobalSearch(value));
+    }, 300),
+  );
+
+  useEffect(() => {
+    const currentDebounced = debouncedSetSearch.current;
+    return () => {
+      currentDebounced.cancel()
+    }
+  }, [])
+
+  const handleChange = (e) => {
+    const value = e.target.value
+    setInputValue(value)
+    debouncedSetSearch.current(value)
+  }
+
+  const handleClear = () => {
+    setInputValue("")
+    dispatch(clearGlobalSearch())
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      navigate("/explore")
+    }
+  }
+
   return (
-    <div className="flex items-center py-1 px-3 mx-11 bg-[#B9B9B9]/15 rounded-md w-1/2">
-      <img src={searchIcon}
-      alt="Search"
-      className="w-4"
-      />
+    <div className={`flex items-center py-1 px-3 bg-[#B9B9B9]/15 rounded-md ${addedStyles}`}>
+      <img src={searchIcon} alt="Search" className="w-4 cursor-pointer" onClick={() => navigate("/explore")} />
       <input
+        id="global-search"
+        name="global-search"
         type="text"
+        autoComplete="off"
         placeholder={placeholder}
         className="flex-1 bg-transparent focus:outline-none px-3 text-gray-500 placeholder-lightTextGrey"
-        value={value}
-        onChange={onChange}
+        value={inputValue}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
       />
+      {inputValue && (
+        <X
+          className="w-4 h-4 text-gray-500 cursor-pointer ml-2"
+          onClick={handleClear}
+        />
+      )}
     </div>
   );
 };

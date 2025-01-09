@@ -14,3 +14,12 @@ class PetSphereUser(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class AccountSettings(models.Model):
+    user = models.OneToOneField(PetSphereUser, on_delete=models.CASCADE,
+                                related_name='account_settings')
+    is_private = models.BooleanField(default=False)
+    receive_message = models.BooleanField(default=True)
+    push_notification = models.BooleanField(default=True)
+    is_deactivate = models.BooleanField(default=False)

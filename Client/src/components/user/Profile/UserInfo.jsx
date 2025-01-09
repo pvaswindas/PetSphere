@@ -4,10 +4,10 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 const UserInfo = () => {
-    const profile = useSelector((state) => state.profile.profile_data);
-    const user = profile ? profile.user : null;
+    const profile = useSelector((state) => state.profile.profile_data)
+    const user = profile ? profile.user : null
 
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
     const handleEditProfile = () => {
         navigate('/profile/edit');

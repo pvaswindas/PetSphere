@@ -6,7 +6,7 @@ export const fetchLikedUsers = createAsyncThunk(
     "posts/fetchLikedUsers",
     async (post_id, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get(`posts/likedusers/${post_id}/`);
+            const response = await axiosInstance.get(`socials/likedusers/${post_id}/`);
             if (response.status === 204) {
                 return {}
             } else if (response.status === 200) {

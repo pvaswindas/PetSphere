@@ -18,6 +18,8 @@ class Profile(models.Model):
     )
     is_private = models.BooleanField(default=False)
     push_notification = models.BooleanField(default=False)
+    pawstory_count = models.PositiveBigIntegerField(default=0)
+    petlisting_count = models.PositiveBigIntegerField(default=0)
     follower_count = models.PositiveBigIntegerField(default=0)
     following_count = models.PositiveBigIntegerField(default=0)
 

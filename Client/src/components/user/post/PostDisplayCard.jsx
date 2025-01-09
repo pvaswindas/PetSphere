@@ -14,7 +14,7 @@ import AlertSnackbar from "../../Snackbar/AlertSnackbar";
 import { fetchLikedUsers } from "../../../redux/thunks/FetchLikedUsers";
 import { CommentArea } from "../CommentArea/CommentArea";
 
-const PostDisplayCard = memo(() => {
+const   PostDisplayCard = memo(() => {
     const { slug } = useParams();
     const dispatch = useDispatch();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,6 +32,7 @@ const PostDisplayCard = memo(() => {
     const profile = useSelector((state) => state.profile?.profile_data || null);
     const navigate = useNavigate();
     const post_id = post?.id || null
+    const isPostEdited = (post?.created_at !== post?.updated_at) || false
 
 
     useEffect(() => {
@@ -130,7 +131,7 @@ const PostDisplayCard = memo(() => {
     const handleLike = async () => {
         const post_id = post.id
         try {
-            const likePostResponse = await axiosInstance.post('posts/likepost/', { post_id })
+            const likePostResponse = await axiosInstance.post('socials/likepost/', { post_id })
             if (likePostResponse.status === 201) {
                 setIsLiked(true)
             } else if (likePostResponse.status === 200) {
@@ -139,10 +140,16 @@ const PostDisplayCard = memo(() => {
                 setSnackbarMessage("Something went wrong. Try again.")
                 setSnackbarOpen(true)
             }
+            dispatch(fetchPawstory(slug));
         } catch (error) {
             setSnackbarMessage("Something went wrong. Try again.")
             setSnackbarOpen(true)
         }
+    }
+
+    const handleCommentAreaClose = () => {
+        setShowComment(false)
+        dispatch((fetchPawstory(slug)))
     }
 
     return (
@@ -269,6 +276,8 @@ const PostDisplayCard = memo(() => {
 
                                     {/* Editable Input Field */}
                                     <input
+                                        id="post-content"
+                                        name="content"
                                         type="text"
                                         value={editedContent}
                                         onChange={(e) => setEditedContent(e.target.value)}
@@ -278,43 +287,57 @@ const PostDisplayCard = memo(() => {
                                     />
                                 </div>
                             ) : (
-                                <h2 className="text-lg m-4">{post.content}</h2>
+                                <div className="flex justify-between m-4 items-center">
+                                    <h2 className="text-lg">{post.content}</h2>
+                                    {isPostEdited && (
+                                        <p className="text-xs text-gray-500">
+                                            Edited on{" "}
+                                            {new Date(post.updated_at).toLocaleDateString("en-GB", {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric",
+                                            })}
+                                        </p>
+                                    )}
+                                </div>                                
                             )}
                         </div>
 
                         {/* Action Icons */}
                         <div>
                             <hr />
-                            <div className="flex items-center gap-6 m-4 text-gray-600">
+                            <div className="flex items-center m-4 text-gray-600">
                                 <button
-                                    className="flex items-center gap-1 p-2 bg-gray-100 hover:bg-gray-200 rounded-full"
+                                    className="flex items-center p-2 hover:bg-gray-200 rounded-full"
                                     aria-label="Like"
                                     onClick={handleLike}
                                 >
                                     <img
                                         src={isLiked ? likedIcon : likeIcon}
                                         alt="Like"
-                                        className="w-5"
+                                        className="w-4"
                                     />
                                 </button>
+                                <p className="pe-4">{ post?.like_count }</p>
                                 <button
-                                    className="flex items-center gap-1 p-1 bg-gray-100 hover:bg-gray-200 rounded-full"
+                                    className="flex items-center hover:bg-gray-200 rounded-full"
                                     aria-label="Comment"
                                     onClick={() => setShowComment(true)}
                                 >
-                                    <img src={commentIcon} alt="Comment" className="w-7" />
+                                    <img src={commentIcon} alt="Comment" className="w-6" />
                                 </button>
+                                <p className="pe-4">{post?.comment_count}</p>
                                 <button
-                                    className="flex items-center gap-1 p-1 bg-gray-100 hover:bg-gray-200 rounded-full"
+                                    className="flex items-center p-1 hover:bg-gray-200 rounded-full"
                                     aria-label="Save"
                                 >
-                                    <img src={saveIcon} alt="Save" className="w-7" />
+                                    <img src={saveIcon} alt="Save" className="w-6" />
                                 </button>
                             </div>
                         </div>
                     </div>
                 ) : (
-                    <CommentArea onClose={() => setShowComment(false)} postId={post.id} />
+                    <CommentArea onClose={handleCommentAreaClose} postId={post.id} />
                 )}
 
             </div>
@@ -337,11 +360,15 @@ const PostDisplayCard = memo(() => {
                     </li>
                     <hr />
                     <li className="hover:bg-gray-100 p-3 rounded cursor-pointer">
-                        Turn On Commenting
+                        Hide Like Count
                     </li>
                     <hr />
                     <li className="hover:bg-gray-100 p-3 rounded cursor-pointer">
-                        Hide Like Count
+                        Hide Comment Count
+                    </li>
+                    <hr />
+                    <li className="hover:bg-gray-100 p-3 rounded cursor-pointer">
+                        Turn Off Commenting
                     </li>
                     <hr />
                     <li

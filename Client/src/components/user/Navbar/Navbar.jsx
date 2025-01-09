@@ -28,7 +28,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="w-full bg-white shadow-md flex items-center justify-between px-4 py-1 lg:py-2">
+      <nav className="w-full bg-white shadow-md flex items-center justify-between lg:px-4 py-1 lg:py-2">
         {/* Start Section */}
         <div className="flex items-center space-x-4">
           {/* Logo */}
@@ -50,7 +50,7 @@ const Navbar = () => {
         </div>
 
         {/* End Section */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 mr-1">
           {/* Notifications Button */}
           <button
             className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200"

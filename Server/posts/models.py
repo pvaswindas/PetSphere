@@ -12,32 +12,15 @@ class Post(models.Model):
     slug = models.SlugField(unique=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    likes_count = models.PositiveBigIntegerField(default=0)
+    like_count = models.PositiveBigIntegerField(default=0)
     comment_count = models.PositiveBigIntegerField(default=0)
-    shares_count = models.PositiveBigIntegerField(default=0)
+    save_count = models.PositiveBigIntegerField(default=0)
+    hide_likes = models.BooleanField(default=False)
+    hide_comments = models.BooleanField(default=False)
+    turn_off_comments = models.BooleanField(default=False)
 
     def __str__(self):
         return self.content[:50]
-
-
-class Like(models.Model):
-    user = models.ForeignKey(PetSphereUser, on_delete=models.CASCADE,
-                             related_name='likes')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE,
-                             related_name='likes')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
-class Comment(models.Model):
-    user = models.ForeignKey(PetSphereUser, on_delete=models.CASCADE,
-                             related_name='comments')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE,
-                             related_name='comments')
-    content = models.TextField()
-    parent = models.ForeignKey('self', on_delete=models.CASCADE,
-                               null=True, blank=True, related_name='replies')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
 
 class PostImage(models.Model):

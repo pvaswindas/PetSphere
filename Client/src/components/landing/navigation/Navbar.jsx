@@ -15,6 +15,8 @@ export default function Navbar() {
                 <NavLinks />
                 <div className="relative">
                 <input
+                    id='landings-search'
+                    name='landings-search'
                     type="text"
                     placeholder="Search PawStories & PetListings..."
                     className="pl-10 pr-4 py-2 w-64 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500"

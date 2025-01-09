@@ -13,8 +13,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = [
             'id', 'user', 'bio', 'cover_image', 'profile_picture',
-            'is_private', 'push_notification', 'follower_count',
-            'following_count'
+            'is_private', 'pawstory_count', 'petlisting_count',
+            'push_notification', 'follower_count', 'following_count'
         ]
         read_only_fields = ['id', 'follower_count', 'following_count']
 

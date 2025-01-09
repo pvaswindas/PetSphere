@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Trash } from "lucide-react";
 
 export function CommentList({ comments, onReply, onDelete }) {
     const [visibleChildren, setVisibleChildren] = useState({});
@@ -20,6 +19,56 @@ export function CommentList({ comments, onReply, onDelete }) {
 
         return `${time.replace(':', '.')} ${month}/${day}/${year}`;
     }
+
+    const toggleVisibility = (parentId) => {
+        setVisibleChildren((prevState) => ({
+            ...prevState,
+            [parentId]: !prevState[parentId],
+        }));
+    };
+
+    const renderReplies = (replies, parentId) => {
+        return (
+            <div className="ml-4 mt-2">
+                {replies
+                    .slice(0, visibleChildren[parentId] ? replies.length : 1)
+                    .map((reply) => (
+                        <div key={reply.id} className="bg-gray-100 p-2 rounded-lg mt-2">
+                            <div className="flex justify-between items-start mb-1">
+                                <span className="font-medium text-sm">{reply.username || `User ${reply.user}`}</span>
+                                <span className="text-xs text-gray-500">{formatDate(reply.created_at)}</span>
+                            </div>
+                            <p className="text-sm text-gray-700">{reply.content}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                                <button
+                                    onClick={() => onReply(reply.id, reply.username)}
+                                    className="text-blue-500 text-xs"
+                                >
+                                    Reply
+                                </button>
+                                <button
+                                    onClick={() => onDelete(reply.id)}
+                                    className="text-red-500 text-xs flex items-center gap-1 mt-1"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+
+                            {reply.replies && reply.replies.length > 0 && renderReplies(reply.replies, reply.id)}
+                        </div>
+                    ))}
+
+                {replies.length > 1 && (
+                    <button
+                        onClick={() => toggleVisibility(parentId)}
+                        className="text-blue-500 text-sm mt-2"
+                    >
+                        {visibleChildren[parentId] ? "Hide" : "Show more"}
+                    </button>
+                )}
+            </div>
+        );
+    };
 
     const renderComments = (comments) => {
         return comments.map((comment) => (
@@ -45,45 +94,9 @@ export function CommentList({ comments, onReply, onDelete }) {
                     </button>
                 </div>
 
-                {comment.replies && comment.replies.length > 0 && (
-                    <div className="ml-4 mt-2">
-                        {comment.replies
-                            .slice(0, visibleChildren[comment.id] ? comment.replies.length : 1)
-                            .map((reply) => (
-                                <div key={reply.id} className="bg-gray-100 p-2 rounded-lg mt-2">
-                                    <div className="flex justify-between items-start mb-1">
-                                        <span className="font-medium text-sm">{reply.username || `User ${reply.user}`}</span>
-                                        <span className="text-xs text-gray-500">{formatDate(reply.created_at)}</span>
-                                    </div>
-                                    <p className="text-sm text-gray-700">{reply.content}</p>
-                                    <button
-                                        onClick={() => onDelete(reply.id)}
-                                        className="text-red-500 text-xs flex items-center gap-1 mt-1"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            ))}
-
-                        {comment.replies.length > 1 && (
-                            <button
-                                onClick={() => toggleVisibility(comment.id)}
-                                className="text-blue-500 text-sm mt-2"
-                            >
-                                {visibleChildren[comment.id] ? "Hide" : "Show more"}
-                            </button>
-                        )}
-                    </div>
-                )}
+                {comment.replies && comment.replies.length > 0 && renderReplies(comment.replies, comment.id)}
             </div>
         ));
-    };
-
-    const toggleVisibility = (parentId) => {
-        setVisibleChildren((prevState) => ({
-            ...prevState,
-            [parentId]: !prevState[parentId],
-        }));
     };
 
     return (

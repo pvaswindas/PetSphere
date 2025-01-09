@@ -3,6 +3,7 @@ import Navbar from "../../components/user/Navbar/Navbar"
 import Sidebar from "../../components/user/sidebar/Sidebar"
 import AdPreviewBar from "../../components/user/sidebar/AdPreviewBox"
 import { ExploreComponent } from "../../components/user/explore/Explore"
+import Bottombar from "../../components/user/bottombar/Bottombar"
 
 function ExplorePage() {
     return (
@@ -29,6 +30,8 @@ function ExplorePage() {
                     <ExploreComponent />
                 </div>
             </div>
+            {/* Bottombar */}
+            <Bottombar />
         </div>
     )
 }

@@ -17,7 +17,7 @@ export function CommentArea({ onClose, postId }) {
         }
 
         try {
-            const response = await axiosInstance.get(`posts/comments/post/${postId}`);
+            const response = await axiosInstance.get(`socials/comments/post/${postId}`);
             setComments(response.data);
         } catch (error) {
             console.error('Error fetching comments:', error);
@@ -38,7 +38,7 @@ export function CommentArea({ onClose, postId }) {
                 post: postId,
             };
 
-            await axiosInstance.post('posts/comments/create/', payload);
+            await axiosInstance.post('socials/comments/create/', payload);
 
             await fetchComments();
 
@@ -56,7 +56,7 @@ export function CommentArea({ onClose, postId }) {
 
     const onDelete = async (comment_id) => {
         try {
-            await axiosInstance.delete(`posts/comments/delete/${comment_id}/`);
+            await axiosInstance.delete(`socials/comments/delete/${comment_id}/`);
             await fetchComments();
         } catch (error) {
             console.error('Error deleting comment:', error);

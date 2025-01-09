@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { X } from "lucide-react"; // Importing cross icon from lucide-react
+import Shimmer from "../../Shimmer/Shimmer";
 
 const getStatusClasses = (status) => {
     switch (status) {
@@ -17,13 +19,13 @@ const getStatusClasses = (status) => {
     }
 };
 
-export function ExplorePetListings({petListings}) {
+export function ExplorePetListings({ petListings }) {
+    const [loading, setLoading] = useState(true);
+    const [searchLocation, setSearchLocation] = useState("");
     const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
-    const [searchLocation, setSearchLocation] = useState("");
-
     const handlePostClick = () => {
-        
+
     };
 
     const filteredListings = petListings.filter((listing) => {
@@ -31,28 +33,49 @@ export function ExplorePetListings({petListings}) {
         return city.toLowerCase().includes(searchLocation.toLowerCase());
     });
 
-    
-    
+    useEffect(() => {
+        if (petListings.length > 0) {
+            setLoading(false);
+        }
+    }, [petListings]);
 
     return (
         <div className="w-full">
             {/* Search Bar */}
-            <div className="mb-6">
+            <div className="mb-6 relative">
                 <input
+                    id="explore-location"
+                    name="explore-location"
                     type="text"
                     placeholder="Search by location"
                     value={searchLocation}
                     onChange={(e) => setSearchLocation(e.target.value)}
-                    className="w-1/3 px-4 py-2 border border-gray-300 rounded-md focus:outline-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none pr-10"
                 />
+                {/* Clear button (cross) */}
+                {searchLocation && (
+                    <button
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                        onClick={() => setSearchLocation("")}
+                    >
+                        <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                )}
             </div>
 
-            {filteredListings.length === 0 ? (
-                <div className="w-full h-64 flex items-center justify-center rounded-lg px-5">
-                    <p className="text-gray-500">No PetListings found in the specified location!</p>
+            {loading || filteredListings.length === 0 ? (
+                <div className="grid gap-0.5 grid-cols-4">
+                    {Array.from({ length: 12 }).map((_, index) => (
+                        <div
+                            key={index}
+                            className="relative w-full aspect-square"
+                        >
+                            <Shimmer className="w-full h-full" />
+                        </div>
+                    ))}
                 </div>
             ) : (
-                <div className="grid gap-1 lg:gap-6 grid-cols-3">
+                <div className="grid gap-0.5 grid-cols-4">
                     {filteredListings.map((listing, index) => {
                         const status = listing.is_sold_or_adopted
                             ? listing.post_type === "Selling"
@@ -82,7 +105,7 @@ export function ExplorePetListings({petListings}) {
                                 <img
                                     src={listing.images[0].image}
                                     alt={`PetListing ${index + 1}`}
-                                    className="w-full h-full lg:rounded-lg object-cover"
+                                    className="w-full h-full object-cover"
                                 />
                             </div>
                         );

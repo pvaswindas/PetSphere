@@ -216,6 +216,7 @@ const AddPetStoryCard = () => {
                     <input
                         type="file"
                         id="image-upload"
+                        name="imageupload"
                         onChange={handleImageChange}
                         className="hidden"
                     />

@@ -27,6 +27,9 @@ import Landing from "./pages/Landing";
 import AddPetListing from "./pages/user-ui/post/AddPetListing";
 import MapExplorer from "./pages/user-ui/MapExplorer";
 import ExplorePage from "./pages/user-ui/ExplorePage";
+import SubscriptionPage from "./pages/user-ui/subscription/SubscriptionPage";
+import PaymentSuccessPage from "./components/user/subscription/PaymentSuccessPage";
+import PaymentCancelPage from "./components/user/subscription/PaymentCancelPage";
 
 function App() {
   const location = useLocation();
@@ -78,11 +81,16 @@ function App() {
                 <Route path="add-pet-listing" element={<AddPetListing />} />
                 <Route path="post/:slug" element={<PostDisplay />} />
                 <Route path="mapexplore" element={<MapExplorer />} />
-                <Route path="explore" element={<ExplorePage />} />
               </Routes>
             </ProtectedRoute>
           } 
         />
+
+        <Route path="explore" element={ <ProtectedRoute><ExplorePage /></ProtectedRoute> } />
+        <Route path="subscriptions" element={ <ProtectedRoute><SubscriptionPage /></ProtectedRoute> } />
+        <Route path="subscriptions/success" element={ <ProtectedRoute><PaymentSuccessPage /></ProtectedRoute> } />
+        <Route path="subscriptions/cancel" element={ <ProtectedRoute><PaymentCancelPage /></ProtectedRoute> } />
+
 
         {/* Admin Routes */}
         <Route

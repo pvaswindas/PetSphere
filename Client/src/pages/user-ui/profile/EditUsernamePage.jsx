@@ -14,7 +14,7 @@ function EditUsernamePage() {
             <div className="flex flex-col lg:flex-row lg:px-2 lg:py-6">
                 {/* Sidebar Section */}
                 <div className="hidden lg:flex flex-col lg:px-4 lg:w-1/5">
-                    <div className="space-y-4 lg:h-[calc(100vh-56px)] lg:overflow-y-auto rounded-lg pb-12">
+                    <div className="space-y-4 h-[calc(100vh-56px)] overflow-y-auto rounded-lg pb-12">
                         {/* ProfileViewBar */}
                         <AdPreviewBar />
 

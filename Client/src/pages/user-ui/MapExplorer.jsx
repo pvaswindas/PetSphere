@@ -3,6 +3,7 @@ import Navbar from "../../components/user/Navbar/Navbar"
 import Sidebar from "../../components/user/sidebar/Sidebar"
 import ProfileViewBar from "../../components/user/sidebar/ProfileViewBar"
 import MapboxLocationPicker from "../../components/user/post/MapboxLocationPicker"
+import Bottombar from "../../components/user/bottombar/Bottombar"
 
 function MapExplorer() {
     return (
@@ -29,6 +30,8 @@ function MapExplorer() {
                     <MapboxLocationPicker />
                 </div>
             </div>
+            {/* Bottombar */}
+            <Bottombar />
         </div>
     )
 }

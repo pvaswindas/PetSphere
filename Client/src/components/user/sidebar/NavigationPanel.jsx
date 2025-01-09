@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import activeHomeIcon from "../../../assets/icon/user-sidebar/home-icon-white.svg"
 import activeListingIcon from "../../../assets/icon/user-sidebar/pet-carrier-icon-white.svg"
@@ -19,14 +19,22 @@ import nonActiveSettingsIcon from "../../../assets/icon/user-sidebar/settings-ic
 
 
 function NavigationPanel(){
-    const location = useLocation();
+    const location = useLocation()
+    const navigate = useNavigate()
 
-    const isActive = (path) => location.pathname.startsWith(path);
+    const isActive = (path) => location.pathname.startsWith(path)
 
     const ifActive = "bg-og-gradient text-white";
     const ifNonActive = "bg-white text-blackOpacity70";
     const h2CommonStyle = "text-sm font-medium"
-    const buttonCommonStyle = "flex gap-2 items-center w-full justify-start py-2 px-5 hover:scale-105 transition-transform duration-300 h-[38px] rounded-md "
+    const buttonCommonStyle = "flex gap-2 items-center w-full justify-start py-2 px-5 hover:scale-105 transition-transform duration-300 h-[38px] rounded-md"
+
+
+    const handleNavigate = (path) => {
+        if (location.pathname !== `/${path}`){
+            navigate(`/${path}`)
+        }
+    }
 
     return (
         <div className="navigation-panel flex flex-col gap-2">
@@ -57,6 +65,7 @@ function NavigationPanel(){
                 {/* Explore Button */}
                 <button
                     className={`${buttonCommonStyle} ${ isActive('/explore') ? ifActive : ifNonActive }`}
+                    onClick={() => handleNavigate("explore")}
                 >
                     <img
                         src={isActive('/explore') ? activeExploreIcon : nonActiveExploreIcon}
@@ -81,6 +90,7 @@ function NavigationPanel(){
                 {/* My Profile Button */}
                 <button
                     className={`${buttonCommonStyle} ${ isActive('/profile') ? ifActive : ifNonActive }`}
+                    onClick={() => handleNavigate("profile")}
                 >
                     <img
                         src={isActive('/profile') ? activeProfileIcon : nonActiveProfileIcon}

@@ -28,6 +28,7 @@ function OtpInput({ length = 6, onChange }) {
                 <input
                     key={index}
                     id={`otp-input-${index}`}
+                    name={`otp-input-${index}`}
                     type="text"
                     maxLength="1"
                     value={digit}

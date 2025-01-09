@@ -125,6 +125,8 @@ const EditProfileCard = () => {
                     <h5 className="mt-2 text-sm text-gray-600">Tap to Edit or Delete Profile Picture</h5>
                 </div>
                 <input
+                    id="profile-image"
+                    name="profimage"
                     type="file"
                     ref={fileInputRef}
                     style={{ display: "none" }}

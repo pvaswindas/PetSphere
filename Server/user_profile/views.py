@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from .models import Profile
+from django.db.models import Q
 from .serializers import ProfileSerializer
 
 
@@ -37,3 +38,19 @@ class ProfileView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PeopleListView(APIView):
+    def get(self, request):
+        search_query = request.query_params.get('search', None)
+
+        if search_query:
+            users = Profile.objects.filter(
+                Q(user__username__icontains=search_query) | Q(
+                    user__name__icontains=search_query)
+            )
+        else:
+            users = Profile.objects.all()
+
+        serializer = ProfileSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

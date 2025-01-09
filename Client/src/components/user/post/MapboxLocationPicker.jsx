@@ -59,7 +59,7 @@ const MapboxLocationPicker = () => {
 
     useEffect(() => {
         if (!petListingKey) {
-            navigate('/add-pet-listing');
+            navigate('/profile/add-pet-listing');
         }
 
         setLoading(true)

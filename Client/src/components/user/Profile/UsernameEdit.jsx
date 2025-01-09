@@ -69,6 +69,7 @@ const UsernameEdit = () => {
                     </label>
                     <input
                         id="username"
+                        name="username"
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}

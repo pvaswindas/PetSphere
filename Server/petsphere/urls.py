@@ -10,4 +10,6 @@ urlpatterns = [
     path('api/user/', include('user_profile.urls')),
     path('api/posts/', include('posts.urls')),
     path('api/pet/', include('pets.urls')),
+    path('api/socials/', include('socials.urls')),
+    path('api/subscription/', include('subscriptions.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

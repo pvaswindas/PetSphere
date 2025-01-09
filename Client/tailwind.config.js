@@ -34,7 +34,7 @@ module.exports = {
       },
       backgroundImage: {
         'og-gradient': 'linear-gradient(to right, #0FA59B, #904DAC)',
-        'ad-preview-gradient': 'linear-gradient(to bottom, #FFC107, #D81B60)',
+        'ad-preview-gradient': 'linear-gradient(to bottom, #FFC61B, #E13373)',
         'og-gradient-light': 'linear-gradient(to right, #4ed2b3, #af7dc4)',
         'og-gradient-dark': 'linear-gradient(to right, #0b8a74, #6e1a64)',
         'og-gradient-opp': 'linear-gradient(to left, #0FA59B, #904DAC)',
@@ -47,6 +47,21 @@ module.exports = {
         'btn-disabled-gradient': 'linear-gradient(to right, #B2B2B2, #E0E0E0)',
         'deep-ocean-blue-gradient': 'linear-gradient(to bottom, #1153B4, #1151B1, #1150AE, #104DA8, #0F479B, #0C3B81, #08244E)',
         'deep-ocean-blue-gradient-end': 'linear-gradient(to right, #1153B4, #1151B1, #1150AE, #104DA8, #0F479B, #0C3B81, #08244E)',
+      },
+      animation: {
+        wobble: 'wobble 1s ease-in-out infinite',
+        shimmer: 'shimmer 0.8s linear infinite',
+      },
+      keyframes: {
+        wobble: {
+          '0%': { transform: 'rotate(-3deg)' },
+          '50%': { transform: 'rotate(3deg)' },
+          '100%': { transform: 'rotate(-3deg)' },
+        },
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
       },
     },
   },

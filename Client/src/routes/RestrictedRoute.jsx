@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import axiosInstance from '../axios/axiosinstance';
+import LoadingScreen from '../components/loading/LoadingScreen';
 
 function RestrictedRoute({ children }) {
     const [isAuthorized, setIsAuthorized] = useState(null);
@@ -51,7 +52,7 @@ function RestrictedRoute({ children }) {
         if (isAuthorized) navigate('/profile');
     }, [isAuthorized, navigate]);
 
-    if (isAuthorized === null) return <div>Loading...</div>;
+    if (isAuthorized === null) return <LoadingScreen />
 
     return !isAuthorized ? children : null;
 }

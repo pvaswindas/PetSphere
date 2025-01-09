@@ -181,7 +181,7 @@ const AddPetListingCard = () => {
             type: "", breed: "", gender: "", age: "",
             description: "", saleOrAdoption: "adoption", price: "",
         })
-        navigate('/mapexplore')
+        navigate('/profile/mapexplore')
     }
 
     const renderSelectedImages = () => {
@@ -325,6 +325,7 @@ const AddPetListingCard = () => {
                     <div className="flex space-x-4">
                         <label>
                             <input
+                                id="sale-adoption"
                                 type="radio"
                                 name="saleOrAdoption"
                                 value="Selling"
@@ -336,6 +337,7 @@ const AddPetListingCard = () => {
                         </label>
                         <label>
                             <input
+                                id="sale-adoption"
                                 type="radio"
                                 name="saleOrAdoption"
                                 value="Adoption"
@@ -372,6 +374,7 @@ const AddPetListingCard = () => {
                     {!isCropping ? (
                         <div className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg border-gray-300 bg-gray-50 hover:bg-gray-100 transition duration-200">
                             <input
+                                name="upload-pet-image"
                                 type="file"
                                 accept="image/*"
                                 multiple

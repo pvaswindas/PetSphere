@@ -2,6 +2,7 @@ import { jwtDecode } from 'jwt-decode';
 import axiosInstance from '../axios/axiosinstance';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LoadingScreen from '../components/loading/LoadingScreen';
 
 function ProtectedRoute({ children }) {
     const [isAuthorized, setIsAuthorized] = useState(null);
@@ -55,7 +56,7 @@ function ProtectedRoute({ children }) {
     }, [isAuthorized, navigate]);
 
     if (isAuthorized === null) {
-        return <div>Loading...</div>;
+        return <LoadingScreen />
     }
 
     return isAuthorized ? children : null;

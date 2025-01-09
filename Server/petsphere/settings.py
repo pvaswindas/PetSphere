@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     'sellers',
     'pets',
     'posts',
+    'socials',
+    'subscriptions',
 ]
 
 MIDDLEWARE = [
@@ -125,6 +127,9 @@ AUTH_USER_MODEL = 'accounts.PetSphereUser'
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env.str("AUTH_CLIENT_ID")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env.str("AUTH_CLIENT_SECRET")
+
+STRIPE_SECRET_KEY = env.str("STRIPE_SECRET_KEY")
+STRIPE_PUBLISHABLE_KEY = env.str("STRIPE_PUBLISHABLE_KEY")
 
 
 # Celery settings

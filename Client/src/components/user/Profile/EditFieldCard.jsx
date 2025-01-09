@@ -48,6 +48,8 @@ const EditFieldCard = () => {
                 <div className="mb-6">
                     <label className="block text-gray-700 font-medium mb-2">{label}</label>
                     <input
+                        id="post-field"
+                        name="field"
                         type="text"
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
