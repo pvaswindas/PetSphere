@@ -1,24 +1,18 @@
 import React, { useState, useCallback } from "react"
 import Cropper from "react-easy-crop"
 import { ImageCropper } from "../../../utils/ImageCropper"
-import { ReactComponent as IconSquare } from "../../../assets/icon/aspect-ratio/square.svg"
-// import { ReactComponent as IconStandard } from "../../../assets/icon/aspect-ratio/standard.svg"
-// import { ReactComponent as IconPortrait } from "../../../assets/icon/aspect-ratio/portrait.svg"
 import axiosInstance from "../../../axios/axiosinstance"
 import { useNavigate } from "react-router-dom"
-
-const aspectRatios = [
-    { label: "Square", value: 1, Icon: IconSquare },
-    // { label: "Standard", value: 4 / 3, Icon: IconStandard },
-    // { label: "Portrait", value: 3 / 2, Icon: IconPortrait },
-]
+import AlertSnackbar from "../../Snackbar/AlertSnackbar"
 
 const AddPetStoryCard = () => {
     const [content, setContent] = useState("")
     const [images, setImages] = useState([])
     const [cropData, setCropData] = useState(null)
-    const [selectedAspect, setSelectedAspect] = useState(1)
     const [originalFileType, setOriginalFileType] = useState(null)
+    const [isCropping, setIsCropping] = useState(false)
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [cropSettings, setCropSettings] = useState({
         image: null,
         crop: { x: 0, y: 0 },
@@ -30,24 +24,27 @@ const AddPetStoryCard = () => {
     const handleContentChange = (e) => setContent(e.target.value)
 
     const handleImageChange = (e) => {
-        const file = e.target.files[0]
+        const file = e.target.files[0];
         if (file) {
-            const imageUrl = URL.createObjectURL(file)
-            setCropSettings((prev) => ({ ...prev, image: imageUrl }))
-            setOriginalFileType(file.type)
+            const validFormats = ["image/jpeg", "image/png"];
+            if (!validFormats.includes(file.type)) {
+                setSnackbarMessage("Please select an image in JPEG or PNG format");
+                setSnackbarOpen(true);
+                return;
+            }
+            const imageUrl = URL.createObjectURL(file);
+            setCropSettings((prev) => ({ ...prev, image: imageUrl }));
+            setOriginalFileType(file.type);
+            setIsCropping(true);
         }
-    }
+    };
 
-    const handleAspectChange = (aspect) => {
-        setSelectedAspect(aspect)
-        setCropSettings((prev) => ({ ...prev, aspect }))
-    }
 
     const handleCropComplete = useCallback(async (croppedArea, croppedAreaPixels) => {
         const croppedImage = await ImageCropper(cropSettings.image, croppedAreaPixels)
         setCropData(croppedImage)
     }, [cropSettings.image])
-    
+
     const handleSaveCroppedImage = () => {
         if (cropData) {
             const fileExtension = originalFileType.split("/")[1]
@@ -57,12 +54,14 @@ const AddPetStoryCard = () => {
             setImages((prevImages) => [...prevImages, file])
             setCropSettings({ image: null, crop: { x: 0, y: 0 }, zoom: 1, aspect: 1 })
             setCropData(null)
+            setIsCropping(false)
         }
     }
 
     const handleCancelCrop = () => {
         setCropSettings({ image: null, crop: { x: 0, y: 0 }, zoom: 1, aspect: 1 })
         setCropData(null)
+        setIsCropping(false)
     }
 
     const handleRemoveImage = (index) => {
@@ -95,32 +94,15 @@ const AddPetStoryCard = () => {
         navigate('/profile')
     }
 
-    const renderAspectButtons = () => {
-        return aspectRatios.map(({ label, value, Icon }) => (
-            <button
-                key={value}
-                type="button"
-                onClick={() => handleAspectChange(value)}
-                className={`flex flex-col items-center p-2 rounded-lg ${
-                    selectedAspect === value
-                        ? "bg-blue-100 border-blue-500"
-                        : "hover:bg-gray-100 border-gray-300"
-                } transition`}
-                title={label}
-            >
-                <Icon
-                    className={`w-8 h-8 ${
-                        selectedAspect === value ? "text-blue-500" : "text-gray-400"
-                    }`}
-                />
-                <span className="text-xs mt-1">{label}</span>
-            </button>
-        ))
-    }
-
     const renderSelectedImages = () => {
         return images.length > 0 && (
             <div className="mt-4">
+                <AlertSnackbar
+                    open={snackbarOpen}
+                    message={snackbarMessage}
+                    alert_type="error"
+                    onClose={() => setSnackbarOpen(false)}
+                />
                 <h3 className="text-sm font-medium text-gray-600">Selected Images</h3>
                 <div className="flex flex-wrap space-x-4 mt-2">
                     {images.map((image, index) => (
@@ -163,63 +145,82 @@ const AddPetStoryCard = () => {
                 </div>
                 <hr />
 
-                {renderSelectedImages()}
+                <div className="flex items-center space-x-2">
+                    {/* Image Upload */}
+                    <div className="space-y-6 w-full">
+                        <h3 className="text-xl font-bold text-gray-800">Upload Pet Images</h3>
 
-                {cropSettings.image && (
-                    <div>
-                        <div className="relative w-full h-64 mb-4">
-                            <Cropper
-                                image={cropSettings.image}
-                                crop={cropSettings.crop}
-                                zoom={cropSettings.zoom}
-                                aspect={cropSettings.aspect}
-                                onCropChange={(crop) =>
-                                    setCropSettings((prev) => ({ ...prev, crop }))
-                                }
-                                onCropComplete={handleCropComplete}
-                                onZoomChange={(zoom) =>
-                                    setCropSettings((prev) => ({ ...prev, zoom }))
-                                }
-                            />
-                        </div>
+                        {!isCropping ? (
+                            <div className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg border-gray-300 bg-gray-50 hover:bg-gray-100 transition duration-200">
+                                <input
+                                    name="upload-pet-image"
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleImageChange}
+                                    id="upload-pet-image"
+                                    className="hidden"
+                                />
+                                <label
+                                    htmlFor="upload-pet-image"
+                                    className="flex flex-col items-center justify-center cursor-pointer"
+                                >
+                                    <svg
+                                        className="w-10 h-10 text-blue-500"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M12 4v16m8-8H4"
+                                        ></path>
+                                    </svg>
+                                    <p className="text-sm text-gray-600 mt-2">
+                                        <span className="text-blue-600 font-medium hover:underline">
+                                            Click to upload
+                                        </span>
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-1">Supported formats: JPG, PNG</p>
+                                </label>
+                            </div>
+                        ) : (
+                            <div className="relative w-full h-80">
+                                <Cropper
+                                    image={cropSettings.image}
+                                    crop={cropSettings.crop}
+                                    zoom={cropSettings.zoom}
+                                    aspect={cropSettings.aspect}
+                                    onCropChange={(crop) => setCropSettings((prev) => ({ ...prev, crop }))}
+                                    onZoomChange={(zoom) => setCropSettings((prev) => ({ ...prev, zoom }))}
+                                    onCropComplete={handleCropComplete}
+                                />
+                                <div className="absolute bottom-4 left-4 space-x-4">
+                                    <button
+                                        type="button"
+                                        onClick={handleCancelCrop}
+                                        className="bg-gray-500 text-white py-2 px-4 rounded-md"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveCroppedImage}
+                                        className="bg-blue-500 text-white py-2 px-4 rounded-md"
+                                    >
+                                        Save Crop
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
-                        <div className="flex justify-center text-dimGray space-x-4">
-                            {renderAspectButtons()}
-                        </div>
-
-                        <div className="flex justify-center space-x-4 mt-4">
-                            <button
-                                type="button"
-                                onClick={handleSaveCroppedImage}
-                                className="px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-600 text-white rounded-lg hover:bg-gradient-to-l transition"
-                            >
-                                <span className="font-semibold">Save</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleCancelCrop}
-                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                            >
-                                <span className="font-semibold">Cancel</span>
-                            </button>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {renderSelectedImages()}
                         </div>
                     </div>
-                )}
-
-                <div className="flex items-center space-x-2">
-                    <label
-                        htmlFor="image-upload"
-                        className="cursor-pointer px-4 py-2 bg-gray-300 text-white rounded-lg flex items-center space-x-2 hover:bg-gray-400 transition"
-                    >
-                        Add Image
-                    </label>
-                    <input
-                        type="file"
-                        id="image-upload"
-                        name="imageupload"
-                        onChange={handleImageChange}
-                        className="hidden"
-                    />
                 </div>
 
                 <div>

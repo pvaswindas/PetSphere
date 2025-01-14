@@ -103,7 +103,7 @@ function LoginFormPanel() {
                 />
 
                 <div className="flex justify-end">
-                    <a href="/forgot-password" className="text-lightGreen hover:text-labelGreen text-sm">
+                    <a href="/find-your-account" className="text-lightGreen hover:text-labelGreen text-sm">
                         Forgot Password?
                     </a>
                 </div>

@@ -17,7 +17,11 @@ from user_profile.serializers import ProfileSerializer
 from .models import PetSphereUser
 from user_profile.models import Profile
 from .utils.otp_utils import generate_otp, resend_otp, verify_otp
-from .tasks import send_otp_email, send_password_otp_email
+from .tasks import send_otp_email, send_reset_email
+from petsphere.utils.common_utils import (
+    validate_authenticated_user, generate_random_otp
+)
+from .tasks import twilio_send_otp
 
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0,
                                  decode_responses=True)
@@ -288,26 +292,43 @@ class ChangePasswordView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ForgotPassword(APIView):
-    permission_classes = [AllowAny]
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def find_your_account(request):
+    try:
+        key = list(request.data.keys())[0]
+        parsed_data = json.loads(key)
+        email_data = parsed_data.get('email')
+        username_data = parsed_data.get('username')
 
-    def post(self, request):
-        is_username = request.data.get('is_username')
+        if not email_data and not username_data:
+            return Response({"error": "User not found"},
+                            status=status.HTTP_404_NOT_FOUND)
 
-        if is_username:
-            username = request.data.get('username')
-            try:
-                user = PetSphereUser.objects.get(username=username)
-                if user:
-                    email = user.email
-                    otp = generate_otp(email)
-                    send_password_otp_email(email, otp)
-            except PetSphereUser.DoesNotExist:
-                return Response({"error": "User not found"},
-                                status=status.HTTP_404_NOT_FOUND)
+        if email_data:
+            user = PetSphereUser.objects.get(email=email_data)
+        elif username_data:
+            user = PetSphereUser.objects.get(username=username_data)
+
+        email_response = send_reset_email(user)
+        return Response(
+            {
+                "message": "Email sent successfully",
+                "reset_password_url": email_response,
+            },
+            status=status.HTTP_200_OK
+        )
+    except PetSphereUser.DoesNotExist:
+        print("NOT FOUND")
+        return Response({"error": "User not found"},
+                        status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(str(e))
+        return Response({"error": str(e)},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class ResetPassword(APIView):
+class ResetPasswordView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -324,7 +345,7 @@ class ResetPassword(APIView):
         token_generator = PasswordResetTokenGenerator()
         if not token_generator.check_token(user, token):
             return Response({'error': 'Invalid or expired token'},
-                            status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_408_REQUEST_TIMEOUT)
         serializer = ResetPasswordSerializer(
             data={'new_password': new_password}
             )
@@ -338,7 +359,7 @@ class ResetPassword(APIView):
 
 
 # -------------------------- User Profile & Settings --------------------------
-class UserProfileViews(APIView):
+class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -365,6 +386,40 @@ class UserProfileViews(APIView):
             return Response(profile_serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def verify_phone_number(request):
+    try:
+        user = validate_authenticated_user(request)
+        if isinstance(user, Response):
+            return user
+        phone_number = request.data.get('phone_number')
+        if not phone_number:
+            return Response(
+                {"error": "Phone Number is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        username = user.username
+        redis_key = {f"{username}-{phone_number}"}
+        created_ealier = redis_client.get(redis_key)
+        if created_ealier:
+            return Response(
+                {"error": "You have already requested OTP"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        otp = generate_random_otp()
+        twilio_send_otp(phone_number, otp)
+        return Response(
+            {"success": "OTP has been sent to registered phone number."},
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 # ----------------------- Security & Account Management -----------------------

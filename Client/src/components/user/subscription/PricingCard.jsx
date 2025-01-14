@@ -2,7 +2,7 @@ import React from 'react'
 import { CheckCircle } from 'lucide-react'
 
 const featureMapping = {
-    recharge: ['100 Listings', 'No Subscription Required'],
+    recharge: ['10 Listings', 'No Subscription Required'],
     monthly: ['Unlimited Listings', 'Priority Support', 'Subscription Plan'],
     yearly: [
         'Unlimited Listings',

@@ -45,13 +45,15 @@ def like_post(request):
         like = Like.objects.filter(user=user, post=post)
         if like.exists():
             like.delete()
-            post.like_count = max(0, post.like_count - 1)
+            like_count = post.like.count()
+            post.like_count = like_count
             post.save()
             return Response({'detail': 'Post Unliked Successfully'},
                             status=status.HTTP_200_OK)
         else:
             Like.objects.create(user=user, post=post)
-            post.like_count += 1
+            like_count = post.like.count()
+            post.like_count = like_count
             post.save()
             return Response({'detail': 'Post Liked Successfully'},
                             status=status.HTTP_201_CREATED)
@@ -75,8 +77,9 @@ def fetch_liked_users(request, post_id):
             return Response({"error": "Post not found"},
                             status=status.HTTP_404_NOT_FOUND)
 
-        liked_users = Like.objects.filter(post=post).select_related(
-            'user').values_list('user__username', flat=True)
+        liked_users = Like.objects.filter(post=post).select_related('user') \
+            .order_by('-created_at').values_list('user__username', flat=True)
+
         is_liked_by_user = user.username in liked_users
         return Response(
             {'liked_users': list(liked_users),
@@ -110,7 +113,8 @@ class CommentView(APIView):
             serializer = CommentSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
-                post.comment_count += 1
+                comments_count = post.comment.count()
+                post.comment_count = comments_count
                 post.save()
                 return Response({"success": serializer.data},
                                 status=status.HTTP_201_CREATED)

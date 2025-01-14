@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import commentIcon from "../../../assets/icon/post/comment-icon.svg";
@@ -23,6 +23,7 @@ const   PostDisplayCard = memo(() => {
     const [editedContent, setEditedContent] = useState("");
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [isLiked, setIsLiked] = useState(false)
+    const [likedPeople, setLikedPeople] = useState([])
     const [showComment, setShowComment] = useState(false)
 
     const [snackbarMessage, setSnackbarMessage] = useState("")
@@ -32,7 +33,12 @@ const   PostDisplayCard = memo(() => {
     const profile = useSelector((state) => state.profile?.profile_data || null);
     const navigate = useNavigate();
     const post_id = post?.id || null
-    const isPostEdited = (post?.created_at !== post?.updated_at) || false
+    const createdAt = new Date(post?.created_at)
+    const updatedAt = new Date(post?.updated_at)
+
+    createdAt.setSeconds(0, 0)
+    updatedAt.setSeconds(0, 0)
+    const isPostEdited = createdAt.getTime() !== updatedAt.getTime()
 
 
     useEffect(() => {
@@ -46,20 +52,27 @@ const   PostDisplayCard = memo(() => {
             setEditedContent(post.content);
         }
     }, [post]);
+
+    const isUserLike = useCallback(async (callback) => {
+        try {
+            const response = await dispatch(fetchLikedUsers(post_id)).unwrap();
+            console.log(response);
+            setLikedPeople(response.liked_users);
+            setIsLiked(response.is_liked_by_user);
     
+            if (callback && typeof callback === 'function') {
+                callback(response);
+            }
+        } catch (error) {
+            console.error("Error fetching liked users:", error);
+        }
+    }, [dispatch, post_id]);
+
     useEffect(() => {
         if (post_id) {
-            const isUserLike = async () => {
-                const response = await dispatch(fetchLikedUsers(post_id)).unwrap();
-                if (response.is_liked_by_user) {
-                    setIsLiked(true);
-                } else {
-                    setIsLiked(false);
-                }
-            };
             isUserLike();
         }
-    }, [post_id, dispatch]);
+    }, [post_id, dispatch, setLikedPeople, isUserLike]);
 
 
     if (!post || !post.images || post.images.length === 0) {
@@ -99,7 +112,7 @@ const   PostDisplayCard = memo(() => {
     const handleDeletePost = async () => {
         try {
             await dispatch(deletePawstory(slug)).unwrap();
-            navigate(-1);
+            navigate('/profile');
         } catch (error) {
             Swal.fire({
                 icon: "error",
@@ -141,6 +154,7 @@ const   PostDisplayCard = memo(() => {
                 setSnackbarOpen(true)
             }
             dispatch(fetchPawstory(slug));
+            isUserLike()
         } catch (error) {
             setSnackbarMessage("Something went wrong. Try again.")
             setSnackbarOpen(true)
@@ -306,33 +320,46 @@ const   PostDisplayCard = memo(() => {
                         {/* Action Icons */}
                         <div>
                             <hr />
-                            <div className="flex items-center m-4 text-gray-600">
-                                <button
-                                    className="flex items-center p-2 hover:bg-gray-200 rounded-full"
-                                    aria-label="Like"
-                                    onClick={handleLike}
-                                >
-                                    <img
-                                        src={isLiked ? likedIcon : likeIcon}
-                                        alt="Like"
-                                        className="w-4"
-                                    />
-                                </button>
-                                <p className="pe-4">{ post?.like_count }</p>
-                                <button
-                                    className="flex items-center hover:bg-gray-200 rounded-full"
-                                    aria-label="Comment"
-                                    onClick={() => setShowComment(true)}
-                                >
-                                    <img src={commentIcon} alt="Comment" className="w-6" />
-                                </button>
-                                <p className="pe-4">{post?.comment_count}</p>
-                                <button
-                                    className="flex items-center p-1 hover:bg-gray-200 rounded-full"
-                                    aria-label="Save"
-                                >
-                                    <img src={saveIcon} alt="Save" className="w-6" />
-                                </button>
+                            <div className="flex flex-col gap-0 m-4">
+                                <div className="flex items-center text-gray-600">
+                                    <button
+                                        className="flex items-center p-2 hover:bg-gray-200 rounded-full"
+                                        aria-label="Like"
+                                        onClick={handleLike}
+                                    >
+                                        <img
+                                            src={isLiked ? likedIcon : likeIcon}
+                                            alt="Like"
+                                            className="w-4"
+                                        />
+                                    </button>
+                                    {post?.like_count > 0 && (
+                                        <p className="pe-4">{ post?.like_count }</p>
+                                    )}
+                                    <button
+                                        className="flex items-center hover:bg-gray-200 rounded-full"
+                                        aria-label="Comment"
+                                        onClick={() => setShowComment(true)}
+                                    >
+                                        <img src={commentIcon} alt="Comment" className="w-6" />
+                                    </button>
+                                    {post?.comment_count > 0 && (
+                                        <p className="pe-4">{post?.comment_count}</p>
+                                    )   }
+                                    <button
+                                        className="flex items-center p-1 hover:bg-gray-200 rounded-full"
+                                        aria-label="Save"
+                                    >
+                                        <img src={saveIcon} alt="Save" className="w-6" />
+                                    </button>
+                                </div>
+                                {likedPeople?.length > 0 && (
+                                    <p className="ms-2 text-blackOpacity85">
+                                        Liked by{" "}
+                                        {likedPeople[0] === profile?.user.username ? "you" : likedPeople[0]}
+                                        {likedPeople?.length > 1 && ` and ${likedPeople?.length - 1} other${likedPeople?.length - 1 > 1 ? 's' : ''}`}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>

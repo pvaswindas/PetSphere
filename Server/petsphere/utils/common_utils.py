@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from rest_framework import status
+import random
 
 
 def validate_authenticated_user(request):
@@ -71,3 +72,8 @@ def validate_post_user_permission(user, comment, post):
         {"error": "Permission denied"},
         status=status.HTTP_403_FORBIDDEN
     )
+
+
+def generate_random_otp():
+    otp = random.randint(100000, 999999)
+    return otp

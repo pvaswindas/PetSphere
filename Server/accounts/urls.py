@@ -2,9 +2,10 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
      RegisterView, LoginView, SendOTPView, ResendOTPView, VerifyOTPView,
-     ForgotPassword, ResetPassword, ChangePasswordView, UserDataStoreView,
-     UserProfileViews, DeactivateAccountView, ReactivateAccountView,
-     LogoutView, check_username, GoogleLoginView
+     ResetPasswordView, ChangePasswordView, find_your_account,
+     UserDataStoreView, UserProfileView, DeactivateAccountView,
+     ReactivateAccountView, LogoutView, check_username, GoogleLoginView,
+     verify_phone_number
 )
 
 urlpatterns = [
@@ -25,11 +26,13 @@ urlpatterns = [
      # ----------------------- User Profile & Settings -----------------------
      path('user-data-store/', UserDataStoreView.as_view(),
           name='userdatastore'),
-     path('user-profile/', UserProfileViews.as_view(), name='userprofile'),
+     path('user-profile/', UserProfileView.as_view(), name='userprofile'),
+     path('verify-phone-number/', verify_phone_number, name='verify-phone-no'),
 
      # ------------------------- Password Management -------------------------
-     path('forgot-password/', ForgotPassword.as_view(), name='forgotpassword'),
-     path('reset-password/', ResetPassword.as_view(), name='resetpassword'),
+     path('find-account/', find_your_account, name='find-account'),
+     path('reset-password/', ResetPasswordView.as_view(),
+          name='resetpassword'),
      path('change-password/', ChangePasswordView.as_view(),
           name='changepassword'),
 

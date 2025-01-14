@@ -30,6 +30,8 @@ import ExplorePage from "./pages/user-ui/ExplorePage";
 import SubscriptionPage from "./pages/user-ui/subscription/SubscriptionPage";
 import PaymentSuccessPage from "./components/user/subscription/PaymentSuccessPage";
 import PaymentCancelPage from "./components/user/subscription/PaymentCancelPage";
+import ForgotPassword from "./pages/user-ui/auth/ForgotPassword";
+import FindYourAccount from "./pages/user-ui/auth/FindYourAccount";
 
 function App() {
   const location = useLocation();
@@ -66,6 +68,9 @@ function App() {
         } />
         <Route path="/signup/otp" element={<RestrictedRoute><VerifyOtp /></RestrictedRoute>} />
         <Route path="/signup/username" element={<RestrictedRoute><CreateUsername /></RestrictedRoute>} />
+
+        <Route path="/reset-password" element={<RestrictedRoute><ForgotPassword /></RestrictedRoute>} />
+        <Route path="/find-your-account" element={<RestrictedRoute><FindYourAccount /></RestrictedRoute>} />
 
         {/* User Protected Routes */}
         <Route 

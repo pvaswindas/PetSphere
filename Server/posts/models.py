@@ -19,6 +19,13 @@ class Post(models.Model):
     hide_comments = models.BooleanField(default=False)
     turn_off_comments = models.BooleanField(default=False)
 
+    def save(self, *args, **kwargs):
+        if self.pk:
+            original = Post.objects.get(pk=self.pk)
+            if original.content != self.content:
+                self.updated_at = self.created_at
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.content[:50]
 

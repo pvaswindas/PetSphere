@@ -74,7 +74,6 @@ const AddPetListingCard = () => {
             setIsCropping(true);
         }
     };
-    
 
 
     const handleCropComplete = useCallback(async (croppedArea, croppedAreaPixels) => {
