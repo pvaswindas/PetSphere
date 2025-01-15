@@ -32,6 +32,8 @@ import PaymentSuccessPage from "./components/user/subscription/PaymentSuccessPag
 import PaymentCancelPage from "./components/user/subscription/PaymentCancelPage";
 import ForgotPassword from "./pages/user-ui/auth/ForgotPassword";
 import FindYourAccount from "./pages/user-ui/auth/FindYourAccount";
+import MobileVerificationPage from "./pages/user-ui/profile/MobileVerificaionPage";
+import MobileNumberPage from "./pages/user-ui/profile/MobileNumberPage";
 
 function App() {
   const location = useLocation();
@@ -81,6 +83,8 @@ function App() {
                 <Route path="" element={<Profile />} />
                 <Route path="edit" element={<EditProfile />} />
                 <Route path="edit/:dynamicString" element={<EditFieldPage />} />
+                <Route path="mobile-number" element={<MobileNumberPage />} />
+                <Route path="verify-mobile-number" element={<MobileVerificationPage />} />
                 <Route path="edit/username" element={<EditUsernamePage />} />
                 <Route path="add-pet-story" element={<AddPetStory />} />
                 <Route path="add-pet-listing" element={<AddPetListing />} />

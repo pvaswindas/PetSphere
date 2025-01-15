@@ -1,5 +1,6 @@
 import redis
 import json
+from datetime import datetime, timedelta
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -319,11 +320,9 @@ def find_your_account(request):
             status=status.HTTP_200_OK
         )
     except PetSphereUser.DoesNotExist:
-        print("NOT FOUND")
         return Response({"error": "User not found"},
                         status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        print(str(e))
         return Response({"error": str(e)},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -395,22 +394,65 @@ def verify_phone_number(request):
         user = validate_authenticated_user(request)
         if isinstance(user, Response):
             return user
-        phone_number = request.data.get('phone_number')
+
+        countryCode = request.data.get('countryCode', '').strip()
+        mobileNumber = request.data.get('mobileNumber', '').strip()
+        phone_number = f"{countryCode}{mobileNumber}"
+
         if not phone_number:
             return Response(
                 {"error": "Phone Number is required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
         username = user.username
-        redis_key = {f"{username}-{phone_number}"}
-        created_ealier = redis_client.get(redis_key)
-        if created_ealier:
+        redis_key = f"{username}-{phone_number}"
+
+        try:
+            created_ealier = redis_client.hgetall(redis_key)
+        except Exception as e:
             return Response(
-                {"error": "You have already requested OTP"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        otp = generate_random_otp()
-        twilio_send_otp(phone_number, otp)
+
+        if created_ealier:
+            resend_count = int(created_ealier.get('resend_count', 1))
+            if resend_count >= 2:
+                return Response(
+                    {"error": "You have already requested OTP 2 times."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            else:
+                redis_client.hincrby(redis_key, 'resend_count', 1)
+                otp = created_ealier.get('otp')
+        else:
+            otp = generate_random_otp()
+            expire_time = datetime.now() + timedelta(minutes=10)
+            expire_time_str = expire_time.isoformat()
+
+            try:
+                redis_client.hmset(redis_key, {
+                    'expires_in': expire_time_str,
+                    'otp': otp,
+                    'created_at': datetime.now().isoformat(),
+                    'resend_count': 1
+                })
+                redis_client.expire(redis_key, 600)
+            except Exception as e:
+                return Response(
+                    {"error": str(e)},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+        try:
+            twilio_send_otp(phone_number, otp)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
         return Response(
             {"success": "OTP has been sent to registered phone number."},
             status=status.HTTP_200_OK
@@ -418,6 +460,53 @@ def verify_phone_number(request):
     except Exception as e:
         return Response(
             {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def verify_mobile_otp(request):
+    try:
+        user = validate_authenticated_user(request)
+        if isinstance(user, Response):
+            return user
+        countryCode = request.data.get('countryCode', '').strip()
+        mobileNumber = request.data.get('mobileNumber', '').strip()
+        phone_number = f"{countryCode}{mobileNumber}"
+        otp = request.data.get('otp').strip()
+        username = user.username
+        redis_key = f"{username}-{phone_number}"
+        created_ealier = redis_client.hgetall(redis_key)
+        if not created_ealier:
+            return Response(
+                {"error": "OTP has expired or not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        if created_ealier['otp'] == otp:
+            user.mobile_no = phone_number
+            user.save()
+            redis_client.delete(redis_key)
+            profile = user.profile
+            profile_serializer = ProfileSerializer(
+                profile, partial=True,
+                context={'request': request}
+            )
+            return Response(
+                {
+                    "success": "OTP has been verified successfully.",
+                    "profile": profile_serializer.data
+                },
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {"error": "Invalid OTP."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 

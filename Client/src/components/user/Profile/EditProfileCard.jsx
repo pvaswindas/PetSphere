@@ -24,12 +24,17 @@ const EditProfileCard = () => {
     };
 
     const handleEditClick = (field) => {
-        navigate(`/profile/edit/${field}`, { state: { field, data: formData[field] } });
+        if (field === "mobile_no") {
+            navigate('/profile/mobile-number')
+        } else {
+            navigate(`/profile/edit/${field}`, { state: { field, data: formData[field] } });
+        }
     };
 
     const handleEditUsername = (field) => {
         navigate(`/profile/edit/username`, { state: { data: formData[field] } });
     };
+
 
     const handleFileUpload = async (event) => {
         const file = event.target.files[0];
@@ -145,7 +150,7 @@ const EditProfileCard = () => {
                             className="text-sm text-gray-800 cursor-pointer flex-1 hover:text-blue-600"
                             onClick={() => handleEditUsername("username")}
                         >
-                            {formData.username || "No username set"}
+                            {formData.username || "username is not set"}
                         </p>
                         <FiEdit
                             className="text-gray-500 w-5 h-5 cursor-pointer hover:text-blue-500"
@@ -166,7 +171,7 @@ const EditProfileCard = () => {
                                 className="text-sm text-gray-800 cursor-pointer flex-1 hover:text-blue-600"
                                 onClick={() => handleEditClick(field)}
                             >
-                                {formData[field] || `No ${field.replace("_", " ")} set`}
+                                {formData[field] || `${field.replace("_", " ")} is not set`}
                             </p>
                             <FiEdit
                                 className="text-gray-500 w-5 h-5 cursor-pointer hover:text-blue-500"

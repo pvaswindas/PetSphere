@@ -27,30 +27,18 @@ const EditFieldCard = () => {
     
         try {
             let response;
-            if (["mobile_no"].includes(field)) {
-                try {
-                    response = await axiosInstance.patch('accounts/verify-phone-number/', formData);
-                } catch (error) {
-                    if (error.status === 400) {
-                        setSnackbarMessage("Please provide proper Mobile Number.")
-                        setSnackbarOpen(true)
-                    } else {
-                        setSnackbarMessage("Unable to process your request right now.")
-                        setSnackbarOpen(true)
-                    }
-                }
-            } else if (["name"].includes(field)) {
+            if (["name"].includes(field)) {
                 response = await axiosInstance.patch('accounts/user-profile/', formData);
             } else {
                 response = await axiosInstance.patch('user/profile/', formData);
             }
-    
             if (response.status === 200) {
                 dispatch(setProfile({ profile_data: response.data }));
                 navigate(-1);
             }
         } catch (error) {
-            console.error("Error updating profile:", error.response || error);
+            setSnackbarMessage("Unable to edit field")
+            setSnackbarOpen(true)
         }
     };
 

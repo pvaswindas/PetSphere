@@ -141,7 +141,7 @@ CELERY_TIMEZONE = 'UTC'
 
 CELERY_BEAT_SCHEDULE = {
     'delete-old-images-every-minute': {
-        'task': 'app_name.tasks.delete_old_images',
+        'task': 'posts.tasks.delete_old_images',
         'schedule': 60.0,
     },
 }

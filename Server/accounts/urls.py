@@ -5,7 +5,7 @@ from .views import (
      ResetPasswordView, ChangePasswordView, find_your_account,
      UserDataStoreView, UserProfileView, DeactivateAccountView,
      ReactivateAccountView, LogoutView, check_username, GoogleLoginView,
-     verify_phone_number
+     verify_phone_number, verify_mobile_otp
 )
 
 urlpatterns = [
@@ -28,6 +28,7 @@ urlpatterns = [
           name='userdatastore'),
      path('user-profile/', UserProfileView.as_view(), name='userprofile'),
      path('verify-phone-number/', verify_phone_number, name='verify-phone-no'),
+     path('verify-mobile-otp/', verify_mobile_otp, name='verify-mobile-otp'),
 
      # ------------------------- Password Management -------------------------
      path('find-account/', find_your_account, name='find-account'),

@@ -26,7 +26,7 @@ def generate_otp(data):
     redis_client.hmset(key, {
         "otp": otp,
         "created_at": datetime.now().isoformat(),
-        "resend_count": 0
+        "resend_count": 1
     })
 
     expiry_minutes = 10
