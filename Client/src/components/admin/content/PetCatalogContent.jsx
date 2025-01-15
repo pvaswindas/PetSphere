@@ -18,9 +18,9 @@ const PetCatalogContent = () => {
     const [selectedPetType, setSelectedPetType] = useState("");
     const [isLoading, setIsLoading] = useState(false)
     const [snackbarMessage, setSnackbarMessage] = useState("");
-    const [isPetAdded, setIsPetAdded] = useState(false)
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [alertType, setAlertType] = useState("")
+    const [isPetAdded, setIsPetAdded] = useState(false)
     const dispatch = useDispatch()
 
     const petTypes = useSelector((state) => state.pets.petTypes)

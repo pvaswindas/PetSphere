@@ -6,6 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Profile
 from django.db.models import Q
 from .serializers import ProfileSerializer
+from socials.utils.mutual_friends import get_mutual_friends_count
+from socials.models import Follower
 
 
 class ProfileView(APIView):
@@ -43,6 +45,7 @@ class ProfileView(APIView):
 class PeopleListView(APIView):
     def get(self, request):
         search_query = request.query_params.get('search', None)
+        current_user = request.user
 
         if search_query:
             users = Profile.objects.filter(
@@ -52,5 +55,15 @@ class PeopleListView(APIView):
         else:
             users = Profile.objects.all()
 
-        serializer = ProfileSerializer(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        users_with_mutual_friends = []
+        for profile in users:
+            mutual_friends_count = get_mutual_friends_count(current_user,
+                                                            profile.user)
+            is_following = Follower.objects.filter(
+                follower=current_user, following=profile.user).exists()
+            user_data = ProfileSerializer(profile).data
+            user_data['mutualFriends'] = mutual_friends_count
+            user_data['isFollowing'] = is_following
+            users_with_mutual_friends.append(user_data)
+
+        return Response(users_with_mutual_friends, status=status.HTTP_200_OK)

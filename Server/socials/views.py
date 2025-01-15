@@ -11,7 +11,7 @@ from rest_framework.decorators import api_view, permission_classes
 
 # Internal modules
 from .models import (
-    Like, Comment
+    Like, Comment, Follower, CommentLike
 )
 from .serializers import (
     CommentSerializer
@@ -21,7 +21,81 @@ from petsphere.utils.common_utils import (
     validate_authenticated_user
 )
 from posts.models import Post
+from accounts.models import PetSphereUser
+from .utils.mutual_friends import get_mutual_friends
 
+
+# ------------------------------ Follow System ------------------------------
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def follow_user(request, user_id):
+    try:
+        follower = validate_authenticated_user(request)
+        if isinstance(follower, Response):
+            return follower
+        following = get_object_or_404(PetSphereUser, pk=user_id)
+
+        if follower == following:
+            return Response(
+                {"error": "Follower and Following can't be same"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        Follower.objects.get_or_create(follower=follower, following=following)
+        return Response(
+            {
+                "success": "Followed Successfully",
+            },
+            status=status.HTTP_201_CREATED
+        )
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def unfollow_user(request, user_id):
+    try:
+        follower = validate_authenticated_user(request)
+        if isinstance(follower, Response):
+            return follower
+        following = get_object_or_404(PetSphereUser, pk=user_id)
+
+        Follower.objects.filter(
+            follower=follower, following=following
+        ).delete()
+        return Response(
+            {
+                "success": "Unfollowed Successfully",
+            },
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def mutual_friends(request, user_id):
+    user = validate_authenticated_user(request)
+    if isinstance(user, Response):
+        return user
+    other_user = get_object_or_404(PetSphereUser, user_id)
+    mutual_friends = get_mutual_friends(user, other_user)
+
+    return Response(
+        {"mutual_friends": mutual_friends},
+        status=status.HTTP_200_OK
+    )
+
+
+# -------------------------------- Like System --------------------------------
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -64,7 +138,7 @@ def like_post(request):
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['get'])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def fetch_liked_users(request, post_id):
     try:
@@ -90,6 +164,8 @@ def fetch_liked_users(request, post_id):
         return Response({"error": str(e)},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# ------------------------------ Comment System ------------------------------
 
 class CommentView(APIView):
     permission_classes = [IsAuthenticated]
@@ -170,3 +246,62 @@ class ListCommentsForPostView(ListAPIView):
         return Comment.objects.filter(
             post__id=post_id, parent=None
         ).order_by('-created_at')
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def like_comment(request, comment_id):
+    try:
+        user = validate_authenticated_user(request)
+        if isinstance(user, Response):
+            return user
+        comment = Comment.objects.get(pk=comment_id)
+        like_comment = CommentLike.objects.filter(
+            user=user, comment=comment
+        ).first()
+        if like_comment:
+            like_comment.delete()
+            return Response(
+                {"success": "Comment disliked successfully"},
+                status=status.HTTP_200_OK
+            )
+        CommentLike.objects.create(user=user, comment=comment)
+        return Response(
+            {"success": "Comment liked successfully"}
+        )
+    except Comment.DoesNotExist:
+        return Response(
+            {"error": "Comment Doesn't exist"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        print(str(e))
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def fetch_comment_liked_users(request, comment_id):
+    try:
+        user = validate_authenticated_user(request)
+        if isinstance(user, Response):
+            return user
+        comment = Comment.objects.get(pk=comment_id)
+        comment_liked_users = CommentLike.objects.filter(
+            comment=comment).select_related('user') \
+            .order_by('-created_at').values_list('user__username', flat=True)
+
+        is_liked_by_user = user.username in comment_liked_users
+        return Response(
+            {'comment_liked_users': list(comment_liked_users),
+             'is_liked_by_user': is_liked_by_user},
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

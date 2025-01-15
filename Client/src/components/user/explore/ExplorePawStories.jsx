@@ -1,22 +1,46 @@
 import React, { useState, useEffect } from 'react'
 import Shimmer from '../../Shimmer/Shimmer'
+import { useSelector } from 'react-redux';
+import { fetchPosts } from '../../../utils/exploreFetch';
+import AlertSnackbar from '../../Snackbar/AlertSnackbar';
 
-export function ExplorePawStories({ posts }) {
-    const [loading, setLoading] = useState(true)
+export function ExplorePawStories() {
+    const [loading, setLoading] = useState(true);
+    const [posts, setPosts] = useState([]);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+    const query = useSelector((state) => state.globalSearch.search);
 
     useEffect(() => {
-        if (posts.length > 0) {
-            setLoading(false)
-        }
-    }, [posts])
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const data = await fetchPosts(query);
+                setPosts(data);
+            } catch (error) {
+                setSnackbarMessage("Unable to fetch PawStories");
+                setSnackbarOpen(true);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, [query]);
 
     const handlePostClick = (slug) => {
         
-    }
+    };
 
     return (
         <div className="grid gap-6">
-            {loading || posts.length === 0 ? (
+            <AlertSnackbar
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type="error"
+                onClose={() => setSnackbarOpen(false)}
+            />
+            {loading ? (
                 <div className="grid grid-cols-4 gap-0.5">
                     {Array.from({ length: 12 }).map((_, index) => (
                         <div
@@ -27,9 +51,13 @@ export function ExplorePawStories({ posts }) {
                         </div>
                     ))}
                 </div>
+            ) : posts.length === 0 ? (
+                <div className="text-center text-gray-500">
+                    No PawStories Found
+                </div>
             ) : (
                 <div className="grid grid-cols-4 gap-0.5">
-                    {Array.isArray(posts) && posts.slice().reverse().map((post, index) => (
+                    {posts.slice().reverse().map((post, index) => (
                         <div
                             key={index}
                             className="relative w-full aspect-square cursor-pointer rounded-lg"
@@ -45,5 +73,6 @@ export function ExplorePawStories({ posts }) {
                 </div>
             )}
         </div>
-    )
+    );
 }
+

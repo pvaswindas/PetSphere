@@ -2,7 +2,7 @@ import { Send, Smile, X } from 'lucide-react';
 import { useState } from 'react';
 import EmojiPicker from 'emoji-picker-react';
 
-export function CommentInput({ value, onChange, onSubmit, replyingTo, replyUsername }) {
+export function CommentInput({ value, onChange, onSubmit, replyingTo, replyUsername, onCancelReply }) {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     const handleEmojiClick = (emojiObject) => {
@@ -17,9 +17,15 @@ export function CommentInput({ value, onChange, onSubmit, replyingTo, replyUsern
     return (
         <div className="p-4 border-t bg-gray-50 relative">
             {replyingTo && (
-                <p className="text-xs text-gray-500 mb-2">
-                    Replying to @{replyUsername}
-                </p>
+                <div className="flex items-center justify-between mb-2 text-xs text-gray-500">
+                    <p>Replying to @{replyUsername}</p>
+                    <button
+                        onClick={onCancelReply}
+                        className="text-red-500 hover:underline"
+                    >
+                        Cancel
+                    </button>
+                </div>
             )}
             <div className="flex gap-2 items-center relative">
                 {/* Textarea for input */}

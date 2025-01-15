@@ -1,50 +1,46 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState } from "react";
 import searchIcon from "../../../assets/icon/search-icon.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { clearGlobalSearch, setGlobalSearch } from "../../../redux/slices/GlobalSearchSlice";
-import { debounce } from "lodash";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import useDebounce from "../../../hooks/useDebounce";
 
 const SearchBar = ({ placeholder = "Search", addedStyles = "w-1/2 mx-12" }) => {
-  const search = useSelector((state) => state.globalSearch.search)
-  const [inputValue, setInputValue] = useState(search || "")
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+  const search = useSelector((state) => state.globalSearch.search);
+  const [inputValue, setInputValue] = useState(search || "");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const debouncedSetSearch = useRef(
-    debounce((value) => {
-      dispatch(setGlobalSearch(value));
-    }, 300),
-  );
-
-  useEffect(() => {
-    const currentDebounced = debouncedSetSearch.current;
-    return () => {
-      currentDebounced.cancel()
-    }
-  }, [])
+  const debouncedSetSearch = useDebounce((value) => {
+    dispatch(setGlobalSearch(value));
+  }, 500);
 
   const handleChange = (e) => {
-    const value = e.target.value
-    setInputValue(value)
-    debouncedSetSearch.current(value)
-  }
+    const value = e.target.value;
+    setInputValue(value);
+    debouncedSetSearch(value);
+  };
 
   const handleClear = () => {
-    setInputValue("")
-    dispatch(clearGlobalSearch())
-  }
+    setInputValue("");
+    dispatch(clearGlobalSearch());
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      navigate("/explore")
+      navigate("/explore");
     }
-  }
+  };
 
   return (
     <div className={`flex items-center py-1 px-3 bg-[#B9B9B9]/15 rounded-md ${addedStyles}`}>
-      <img src={searchIcon} alt="Search" className="w-4 cursor-pointer" onClick={() => navigate("/explore")} />
+      <img
+        src={searchIcon}
+        alt="Search"
+        className="w-4 cursor-pointer"
+        onClick={() => navigate("/explore")}
+      />
       <input
         id="global-search"
         name="global-search"

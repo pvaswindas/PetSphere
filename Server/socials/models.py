@@ -4,6 +4,8 @@ from posts.models import Post
 from django.core.exceptions import ValidationError
 
 
+# ------------------------------ Follower Models ------------------------------
+
 class Follower(models.Model):
     follower = models.ForeignKey(PetSphereUser, on_delete=models.CASCADE,
                                  related_name='following_relations')
@@ -22,6 +24,8 @@ class Follower(models.Model):
         super().save(*args, **kwargs)
 
 
+# ------------------------------ Like Models ------------------------------
+
 class Like(models.Model):
     user = models.ForeignKey(PetSphereUser, on_delete=models.CASCADE,
                              related_name='like')
@@ -29,6 +33,8 @@ class Like(models.Model):
                              related_name='like')
     created_at = models.DateTimeField(auto_now_add=True)
 
+
+# ------------------------------ Comment Models ------------------------------
 
 class Comment(models.Model):
     user = models.ForeignKey(PetSphereUser, on_delete=models.CASCADE,

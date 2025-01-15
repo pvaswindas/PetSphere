@@ -8,11 +8,11 @@ import os
 @shared_task
 def delete_old_images():
     now = timezone.now()
-
     threshold_time = now - timedelta(hours=1)
 
     old_images = PetListingImageTemp.objects.filter(
-        created_at__lt=threshold_time)
+        created_at__lt=threshold_time
+    )
 
     for image_obj in old_images:
         if image_obj.image:
@@ -22,3 +22,9 @@ def delete_old_images():
         image_obj.delete()
 
     return f"Deleted {old_images.count()} old images."
+
+
+@shared_task
+def check_and_trigger_delete():
+    if PetListingImageTemp.objects.exists():
+        delete_old_images.delay()

@@ -1,7 +1,13 @@
 import { useState } from "react";
+import { Heart, HeartOff } from 'lucide-react';
+import { useSelector } from "react-redux";
 
-export function CommentList({ comments, onReply, onDelete }) {
+export function CommentList({ comments, onReply, onDelete, onCommentLike }) {
     const [visibleChildren, setVisibleChildren] = useState({});
+
+    const profile = useSelector((state) => state.profile.profile_data)
+
+    const userId = profile.user.id
 
     function formatDate(dateString) {
         const date = new Date(dateString);
@@ -27,6 +33,10 @@ export function CommentList({ comments, onReply, onDelete }) {
         }));
     };
 
+    const hasUserLikedComment = (commentLikes) => {
+        return commentLikes.some(like => like.user === userId);
+    };
+
     const renderReplies = (replies, parentId) => {
         return (
             <div className="ml-4 mt-2">
@@ -40,6 +50,18 @@ export function CommentList({ comments, onReply, onDelete }) {
                             </div>
                             <p className="text-sm text-gray-700">{reply.content}</p>
                             <div className="flex items-center gap-2 mt-2">
+                                {/* Like button */}
+                                <button
+                                    onClick={() => onCommentLike(reply.id)}
+                                    className="flex items-center gap-1 text-sm text-gray-500"
+                                >
+                                    {hasUserLikedComment(reply.comment_likes) ? (
+                                        <Heart className="h-4 w-4 text-red-500" />
+                                    ) : (
+                                        <HeartOff className="h-4 w-4" />
+                                    )}
+                                    <span>{hasUserLikedComment(reply.comment_likes) ? "Liked" : "Like"}</span>
+                                </button>
                                 <button
                                     onClick={() => onReply(reply.id, reply.username)}
                                     className="text-blue-500 text-xs"
@@ -48,7 +70,7 @@ export function CommentList({ comments, onReply, onDelete }) {
                                 </button>
                                 <button
                                     onClick={() => onDelete(reply.id)}
-                                    className="text-red-500 text-xs flex items-center gap-1 mt-1"
+                                    className="text-red-500 text-xs flex items-center"
                                 >
                                     Delete
                                 </button>
@@ -80,6 +102,18 @@ export function CommentList({ comments, onReply, onDelete }) {
                 <p className="text-sm text-gray-700">{comment.content}</p>
 
                 <div className="flex items-center gap-2 mt-2">
+                    {/* Like button */}
+                    <button
+                        onClick={() => onCommentLike(comment.id)}
+                        className="flex items-center gap-1 text-sm text-gray-500"
+                    >
+                        {hasUserLikedComment(comment.comment_likes) ? (
+                            <Heart className="h-4 w-4 text-red-500" />
+                        ) : (
+                            <HeartOff className="h-4 w-4" />
+                        )}
+                        <span>{hasUserLikedComment(comment.comment_likes) ? "Liked" : "Like"}</span>
+                    </button>
                     <button
                         onClick={() => onReply(comment.id, comment.username)}
                         className="text-blue-500 text-xs"
@@ -88,7 +122,7 @@ export function CommentList({ comments, onReply, onDelete }) {
                     </button>
                     <button
                         onClick={() => onDelete(comment.id)}
-                        className="text-red-500 text-xs flex items-center gap-1"
+                        className="text-red-500 text-xs"
                     >
                         Delete
                     </button>

@@ -139,12 +139,12 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TIMEZONE = 'UTC'
 
-CELERY_BEAT_SCHEDULE = {
-    'delete-old-images-every-minute': {
-        'task': 'posts.tasks.delete_old_images',
-        'schedule': 60.0,
-    },
-}
+# CELERY_BEAT_SCHEDULE = {
+#     'delete-old-images-every-minute': {
+#         'task': 'posts.tasks.check_and_trigger_delete',
+#         'schedule': 60.0,
+#     },
+# }
 
 
 # Email backend settings (if you want to use a real email service)
