@@ -13,7 +13,7 @@ function AlertSnackbar({ open, message, alert_type = "info", onClose }) {
     return (
         <Snackbar
             open={open}
-            autoHideDuration={4000}
+            autoHideDuration={3000}
             onClose={handleClose}
             anchorOrigin={{
                 vertical: "top",

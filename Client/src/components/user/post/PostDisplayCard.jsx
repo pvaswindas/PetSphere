@@ -2,17 +2,18 @@ import React, { memo, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import commentIcon from "../../../assets/icon/post/comment-icon.svg";
-import saveIcon from "../../../assets/icon/post/post-save-icon.svg";
 import likeIcon from "../../../assets/icon/post/like-icon.svg";
 import likedIcon from "../../../assets/icon/post/liked-icon.svg";
 import dotMenuIcon from "../../../assets/icon/post/dot-menu-icon.svg";
 import { deletePawstory, fetchPawstory, updatePawstory } from "../../../redux/thunks/PostThunk";
-import PostOptionsModal from "./PostOptionsModal";
 import Swal from "sweetalert2";
 import axiosInstance from "../../../axios/axiosinstance";
 import AlertSnackbar from "../../Snackbar/AlertSnackbar";
 import { fetchLikedUsers } from "../../../redux/thunks/FetchLikedUsers";
 import { CommentArea } from "../CommentArea/CommentArea";
+import { fetchPostSavedUsers } from "../../../redux/thunks/FetchPostSavedUsers";
+import { Bookmark, BookmarkCheck } from "lucide-react";
+import OptionsModal from "../../common/OptionsModal";
 
 const   PostDisplayCard = memo(() => {
     const { slug } = useParams();
@@ -26,8 +27,12 @@ const   PostDisplayCard = memo(() => {
     const [likedPeople, setLikedPeople] = useState([])
     const [showComment, setShowComment] = useState(false)
 
+    const [isSaved, setIsSaved] = useState(false)
+
+
     const [snackbarMessage, setSnackbarMessage] = useState("")
     const [snackbarOpen, setSnackbarOpen] = useState(false)
+    const [snackbarAlertType, setSnackbarAlertType] = useState("error")
 
     const post = useSelector((state) => state.posts?.currentPawstory || null);
     const profile = useSelector((state) => state.profile?.profile_data || null);
@@ -56,7 +61,6 @@ const   PostDisplayCard = memo(() => {
     const isUserLike = useCallback(async (callback) => {
         try {
             const response = await dispatch(fetchLikedUsers(post_id)).unwrap();
-            console.log(response);
             setLikedPeople(response.liked_users);
             setIsLiked(response.is_liked_by_user);
     
@@ -96,12 +100,26 @@ const   PostDisplayCard = memo(() => {
         toggleModal();
     };
 
-    const handleSave = () => {
+    const handlePostSettingsToggle = (field, value) => {
+        console.log(field, value);
+        dispatch(updatePawstory({
+            slug: post.slug,
+            data: {[field]: value}
+        }));
+    }
+
+    const handleContentSave = () => {
         if (post?.content !== editedContent) {
-            dispatch(updatePawstory({ slug: post.slug, content: editedContent }));
+            dispatch(updatePawstory({
+                slug: post.slug,
+                data: {content: editedContent}
+            }));
+            setEditedContent(" ");
+            setIsEditing(false);
+            setSnackbarMessage("Post has been saved.")
+            setSnackbarAlertType("success")
+            setSnackbarOpen(true)
         }
-        setEditedContent(" ");
-        setIsEditing(false);
     };
 
     const handleCancel = () => {
@@ -151,12 +169,14 @@ const   PostDisplayCard = memo(() => {
                 setIsLiked(false)
             } else {
                 setSnackbarMessage("Something went wrong. Try again.")
+                setSnackbarAlertType("error")
                 setSnackbarOpen(true)
             }
             dispatch(fetchPawstory(slug));
             isUserLike()
         } catch (error) {
             setSnackbarMessage("Something went wrong. Try again.")
+            setSnackbarAlertType("error")
             setSnackbarOpen(true)
         }
     }
@@ -166,13 +186,32 @@ const   PostDisplayCard = memo(() => {
         dispatch((fetchPawstory(slug)))
     }
 
+    const handlePostSave = async () => {
+        try {
+            await axiosInstance.post(`posts/savepost/${post_id}/`)
+            const response = await dispatch(fetchPostSavedUsers(post_id)).unwrap()
+            setIsSaved(response.is_saved_by_user);
+        } catch (error) {
+            setSnackbarMessage("Unable to save post.")
+            setSnackbarAlertType("error")
+            setSnackbarOpen(true)
+        }
+    }
+
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(window.location.href)
+        setSnackbarMessage("Link copied to clipboard.")
+        setSnackbarAlertType("success")
+        setSnackbarOpen(true)
+    }
+
     return (
         <>
             <div className="bg-white lg:shadow-lg w-full rounded-lg flex flex-col lg:flex-row">
                 <AlertSnackbar
                     open={snackbarOpen}
                     message={snackbarMessage}
-                    alert_type="error"
+                    alert_type={snackbarAlertType}
                     onClose={() => setSnackbarOpen(false)}
                 />
                 {/* Left Section: Image */}
@@ -281,7 +320,7 @@ const   PostDisplayCard = memo(() => {
                                             Cancel
                                         </span>
                                         <span
-                                            onClick={handleSave}
+                                            onClick={handleContentSave}
                                             className="text-gray-500 hover:text-gray-700 cursor-pointer text-sm"
                                         >
                                             Done
@@ -333,31 +372,48 @@ const   PostDisplayCard = memo(() => {
                                             className="w-4"
                                         />
                                     </button>
-                                    {post?.like_count > 0 && (
-                                        <p className="pe-4">{ post?.like_count }</p>
+                                        {post?.like_count > 0 && !post?.hide_likes && (
+                                            <p className="pe-4">{ post?.like_count }</p>
+                                        )}
+                                    {!post?.turn_off_comments && (
+                                        <>
+                                            <button
+                                                className="flex items-center hover:bg-gray-200 rounded-full"
+                                                aria-label="Comment"
+                                                onClick={() => setShowComment(true)}
+                                            >
+                                                <img src={commentIcon} alt="Comment" className="w-6" />
+                                            </button>
+                                            {post?.comment_count > 0 && !post?.hide_comments && (
+                                                <p className="pe-4">{post?.comment_count}</p>
+                                            )   }
+                                        </>
                                     )}
-                                    <button
-                                        className="flex items-center hover:bg-gray-200 rounded-full"
-                                        aria-label="Comment"
-                                        onClick={() => setShowComment(true)}
-                                    >
-                                        <img src={commentIcon} alt="Comment" className="w-6" />
-                                    </button>
-                                    {post?.comment_count > 0 && (
-                                        <p className="pe-4">{post?.comment_count}</p>
-                                    )   }
                                     <button
                                         className="flex items-center p-1 hover:bg-gray-200 rounded-full"
                                         aria-label="Save"
+                                        onClick={handlePostSave}
                                     >
-                                        <img src={saveIcon} alt="Save" className="w-6" />
+                                        {
+                                            isSaved ? (
+                                                <BookmarkCheck className="w-5 h-5 text-gray-500" />
+                                            ) : (
+                                                <Bookmark className="w-5 h-5 text-gray-500" />
+                                            )
+                                        }
                                     </button>
                                 </div>
                                 {likedPeople?.length > 0 && (
                                     <p className="ms-2 text-blackOpacity85">
                                         Liked by{" "}
-                                        {likedPeople[0] === profile?.user.username ? "you" : likedPeople[0]}
-                                        {likedPeople?.length > 1 && ` and ${likedPeople?.length - 1} other${likedPeople?.length - 1 > 1 ? 's' : ''}`}
+                                        {likedPeople[0] === profile?.user?.username ? "you" : likedPeople[0]}
+                                        {likedPeople?.length > 1 && (
+                                            <>
+                                                {post?.hide_likes 
+                                                    ? ` and other${likedPeople.length - 1 > 1 ? 's' : ''}` 
+                                                    : ` and ${likedPeople.length - 1} other${likedPeople.length - 1 > 1 ? 's' : ''}`}
+                                            </>
+                                        )}
                                     </p>
                                 )}
                             </div>
@@ -370,7 +426,7 @@ const   PostDisplayCard = memo(() => {
             </div>
 
             {/* Reusable Modal */}
-            <PostOptionsModal isOpen={isModalOpen} onClose={toggleModal}>
+            <OptionsModal isOpen={isModalOpen} onClose={toggleModal}>
                 <ul className="text-center text-gray-700">
                     <li
                         className="hover:bg-gray-100 p-3 rounded cursor-pointer"
@@ -386,29 +442,42 @@ const   PostDisplayCard = memo(() => {
                         Edit
                     </li>
                     <hr />
-                    <li className="hover:bg-gray-100 p-3 rounded cursor-pointer">
-                        Hide Like Count
+                    <li
+                        className="hover:bg-gray-100 p-3 rounded cursor-pointer"
+                        onClick={() => handlePostSettingsToggle('hide_likes', !post?.hide_likes)}
+                    >
+                        {post?.hide_likes ? 'Show Like Count' : 'Hide Like Count'}
                     </li>
                     <hr />
-                    <li className="hover:bg-gray-100 p-3 rounded cursor-pointer">
-                        Hide Comment Count
-                    </li>
+                    {!post?.turn_off_comments && (
+                        <>
+                            <li
+                                className="hover:bg-gray-100 p-3 rounded cursor-pointer"
+                                onClick={() => handlePostSettingsToggle('hide_comments', !post?.hide_comments)}
+                            >
+                                {post?.hide_comments ? 'Show Comment Count' : 'Hide Comment Count'}
+                            </li>
+                        </>
+                    )}
                     <hr />
-                    <li className="hover:bg-gray-100 p-3 rounded cursor-pointer">
-                        Turn Off Commenting
+                    <li
+                        className="hover:bg-gray-100 p-3 rounded cursor-pointer"
+                        onClick={() => handlePostSettingsToggle('turn_off_comments', !post?.turn_off_comments)}
+                    >
+                        {post?.turn_off_comments ? 'Turn On Commenting' : 'Turn Off Commenting'}
                     </li>
                     <hr />
                     <li
                         className="hover:bg-gray-100 p-3 rounded cursor-pointer"
-                        onClick={() => navigator.clipboard.writeText(window.location.href)}
+                        onClick={handleCopyLink}
                     >
                         Copy Link
                     </li>
                     <hr />
                 </ul>
-            </PostOptionsModal>
+            </OptionsModal>
 
-            <PostOptionsModal isOpen={isDeleteModalOpen} onClose={handleBothToggle} width="w-72 lg:w-80">
+            <OptionsModal isOpen={isDeleteModalOpen} onClose={handleBothToggle} width="w-72 lg:w-80">
                 <ul className="text-center text-gray-700">
                     <div className="py-3 flex flex-col">
                         <p className="text-xl font-medium">Delete Post?</p>
@@ -423,7 +492,7 @@ const   PostDisplayCard = memo(() => {
                     </li>
                     <hr />
                 </ul>
-            </PostOptionsModal>
+            </OptionsModal>
         </>
     );
 });

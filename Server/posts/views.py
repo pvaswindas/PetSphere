@@ -11,12 +11,14 @@ from rest_framework import status
 from cryptography.fernet import Fernet
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.decorators import api_view, permission_classes
 
 # Internal modules
 from .models import (
     Post, PetListing, PetListingImageTemp, PetListingImage,
+    SavedPost,
 )
 from pets.models import Pet, PetBreed
 from sellers.models import Seller
@@ -30,21 +32,14 @@ from petsphere.utils.common_utils import (
 )
 
 
-# Initialize environ
 env = Env()
 
-# Read .env file
 env.read_env()
 
-# Load the ENCRYPTION_KEY
 encryption_key = env.str("ENCRYPTION_KEY")
 
-# Create a Fernet cipher suite instance
 cipher_suite = Fernet(encryption_key)
 
-# Initialize a Redis client to connect to a local Redis server running
-# on port 6379. The client will use database 0 and decode responses
-# automatically
 redis_client = redis.StrictRedis(
     host='localhost', port=6379, db=0, decode_responses=True
 )
@@ -143,6 +138,74 @@ class PostListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def save_post(request, post_id):
+    try:
+        user = validate_authenticated_user(request)
+        if isinstance(user, Response):
+            return user
+
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        is_saved = SavedPost.objects.filter(user=user, post=post).first()
+
+        if is_saved:
+            is_saved.delete()
+            return Response(
+                {"message": "Post unsaved successfully"},
+                status=status.HTTP_200_OK
+            )
+
+        SavedPost.objects.create(
+            user=user,
+            post=post
+        )
+        return Response(
+            {"message": "Post saved successfully"},
+            status=status.HTTP_201_CREATED
+        )
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def fetch_saved_by(request, post_id):
+    try:
+        user = validate_authenticated_user(request)
+        if isinstance(user, Response):
+            return user
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        saved_users = SavedPost.objects.filter(
+            post=post).select_related('user') \
+            .order_by('-created_at').values_list('user__username', flat=True)
+
+        is_saved_by_user = user.username in saved_users
+        return Response(
+            {
+                'saved_users': list(saved_users),
+                'is_saved_by_user': is_saved_by_user
+            },
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response({"error": str(e)},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class UserPostDetailView(APIView):
     """
     Handles retrieving, updating, and deleting a post by slug.
@@ -211,6 +274,7 @@ class UserPostDetailView(APIView):
                             status=status.HTTP_404_NOT_FOUND)
 
         data = request.data.copy()
+        print(request.data)
         data.pop('slug', None)
 
         serializer = PostSerializer(

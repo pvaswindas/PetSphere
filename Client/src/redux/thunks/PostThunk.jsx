@@ -89,9 +89,11 @@ export const fetchPawstory = createAsyncThunk(
 
 export const updatePawstory = createAsyncThunk(
     "post/updatePawstory",
-    async ({ slug, content }, { dispatch, rejectWithValue }) => {
+    async ({ slug, data }, { dispatch, rejectWithValue }) => {
+        console.log(data);
+        
         try {
-            const response = await axiosInstance.patch(`posts/${slug}/`, { content })
+            const response = await axiosInstance.patch(`posts/${slug}/`, data)
             if (response.status === 200) {
                 dispatch(setCurrentPawstory({ currentPawstory: response.data }))
             } else {

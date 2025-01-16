@@ -1,6 +1,6 @@
 import React from "react";
 
-const PostOptionsModal = ({ isOpen, onClose, children, width="w-72", }) => {
+const OptionsModal = ({ isOpen, onClose, children, width="w-72", }) => {
     if (!isOpen) return null;
 
     return (
@@ -18,4 +18,4 @@ const PostOptionsModal = ({ isOpen, onClose, children, width="w-72", }) => {
     );
 };
 
-export default PostOptionsModal;
+export default OptionsModal;

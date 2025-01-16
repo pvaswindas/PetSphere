@@ -37,6 +37,16 @@ class PostImage(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+class SavedPost(models.Model):
+    user = models.ForeignKey(
+        PetSphereUser, on_delete=models.CASCADE, related_name='saved_post'
+    )
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, related_name='saved_by'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
 class PetListing(models.Model):
     post_type = models.CharField(max_length=30, default='Selling')
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE,
