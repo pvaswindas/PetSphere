@@ -105,13 +105,20 @@ class CreateCheckoutSession(APIView):
                     customer_email=user.email
                 )
 
-            # Record payment information
+            # Saving payment information
             Payment.objects.create(
                 user=user,
                 plan=plan,
                 stripe_payment_id=checkout_session.id,
                 status='pending',
             )
+
+            if mode == 'subscription':
+                user.profile.IsSubscribed = True
+            else:
+                user.profile.free_posts += 10
+
+            user.profile.save()
 
             return Response(
                 {'id': checkout_session.id, 'url': checkout_session.url},

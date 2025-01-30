@@ -8,8 +8,9 @@ from django.conf import settings
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import update_last_login
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from .serializers import RegisterSerializer, LoginSerializer
 from .serializers import PetSphereUserSerializer, UserDataStoreSerializer
@@ -220,6 +221,7 @@ class RegisterView(APIView):
                     profile,
                     context={'request': request}).data
                 refresh = RefreshToken.for_user(user)
+                update_last_login(None, user)
                 redis_client.delete(redis_key)
                 return Response({
                     "message": "User registered successfully",
@@ -243,6 +245,7 @@ class LoginView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data
             refresh = RefreshToken.for_user(user)
+            update_last_login(None, user)
             profile = Profile.objects.get(user__id=user.id)
             profile_data = ProfileSerializer(
                 profile,
@@ -535,6 +538,41 @@ class ReactivateAccountView(APIView):
         return Response({'success': 'Account reactivated successfully'})
 
 
+@api_view(['PATCH'])
+@permission_classes([IsAdminUser])
+def suspend_account(request, user_id):
+    try:
+        user = PetSphereUser.objects.get(pk=user_id)
+        user.is_suspended = True
+        user.save()
+        return Response({'success': 'Account suspended successfully'})
+    except PetSphereUser.DoesNotExist:
+        return Response(
+            {'error': 'User not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAdminUser])
+def reinstate_account(request, user_id):
+    try:
+        user = PetSphereUser.objects.get(pk=user_id)
+        user.is_suspended = False
+        user.save()
+        return Response({'success': 'Account reinstate successfully'})
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
 # ----------------------- Google Authentication -----------------------
 class GoogleLoginView(APIView):
     permission_classes = [AllowAny]
@@ -576,6 +614,7 @@ class GoogleLoginView(APIView):
                 context={'request': request}).data
 
             refresh = RefreshToken.for_user(user)
+            update_last_login(None, user)
             return Response({
                 'profile': profile_data,
                 'refresh': str(refresh),

@@ -91,7 +91,7 @@ const AddPetStoryCard = () => {
 
         setContent("")
         setImages([])
-        navigate('/profile')
+        navigate('/feed')
     }
 
     const renderSelectedImages = () => {

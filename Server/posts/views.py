@@ -24,7 +24,7 @@ from pets.models import Pet, PetBreed
 from sellers.models import Seller
 from .serializers import (
     PostSerializer, PostImageSerializer, PetListingCreateSerializer,
-    PetListingRetrieveSerializer,
+    PetListingRetrieveSerializer, AddPostSerializer,
     PetListingImageTempSerializer, PetListingLocationSerializer
 )
 from petsphere.utils.common_utils import (
@@ -98,9 +98,10 @@ class UserPostListCreateView(APIView):
             return user
         data = request.data
         data['user'] = user.id
+        print(data)
         images = request.FILES.getlist('images')
-        serializer = PostSerializer(data=data,
-                                    context={'request': request})
+        serializer = AddPostSerializer(data=data,
+                                       context={'request': request})
         profile = user.profile
         if serializer.is_valid():
             post = serializer.save()
@@ -552,6 +553,8 @@ class PetListingsView(APIView):
                         return Response({"error": str(e)},
                                         status=status.HTTP_400_BAD_REQUEST)
                 profile.petlisting_count += 1
+                if not profile.IsSeller:
+                    profile.IsSeller = True
                 profile.save()
                 return Response({"detail": PetListingRetrieveSerializer(
                     pet_listing).data}, status=status.HTTP_201_CREATED)

@@ -55,9 +55,14 @@ export function ExplorePetListings() {
 
 
     const filteredListings = petListings.filter((listing) => {
-        const city = listing.location.city || '';
-        return city.toLowerCase().includes(searchLocation.toLowerCase());
+        const location = listing.location || {};
+        const { address, city, state, zip_code } = location;
+    
+        const fullAddress = `${address} ${city} ${state} ${zip_code}`.toLowerCase();
+    
+        return fullAddress.includes(searchLocation.toLowerCase());
     });
+    ;
 
     const noListingsFound = filteredListings.length === 0 && !loading;
 
@@ -70,7 +75,7 @@ export function ExplorePetListings() {
                 onClose={() => setSnackbarOpen(false)}
             />
             {/* Search Bar */}
-            {!noListingsFound && !loading && (
+            {!loading && (
                 <div className="mb-6 relative">
                     <input
                         id="explore-location"

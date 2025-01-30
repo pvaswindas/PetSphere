@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'django_celery_results',
     'django.contrib.sites',
+    'channels',
     'social_django',
     'dj_rest_auth',
     'allauth',
@@ -63,6 +64,7 @@ INSTALLED_APPS = [
     'posts',
     'socials',
     'subscriptions',
+    'messaging',
 ]
 
 MIDDLEWARE = [
@@ -95,7 +97,16 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'petsphere.wsgi.application'
+ASGI_APPLICATION = 'petsphere.wsgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database

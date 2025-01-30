@@ -1,10 +1,21 @@
 import React from 'react';
 import Button from '../../forms/Button';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const UserInfo = () => {
-    const profile = useSelector((state) => state.profile.profile_data)
+    const UserProfile = useSelector((state) => state.profile.profile_data)
+
+    const { username } = useParams()
+
+    const otherUsersProfile = useSelector((state) => state.profile.other_users_profile)
+
+    let profile = UserProfile
+
+    if (UserProfile && UserProfile.username !== username) {
+        profile = otherUsersProfile?.[username] || null;
+    }
+
     const user = profile ? profile.user : null
 
     const navigate = useNavigate()
@@ -17,6 +28,8 @@ const UserInfo = () => {
         
     };
 
+    console.log(profile)
+
     return (
         <div className="pt-16 px-4 lg:px-8">
             {/* Header Section */}
@@ -28,18 +41,33 @@ const UserInfo = () => {
                     <p className="text-sm sm:text-base md:text-sm text-gray-500">@{user?.username}</p>
                     <p className="text-sm sm:text-base lg:hidden md:text-sm text-gray-600 mt-4">{profile?.bio}</p>
                     <div className="flex gap-3 mt-4 lg:hidden">
-                        <Button 
-                            type="button"
-                            text="Edit Profile"
-                            rounded="rounded"
-                            paddingx="px-3"
-                            paddingy="py-1"
-                            onClick={handleEditProfile}
-                            className="text-xs lg:text-sm flex-1"
-                            backgroundColor="bg-lightTextGreyOpacity20"
-                            textColor="text-blackOpacity85"
-                            hoverBackgroundColor="hover:bg-lightTextGreyOpacity30"
-                        />
+                        {user?.username === UserProfile?.user.username ? (
+                            <Button 
+                                type="button"
+                                text="Edit Profile"
+                                rounded="rounded"
+                                paddingx="px-3"
+                                paddingy="py-1"
+                                onClick={handleEditProfile}
+                                className="text-xs lg:text-sm flex-1"
+                                backgroundColor="bg-lightTextGreyOpacity20"
+                                textColor="text-blackOpacity85"
+                                hoverBackgroundColor="hover:bg-lightTextGreyOpacity30"
+                            />
+                        ) : (
+                            <Button 
+                                type="button"
+                                text="Message"
+                                rounded="rounded"
+                                paddingx="px-3"
+                                paddingy="py-1"
+                                onClick={()=>navigate('/messages/chat')}
+                                className="text-xs lg:text-sm flex-1"
+                                backgroundColor="bg-lightTextGreyOpacity20"
+                                textColor="text-blackOpacity85"
+                                hoverBackgroundColor="hover:bg-lightTextGreyOpacity30"
+                            />
+                        )}
                         <Button
                             type="button"
                             text="Share Profile"
@@ -55,18 +83,33 @@ const UserInfo = () => {
                     </div>
                 </div>
                 <div className="space-x-4 hidden lg:flex">
-                    <Button 
-                        type="button"
-                        text="Edit Profile"
-                        rounded="rounded"
-                        paddingx="px-4"
-                        paddingy="py-1"
-                        onClick={handleEditProfile}
-                        className="text-xs lg:text-sm"
-                        backgroundColor="bg-lightTextGreyOpacity20"
-                        textColor="text-blackOpacity85"
-                        hoverBackgroundColor="hover:bg-lightTextGreyOpacity30"
-                    />
+                    {user?.username === UserProfile?.user.username ? (
+                        <Button 
+                            type="button"
+                            text="Edit Profile"
+                            rounded="rounded"
+                            paddingx="px-4"
+                            paddingy="py-1"
+                            onClick={handleEditProfile}
+                            className="text-xs lg:text-sm"
+                            backgroundColor="bg-lightTextGreyOpacity20"
+                            textColor="text-blackOpacity85"
+                            hoverBackgroundColor="hover:bg-lightTextGreyOpacity30"
+                        />
+                    ) : (
+                        <Button 
+                            type="button"
+                            text="Message"
+                            rounded="rounded"
+                            paddingx="px-4"
+                            paddingy="py-1"
+                            onClick={()=>navigate('/messages/chat')}
+                            className="text-xs lg:text-sm"
+                            backgroundColor="bg-lightTextGreyOpacity20"
+                            textColor="text-blackOpacity85"
+                            hoverBackgroundColor="hover:bg-lightTextGreyOpacity30"
+                        />
+                    )}
                     <Button
                         type="button"
                         text="Share Profile"

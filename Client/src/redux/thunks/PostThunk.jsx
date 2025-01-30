@@ -86,6 +86,17 @@ export const fetchPawstory = createAsyncThunk(
     }
 )
 
+export const ClearCurrentPawStoryThunk = createAsyncThunk(
+    "post/ClearCurrentPawStory",
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            dispatch(clearCurrentPawstory)
+        } catch (error) {
+            return rejectWithValue(error)
+        }
+    }
+)
+
 
 export const updatePawstory = createAsyncThunk(
     "post/updatePawstory",

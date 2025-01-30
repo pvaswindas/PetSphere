@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.timezone import now
 
 
 class PetSphereUser(AbstractUser):
@@ -19,7 +20,21 @@ class PetSphereUser(AbstractUser):
 class AccountSettings(models.Model):
     user = models.OneToOneField(PetSphereUser, on_delete=models.CASCADE,
                                 related_name='account_settings')
-    is_private = models.BooleanField(default=False)
     receive_message = models.BooleanField(default=True)
     push_notification = models.BooleanField(default=True)
-    is_deactivate = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    def delete(self):
+        """Soft delete the account by setting the deleted_at field."""
+        self.deleted_at = now()
+        self.save()
+
+    def restore(self):
+        """Restore a soft-deleted account."""
+        self.deleted_at = None
+        self.save()
+
+    @property
+    def is_active(self):
+        """Check if the account is active."""
+        return self.deleted_at is None

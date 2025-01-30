@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import AdminLayout from "../../components/admin/AdminLayout";
-import PetCatalogContent from "../../components/admin/content/PetCatalogContent";
+import AdminLayout from "../../../components/admin/AdminLayout";
+import PetCatalogContent from "../../../components/admin/manage-pets/PetCatalogContent";
 
 
 const PetCatalogManager = () => {

@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchPetListings } from "../../../../redux/thunks/PetListingThunk";
-import Shimmer from "../../../Shimmer/Shimmer"
+import Shimmer from "../../../Shimmer/Shimmer";
+import AlertSnackbar from "../../../Snackbar/AlertSnackbar";
 
 const getStatusClasses = (status) => {
     switch (status) {
@@ -24,24 +25,42 @@ const getStatusClasses = (status) => {
 const PetListings = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { petListings, isLoading } = useSelector((state) => ({
-        petListings: state.petListings.petListings || [],
-        isLoading: state.petListings.isLoading,
-    }));
+    const petListings = useSelector((state) => state.petListings.petListings || []);
+    const [loading, setLoading] = useState(true);
+
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
 
     const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
     useEffect(() => {
-        dispatch(fetchPetListings());
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                dispatch(fetchPetListings());
+            } catch (error) {
+                setSnackbarMessage("Error fetching PetListings!")
+                setSnackbarOpen(true)
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
     }, [dispatch]);
 
     const handlePostClick = () => {
-        
+
     };
 
     return (
         <div className="lg:mx-4">
-            {isLoading ? (
+            <AlertSnackbar
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type="error"
+                onClose={() => setSnackbarOpen(false)}
+            />
+            {loading ? (
                 <div className="grid grid-cols-3 gap-0.5 lg:gap-3">
                     {[...Array(6)].map((_, index) => (
                         <div key={index} className="relative w-full aspect-square">
@@ -56,7 +75,7 @@ const PetListings = () => {
                 </div>
             ) : petListings?.length === 0 ? (
                 <div className="w-full h-64 flex items-center justify-center rounded-lg px-5">
-                    <p className="text-gray-500">Post your first pet for sale!</p>
+                    <p className="text-gray-500">Share your first pet listing!</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-3 gap-0.5 lg:gap-3">

@@ -3,6 +3,7 @@ import Shimmer from '../../Shimmer/Shimmer'
 import { useSelector } from 'react-redux';
 import { fetchPosts } from '../../../utils/exploreFetch';
 import AlertSnackbar from '../../Snackbar/AlertSnackbar';
+import { useNavigate } from 'react-router-dom';
 
 export function ExplorePawStories() {
     const [loading, setLoading] = useState(true);
@@ -11,6 +12,8 @@ export function ExplorePawStories() {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
 
     const query = useSelector((state) => state.globalSearch.search);
+
+    const navigate = useNavigate()
 
     useEffect(() => {
         const fetchData = async () => {
@@ -29,7 +32,7 @@ export function ExplorePawStories() {
     }, [query]);
 
     const handlePostClick = (slug) => {
-        
+        navigate(`/post/${slug}`);
     };
 
     return (

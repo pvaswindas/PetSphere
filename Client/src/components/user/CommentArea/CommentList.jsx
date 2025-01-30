@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Heart, HeartOff } from 'lucide-react';
 import { useSelector } from "react-redux";
 
-export function CommentList({ comments, onReply, onDelete, onCommentLike }) {
+export function CommentList({ comments, onReply, onDelete, onCommentLike, post }) {
     const [visibleChildren, setVisibleChildren] = useState({});
 
     const profile = useSelector((state) => state.profile.profile_data)
@@ -68,12 +68,16 @@ export function CommentList({ comments, onReply, onDelete, onCommentLike }) {
                                 >
                                     Reply
                                 </button>
-                                <button
-                                    onClick={() => onDelete(reply.id)}
-                                    className="text-red-500 text-xs flex items-center"
-                                >
-                                    Delete
-                                </button>
+                                {post?.user_profile.user === profile?.user &&
+                                    (
+                                        <button
+                                            onClick={() => onDelete(reply.id)}
+                                            className="text-red-500 text-xs flex items-center"
+                                        >
+                                            Delete
+                                        </button>
+                                    )
+                                }
                             </div>
 
                             {reply.replies && reply.replies.length > 0 && renderReplies(reply.replies, reply.id)}
@@ -120,12 +124,16 @@ export function CommentList({ comments, onReply, onDelete, onCommentLike }) {
                     >
                         Reply
                     </button>
-                    <button
-                        onClick={() => onDelete(comment.id)}
-                        className="text-red-500 text-xs"
-                    >
-                        Delete
-                    </button>
+                    {post?.user_profile.user === profile.user &&
+                        (
+                            <button
+                                onClick={() => onDelete(comment.id)}
+                                className="text-red-500 text-xs"
+                            >
+                                Delete
+                            </button>
+                        )
+                    }
                 </div>
 
                 {comment.replies && comment.replies.length > 0 && renderReplies(comment.replies, comment.id)}

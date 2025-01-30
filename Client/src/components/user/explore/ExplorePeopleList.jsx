@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import userAvatar from "../../../assets/icon/user-avatar.svg";
 import { useSelector } from "react-redux";
 import AlertSnackbar from "../../Snackbar/AlertSnackbar";
@@ -15,64 +15,56 @@ export function ExplorePeopleList() {
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-    const [buttonState, setButtonState] = useState({});
-
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const data = await fetchPeople(query);
-                setSearchPeople(data);
-            } catch (error) {
-                setSnackbarMessage("Unable to fetch Users");
-                setSnackbarOpen(true);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const data = await fetchPeople(query);
+            setSearchPeople(data);
+        } catch (error) {
+            setSnackbarMessage("Unable to fetch Users");
+            setSnackbarOpen(true);
+        } finally {
+            setLoading(false);
+        }
     }, [query]);
 
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
     const handleFollow = async (userId) => {
-        setButtonState((prevState) => ({ ...prevState, [userId]: "loading" }));
         try {
             const response = await axiosInstance.post(`socials/follow-user/${userId}`);
             if (response.status === 201) {
-                fetchPeople(query);
-                setButtonState((prevState) => ({ ...prevState, [userId]: "success" }));
+                setSearchPeople((prevPeople) =>
+                    prevPeople.map((person) =>
+                        person.user.id === userId
+                            ? { ...person, isFollowing: true }
+                            : person
+                    )
+                );
             }
         } catch (error) {
             setSnackbarMessage("Unable to follow user");
             setSnackbarOpen(true);
-            setButtonState((prevState) => ({ ...prevState, [userId]: "error" }));
         }
     };
 
     const handleUnfollow = async (userId) => {
-        setButtonState((prevState) => ({ ...prevState, [userId]: "loading" }));
         try {
             const response = await axiosInstance.post(`socials/unfollow-user/${userId}`);
             if (response.status === 200) {
-                fetchPeople(query);
-                setButtonState((prevState) => ({ ...prevState, [userId]: "success" }));
+                setSearchPeople((prevPeople) =>
+                    prevPeople.map((person) =>
+                        person.user.id === userId
+                            ? { ...person, isFollowing: false }
+                            : person
+                    )
+                );
             }
         } catch (error) {
             setSnackbarMessage("Unable to unfollow user");
             setSnackbarOpen(true);
-            setButtonState((prevState) => ({ ...prevState, [userId]: "error" }));
-        }
-    };
-
-    const getButtonClass = (state) => {
-        switch (state) {
-            case "loading":
-                return "border-blue-500 hover:border-blue-700 transform scale-105";
-            case "success":
-                return "border-og-gradient hover:border-green-700 transform scale-105";
-            case "error":
-                return "border-red-500 hover:border-red-700 transform scale-105";
-            default:
-                return "border-gray-300 hover:border-gray-500 transform scale-100";
         }
     };
 
@@ -105,7 +97,7 @@ export function ExplorePeopleList() {
                     No users found matching your search.
                 </div>
             ) : (
-                searchPeople?.map((profile) => (
+                searchPeople.map((profile) => (
                     <div key={profile?.id} className="p-4 border border-gray-300 rounded-lg shadow-sm">
                         <div className="flex items-center gap-4">
                             <img
@@ -122,9 +114,11 @@ export function ExplorePeopleList() {
                             </div>
                             {my_profile?.user.username !== profile.user.username && (
                                 <button
-                                    className={`px-3 py-1 border rounded-lg text-sm transition duration-300 ${getButtonClass(
-                                        buttonState[profile.user.id]
-                                    )}`}
+                                    className={`px-3 py-1 border rounded-lg text-sm transition duration-300 ${
+                                        profile?.isFollowing
+                                            ? "border-gray-300 hover:border-gray-500"
+                                            : "border-blue-500 hover:border-blue-700"
+                                    }`}
                                     onClick={() =>
                                         profile?.isFollowing
                                             ? handleUnfollow(profile.user.id)
@@ -132,7 +126,7 @@ export function ExplorePeopleList() {
                                     }
                                 >
                                     {profile?.isFollowing ? "Unfollow" : "Follow"}
-                                </button>
+                                </button>                            
                             )}
                         </div>
                     </div>

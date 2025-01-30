@@ -2,8 +2,8 @@ import React from "react"
 import WelcomeCard from "./dashboard/WelcomeCard"
 import AdminSidebar from "./AdminSidebar"
 import AdminNavbar from "./navbar/AdminNavbar"
-import InsightCard from "./InsightCard"
-import CalendarViewCard from "./CalendarViewCard"
+import InsightCard from "./common/InsightCard"
+import CalendarViewCard from "./common/CalendarViewCard"
 
 const AdminLayout = ({ activeIcon, setActiveIcon, children, showWelcomeCard }) => {
     return (

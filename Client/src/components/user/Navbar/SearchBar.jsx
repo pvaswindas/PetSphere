@@ -27,14 +27,9 @@ const SearchBar = ({ placeholder = "Search", addedStyles = "w-1/2 mx-12" }) => {
     dispatch(clearGlobalSearch());
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      navigate("/explore");
-    }
-  };
 
   return (
-    <div className={`flex items-center py-1 px-3 bg-[#B9B9B9]/15 rounded-md ${addedStyles}`}>
+    <div className={`flex items-center py-1 px-3 bg-[#B9B9B9]/15 rounded-full lg:rounded-md ${addedStyles}`}>
       <img
         src={searchIcon}
         alt="Search"
@@ -50,7 +45,6 @@ const SearchBar = ({ placeholder = "Search", addedStyles = "w-1/2 mx-12" }) => {
         className="flex-1 bg-transparent focus:outline-none px-3 text-gray-500 placeholder-lightTextGrey"
         value={inputValue}
         onChange={handleChange}
-        onKeyDown={handleKeyDown}
       />
       {inputValue && (
         <X

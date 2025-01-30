@@ -20,7 +20,7 @@ const PaymentSuccessPage = () => {
                 </p>
                 <button
                     className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition"
-                    onClick={() => navigate('/profile')}
+                    onClick={() => navigate('/feed')}
                 >
                     Go to Dashboard
                 </button>

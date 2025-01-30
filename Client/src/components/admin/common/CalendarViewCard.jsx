@@ -17,6 +17,9 @@ const CalendarViewCard = () => {
                     nextLabel=">"
                     className="calendar-container text-white bg-deepOceanBlue border-0"
                     locale="en-US"
+                    tileClassName={({ date, view }) =>
+                        "transition duration-200 rounded-md hover:bg-blue-800 hover:text-black"
+                    }
                 />
             </div>
         </div>

@@ -1,5 +1,5 @@
 import React from "react"
-import DashboardWelcome from "../../assets/admin/dashboardcard.svg"
+import DashboardWelcome from "../../../assets/admin/dashboardcard.svg"
 
 const InsightCard = () => {
     return (
@@ -11,8 +11,11 @@ const InsightCard = () => {
                 </div>
 
                 {/* Card 2 */}
-                <div className="w-40 h-24 rounded-3xl flex items-center justify-center overflow-hidden transform transition-transform duration-300 hover:scale-110">
-                    <img src={DashboardWelcome} alt="" className="object-contain w-full" />
+                <div
+                    className="w-40 h-full rounded-3xl flex items-center justify-center bg-cover bg-center transformtransition-transform duration-300 hover:scale-110"
+                    style={{ backgroundImage: `url(${DashboardWelcome})` }}
+                >
+
                 </div>
 
                 {/* Card 3 */}

@@ -49,7 +49,7 @@ function RestrictedRoute({ children }) {
     }, [validateAccessToken]);
 
     useEffect(() => {
-        if (isAuthorized) navigate('/profile');
+        if (isAuthorized) navigate('/feed');
     }, [isAuthorized, navigate]);
 
     if (isAuthorized === null) return <LoadingScreen />

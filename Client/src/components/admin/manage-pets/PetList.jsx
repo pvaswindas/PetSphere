@@ -1,7 +1,7 @@
 import React from "react"
-import editIcon from "../../assets/admin/commonIcons/edit-icon.svg"
-import deleteIcon from "../../assets/admin/commonIcons/delete-icon.svg"
-import FlexiCard from "./FlexiCard"
+import editIcon from "../../../assets/admin/commonIcons/edit-icon.svg"
+import deleteIcon from "../../../assets/admin/commonIcons/delete-icon.svg"
+import FlexiCard from "../common/FlexiCard"
 
 const PetList = ({ data, handleEdit, handleDelete, type, title, description }) => {
     const limitedData = data?.slice().reverse().slice(0, 4)

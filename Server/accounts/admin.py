@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import PetSphereUser
+from .models import PetSphereUser, AccountSettings
 
 
 class PetSphereUserAdmin(UserAdmin):
@@ -21,3 +21,23 @@ class PetSphereUserAdmin(UserAdmin):
 
 
 admin.site.register(PetSphereUser, PetSphereUserAdmin)
+
+
+class AccountSettingsAdmin(admin.ModelAdmin):
+    model = AccountSettings
+    fieldsets = (
+        (None, {'fields': ('user',)}),
+        ('Settings', {
+            'fields': (
+                'receive_message',
+                'push_notification', 'deleted_at'
+            )
+        }),
+    )
+    list_display = ('user', 'receive_message',
+                    'push_notification', 'deleted_at')
+    search_fields = ('user__username', 'user__email')
+    list_filter = ('deleted_at',)
+
+
+admin.site.register(AccountSettings, AccountSettingsAdmin)

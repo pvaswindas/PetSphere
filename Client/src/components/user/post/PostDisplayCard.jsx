@@ -12,8 +12,9 @@ import AlertSnackbar from "../../Snackbar/AlertSnackbar";
 import { fetchLikedUsers } from "../../../redux/thunks/FetchLikedUsers";
 import { CommentArea } from "../CommentArea/CommentArea";
 import { fetchPostSavedUsers } from "../../../redux/thunks/FetchPostSavedUsers";
-import { Bookmark, BookmarkCheck } from "lucide-react";
+import { Bookmark, BookmarkCheck, Heart, MessageSquareText } from "lucide-react";
 import OptionsModal from "../../common/OptionsModal";
+import Shimmer from "../../Shimmer/Shimmer";
 
 const   PostDisplayCard = memo(() => {
     const { slug } = useParams();
@@ -34,6 +35,8 @@ const   PostDisplayCard = memo(() => {
     const [snackbarOpen, setSnackbarOpen] = useState(false)
     const [snackbarAlertType, setSnackbarAlertType] = useState("error")
 
+    const [isLoading, setIsLoading] = useState(true)
+
     const post = useSelector((state) => state.posts?.currentPawstory || null);
     const profile = useSelector((state) => state.profile?.profile_data || null);
     const navigate = useNavigate();
@@ -45,12 +48,43 @@ const   PostDisplayCard = memo(() => {
     updatedAt.setSeconds(0, 0)
     const isPostEdited = createdAt.getTime() !== updatedAt.getTime()
 
+    const fetchSavedUsers = useCallback(async () => {
+        setIsLoading(true)
+        try {
+            const response = await dispatch(fetchPostSavedUsers(post_id)).unwrap()
+            setIsSaved(response.is_saved_by_user);
+        } catch (error) {
+            
+        } finally {
+            setIsLoading(false)
+        }
+    }, [dispatch, post_id])
+
+    const fetchData = useCallback((slug) => {
+        setIsLoading(true)
+        try {
+            dispatch(fetchPawstory(slug))
+        } catch (error) {
+            setSnackbarMessage("Unable to fetch post")
+            setSnackbarAlertType("error")
+            setSnackbarOpen(true)
+        } finally {
+            setIsLoading(false)
+        }
+    }, [dispatch])
+
+    useEffect(() => {
+        if (post_id) {
+            fetchSavedUsers()
+        }
+    }, [post_id, fetchSavedUsers])
 
     useEffect(() => {
         if (slug) {
-            dispatch(fetchPawstory(slug));
+            fetchData(slug);
         }
-    }, [slug, dispatch]);
+    }, [slug, fetchData]);
+
     
     useEffect(() => {
         if (post) {
@@ -77,15 +111,6 @@ const   PostDisplayCard = memo(() => {
             isUserLike();
         }
     }, [post_id, dispatch, setLikedPeople, isUserLike]);
-
-
-    if (!post || !post.images || post.images.length === 0) {
-        return (
-            <div className="w-full h-64 flex items-center justify-center rounded-lg">
-                <p className="text-gray-500">Post not found</p>
-            </div>
-        );
-    }
 
     const toggleModal = () => setIsModalOpen((prev) => !prev);
     const toggleDeleteModal = () => setDeleteIsModalOpen((prev) => !(prev));
@@ -130,7 +155,7 @@ const   PostDisplayCard = memo(() => {
     const handleDeletePost = async () => {
         try {
             await dispatch(deletePawstory(slug)).unwrap();
-            navigate('/profile');
+            navigate(`/profile/${profile.user.usename}`);
         } catch (error) {
             Swal.fire({
                 icon: "error",
@@ -172,7 +197,7 @@ const   PostDisplayCard = memo(() => {
                 setSnackbarAlertType("error")
                 setSnackbarOpen(true)
             }
-            dispatch(fetchPawstory(slug));
+            fetchData(slug)
             isUserLike()
         } catch (error) {
             setSnackbarMessage("Something went wrong. Try again.")
@@ -183,14 +208,13 @@ const   PostDisplayCard = memo(() => {
 
     const handleCommentAreaClose = () => {
         setShowComment(false)
-        dispatch((fetchPawstory(slug)))
+        fetchData(slug)
     }
 
     const handlePostSave = async () => {
         try {
             await axiosInstance.post(`posts/savepost/${post_id}/`)
-            const response = await dispatch(fetchPostSavedUsers(post_id)).unwrap()
-            setIsSaved(response.is_saved_by_user);
+            fetchSavedUsers()
         } catch (error) {
             setSnackbarMessage("Unable to save post.")
             setSnackbarAlertType("error")
@@ -203,6 +227,39 @@ const   PostDisplayCard = memo(() => {
         setSnackbarMessage("Link copied to clipboard.")
         setSnackbarAlertType("success")
         setSnackbarOpen(true)
+    }
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col lg:flex-row gap-4 p-4">
+                <div className="flex-shrink-0 w-full lg:w-1/2 relative">
+                    <Shimmer className="w-full h-full lg:rounded-s-lg" />
+                </div>
+                <div className="flex-grow w-full flex flex-col justify-between my-2">
+                    <div className="flex items-center justify-between my-2 mx-4">
+                        <Shimmer className="h-10 w-10 rounded-full" />
+                        <div className="flex flex-col">
+                            <Shimmer className="h-4 w-32 mb-2" />
+                            <Shimmer className="h-4 w-24" />
+                        </div>
+                        <Shimmer className="h-5 w-5" />
+                    </div>
+                    <Shimmer className="w-full h-12 mb-4" />
+                    <div className="flex justify-between items-center">
+                        <Shimmer className="w-1/2 h-6" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+
+    if (!post || !post.images || post.images.length === 0) {
+        return (
+            <div className="w-full h-64 flex items-center justify-center rounded-lg">
+                <p className="text-gray-500">Post not found</p>
+            </div>
+        );
     }
 
     return (
@@ -277,13 +334,13 @@ const   PostDisplayCard = memo(() => {
                                 {/* Left Section: Profile and Date */}
                                 <div className="flex items-center">
                                     <img
-                                        src={profile.profile_picture || ""}
-                                        alt={profile.user.username || "User"}
+                                        src={post.user_profile.profile_picture || ""}
+                                        alt={post.user_profile.user.username || "User"}
                                         className="w-10 h-10 rounded-full object-cover mr-3"
                                     />
                                     <div className="flex flex-col">
                                         <p className="text-lg text-gray-800 font-semibold">
-                                            {profile.user.username || "Anonymous"}
+                                            {post.user_profile.user.username || "Anonymous"}
                                         </p>
                                         <p className="text-xs text-gray-500">
                                             {post.created_at
@@ -366,11 +423,12 @@ const   PostDisplayCard = memo(() => {
                                         aria-label="Like"
                                         onClick={handleLike}
                                     >
-                                        <img
-                                            src={isLiked ? likedIcon : likeIcon}
-                                            alt="Like"
-                                            className="w-4"
-                                        />
+                                        {isLiked ? (
+                                            <Heart size={19} fill='red' stroke='red' />
+                                        )
+                                        : (
+                                            <Heart size={19} className="text-gray-500" />
+                                        )}
                                     </button>
                                         {post?.like_count > 0 && !post?.hide_likes && (
                                             <p className="pe-4">{ post?.like_count }</p>
@@ -378,11 +436,11 @@ const   PostDisplayCard = memo(() => {
                                     {!post?.turn_off_comments && (
                                         <>
                                             <button
-                                                className="flex items-center hover:bg-gray-200 rounded-full"
+                                                className="flex items-center p-2 hover:bg-gray-200 rounded-full"
                                                 aria-label="Comment"
                                                 onClick={() => setShowComment(true)}
                                             >
-                                                <img src={commentIcon} alt="Comment" className="w-6" />
+                                                <MessageSquareText size={19} className="text-gray-500" />
                                             </button>
                                             {post?.comment_count > 0 && !post?.hide_comments && (
                                                 <p className="pe-4">{post?.comment_count}</p>
@@ -390,15 +448,15 @@ const   PostDisplayCard = memo(() => {
                                         </>
                                     )}
                                     <button
-                                        className="flex items-center p-1 hover:bg-gray-200 rounded-full"
+                                        className="flex items-center p-2 hover:bg-gray-200 rounded-full"
                                         aria-label="Save"
                                         onClick={handlePostSave}
                                     >
                                         {
                                             isSaved ? (
-                                                <BookmarkCheck className="w-5 h-5 text-gray-500" />
+                                                <BookmarkCheck size={19} className="text-gray-500" />
                                             ) : (
-                                                <Bookmark className="w-5 h-5 text-gray-500" />
+                                                <Bookmark size={19} className="text-gray-500" />
                                             )
                                         }
                                     </button>
@@ -420,61 +478,74 @@ const   PostDisplayCard = memo(() => {
                         </div>
                     </div>
                 ) : (
-                    <CommentArea onClose={handleCommentAreaClose} postId={post.id} />
+                    <CommentArea onClose={handleCommentAreaClose} postId={post.id} post={post} />
                 )}
 
             </div>
 
             {/* Reusable Modal */}
             <OptionsModal isOpen={isModalOpen} onClose={toggleModal}>
-                <ul className="text-center text-gray-700">
-                    <li
-                        className="hover:bg-gray-100 p-3 rounded cursor-pointer"
-                        onClick={handleBothToggle}
-                    >
-                        Delete
-                    </li>
-                    <hr />
-                    <li
-                        className="hover:bg-gray-100 p-3 rounded cursor-pointer"
-                        onClick={handleEditClick}
-                    >
-                        Edit
-                    </li>
-                    <hr />
-                    <li
-                        className="hover:bg-gray-100 p-3 rounded cursor-pointer"
-                        onClick={() => handlePostSettingsToggle('hide_likes', !post?.hide_likes)}
-                    >
-                        {post?.hide_likes ? 'Show Like Count' : 'Hide Like Count'}
-                    </li>
-                    <hr />
-                    {!post?.turn_off_comments && (
-                        <>
+                {post?.user_profile.user.id === profile.user.id ? 
+                    (
+                        <ul className="text-center text-gray-700">
                             <li
                                 className="hover:bg-gray-100 p-3 rounded cursor-pointer"
-                                onClick={() => handlePostSettingsToggle('hide_comments', !post?.hide_comments)}
+                                onClick={handleBothToggle}
                             >
-                                {post?.hide_comments ? 'Show Comment Count' : 'Hide Comment Count'}
+                                Delete
                             </li>
-                        </>
-                    )}
-                    <hr />
-                    <li
-                        className="hover:bg-gray-100 p-3 rounded cursor-pointer"
-                        onClick={() => handlePostSettingsToggle('turn_off_comments', !post?.turn_off_comments)}
-                    >
-                        {post?.turn_off_comments ? 'Turn On Commenting' : 'Turn Off Commenting'}
-                    </li>
-                    <hr />
-                    <li
-                        className="hover:bg-gray-100 p-3 rounded cursor-pointer"
-                        onClick={handleCopyLink}
-                    >
-                        Copy Link
-                    </li>
-                    <hr />
-                </ul>
+                            <hr />
+                            <li
+                                className="hover:bg-gray-100 p-3 rounded cursor-pointer"
+                                onClick={handleEditClick}
+                            >
+                                Edit
+                            </li>
+                            <hr />
+                            <li
+                                className="hover:bg-gray-100 p-3 rounded cursor-pointer"
+                                onClick={() => handlePostSettingsToggle('hide_likes', !post?.hide_likes)}
+                            >
+                                {post?.hide_likes ? 'Show Like Count' : 'Hide Like Count'}
+                            </li>
+                            <hr />
+                            {!post?.turn_off_comments && (
+                                <>
+                                    <li
+                                        className="hover:bg-gray-100 p-3 rounded cursor-pointer"
+                                        onClick={() => handlePostSettingsToggle('hide_comments', !post?.hide_comments)}
+                                    >
+                                        {post?.hide_comments ? 'Show Comment Count' : 'Hide Comment Count'}
+                                    </li>
+                                </>
+                            )}
+                            <hr />
+                            <li
+                                className="hover:bg-gray-100 p-3 rounded cursor-pointer"
+                                onClick={() => handlePostSettingsToggle('turn_off_comments', !post?.turn_off_comments)}
+                            >
+                                {post?.turn_off_comments ? 'Turn On Commenting' : 'Turn Off Commenting'}
+                            </li>
+                            <hr />
+                            <li
+                                className="hover:bg-gray-100 p-3 rounded cursor-pointer"
+                                onClick={handleCopyLink}
+                            >
+                                Copy Link
+                            </li>
+                            <hr />
+                        </ul>
+                    ) : (
+                        <ul className="text-center text-gray-700">
+                            <li
+                                className="hover:bg-gray-100 p-3 rounded cursor-pointer"
+                            >
+                                Report
+                            </li>
+                        </ul>
+                    )
+                }
+
             </OptionsModal>
 
             <OptionsModal isOpen={isDeleteModalOpen} onClose={handleBothToggle} width="w-72 lg:w-80">

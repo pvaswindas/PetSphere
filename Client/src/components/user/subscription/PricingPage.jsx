@@ -7,7 +7,6 @@ import { fetchPlans, createCheckoutSession } from '../../../redux/slices/Subscri
 const PricingPage = () => {
     const dispatch = useDispatch();
     const plans = useSelector((state) => state.subscriptions.plans);
-    const checkoutSessionUrl = useSelector((state) => state.subscriptions.checkoutSessionId);
 
     useEffect(() => {
         dispatch(fetchPlans());

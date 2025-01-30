@@ -5,7 +5,7 @@ import { CommentInput } from './CommentInput';
 import axiosInstance from '../../../axios/axiosinstance';
 import AlertSnackbar from '../../Snackbar/AlertSnackbar';
 
-export function CommentArea({ onClose, postId }) {
+export function CommentArea({ onClose, postId, post }) {
     const [newComment, setNewComment] = useState('');
     const [replyingTo, setReplyingTo] = useState(null);
     const [replyUsername, setReplyUsername] = useState('');
@@ -13,6 +13,7 @@ export function CommentArea({ onClose, postId }) {
 
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
+
 
     const fetchComments = useCallback(async () => {
         if (!postId) {
@@ -102,6 +103,7 @@ export function CommentArea({ onClose, postId }) {
                 replyingTo={replyingTo}
                 replyUsername={replyUsername}
                 onCancelReply={handleCancelReply}
+                post={post}
             />
         </div>
     );

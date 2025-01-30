@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 
 const ProfileFeedSelection = memo(({ selectedOption, onSelectOption }) => {
-    const options = ['PawStories', 'PetListings', 'PetPals', 'Friends', 'Badges'];
+    const options = ['PawStories', 'PetListings', 'Friends',]; // PetPals, Badges
 
     return (
         <div className="pt-2 lg:pt-0 lg:px-8">

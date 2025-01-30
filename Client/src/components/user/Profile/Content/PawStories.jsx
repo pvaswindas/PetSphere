@@ -1,24 +1,54 @@
-import React, { memo, useEffect } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPawstories } from "../../../../redux/thunks/PostThunk";
 import { useNavigate } from "react-router-dom";
+import AlertSnackbar from "../../../Snackbar/AlertSnackbar";
+import Shimmer from "../../../Shimmer/Shimmer";
 
-const PawStories = memo(() => {
+const PawStories = memo(({ username }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const posts = useSelector((state) => state.posts?.pawstories || []);
+    const [loading, setLoading] = useState(true);
+
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
 
     useEffect(() => {
-        dispatch(fetchPawstories());
+        const fetchData = async () => {
+            try {
+                dispatch(fetchPawstories());
+            } catch (error) {
+                setSnackbarMessage("Error fetching PawStories")
+                setSnackbarOpen(true)
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
     }, [dispatch]);
 
     const handlePostClick = (slug) => {
-        navigate(`/profile/post/${slug}`);
+        navigate(`/post/${slug}`);
     };
 
     return (
         <div className="lg:mx-4">
-            {posts.length === 0 ? (
+            <AlertSnackbar
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type="error"
+                onClose={() => setSnackbarOpen(false)}
+            />
+            {loading ? (
+                <div className="grid grid-cols-3 gap-0.5 lg:gap-3">
+                    {Array.from({ length: 6 }).map((_, index) => (
+                        <div key={index} className="relative w-full aspect-square">
+                            <Shimmer className="w-full h-full lg:rounded-lg" />
+                        </div>
+                    ))}
+                </div>
+            ) : posts.length === 0 ? (
                 <div className="w-full h-64 flex items-center justify-center rounded-lg px-5">
                     <p className="text-gray-500">No posts yet</p>
                 </div>
@@ -43,5 +73,4 @@ const PawStories = memo(() => {
     );
 });
 
-
-export default PawStories
+export default PawStories;

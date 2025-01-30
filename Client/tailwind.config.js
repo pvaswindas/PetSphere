@@ -27,9 +27,11 @@ module.exports = {
         deepOceanBlue: '#2959A1',
         midnightBlue: '#08244E',
         softSkyBlue: '#ECF4FF',
+        softSkyBlue80: 'rgba(236, 244, 255, 0.8)',
         denimBlue: '#7191C5',
         pastelBlue: '#89ABE1',
         darkDenimBlue: '#1E4681',
+        darkDenimBlue70: 'rgba(30, 70, 129, 0.7)',
         midnightNavy: '#1B3E73',
       },
       backgroundImage: {

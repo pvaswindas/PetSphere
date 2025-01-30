@@ -55,7 +55,7 @@ function LoginFormPanel() {
                     dispatch(setProfile({ profile_data: profile }));
                     dispatch(setEmail({ email: profile.user.email }));
 
-                    navigate('/profile');
+                    navigate('/feed');
                 }
             } else {
                 setSnackbarMessage("Invalid Credentials")

@@ -16,6 +16,7 @@ import nonActiveMessageIcon from "../../../assets/icon/user-sidebar/message-icon
 import nonActiveProfileIcon from "../../../assets/icon/user-sidebar/profile-icon.svg"
 import nonActiveNearbyIcon from "../../../assets/icon/user-sidebar/nearby-icon.svg"
 import nonActiveSettingsIcon from "../../../assets/icon/user-sidebar/settings-icon.svg"
+import { useSelector } from "react-redux";
 
 
 function NavigationPanel(){
@@ -23,6 +24,7 @@ function NavigationPanel(){
     const navigate = useNavigate()
 
     const isActive = (path) => location.pathname.startsWith(path)
+    const profile = useSelector((state) => state.profile?.profile_data || null);
 
     const ifActive = "bg-og-gradient text-white";
     const ifNonActive = "bg-white text-blackOpacity70";
@@ -41,6 +43,7 @@ function NavigationPanel(){
                 {/* Feed Button */}
                 <button
                     className={`${buttonCommonStyle} ${ isActive('/feed') ? ifActive : ifNonActive }`}
+                    onClick={() => handleNavigate("feed")}
                 >
                     <img
                         src={isActive('/feed') ? activeHomeIcon : nonActiveHomeIcon}
@@ -48,18 +51,6 @@ function NavigationPanel(){
                         className="w-[13px]"
                     />
                     <h2 className={h2CommonStyle}>Feed</h2>
-                </button>
-
-                {/* FindAFriend Button */}
-                <button
-                    className={`${buttonCommonStyle} ${ isActive('/findafriend') ? ifActive : ifNonActive }`}
-                >
-                    <img
-                        src={isActive('/findafriend') ? activeListingIcon : nonActiveListingIcon}
-                        alt="profile"
-                        className="w-[13px]"
-                    />
-                    <h2 className={h2CommonStyle}>FindAFriend</h2>
                 </button>
 
                 {/* Explore Button */}
@@ -78,6 +69,7 @@ function NavigationPanel(){
                 {/* Messages Button */}
                 <button
                     className={`${buttonCommonStyle} ${ isActive('/messages') ? ifActive : ifNonActive }`}
+                    onClick={() => handleNavigate("messages")}
                 >
                     <img
                         src={isActive('/messages') ? activeMessageIcon : nonActiveMessageIcon}
@@ -90,7 +82,7 @@ function NavigationPanel(){
                 {/* My Profile Button */}
                 <button
                     className={`${buttonCommonStyle} ${ isActive('/profile') ? ifActive : ifNonActive }`}
-                    onClick={() => handleNavigate("profile")}
+                    onClick={() => handleNavigate(`profile/${profile.user.username}`)}
                 >
                     <img
                         src={isActive('/profile') ? activeProfileIcon : nonActiveProfileIcon}

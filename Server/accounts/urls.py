@@ -2,10 +2,11 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
      RegisterView, LoginView, SendOTPView, ResendOTPView, VerifyOTPView,
-     ResetPasswordView, ChangePasswordView, find_your_account,
-     UserDataStoreView, UserProfileView, DeactivateAccountView,
-     ReactivateAccountView, LogoutView, check_username, GoogleLoginView,
-     verify_phone_number, verify_mobile_otp
+     ResetPasswordView, ChangePasswordView, UserDataStoreView,
+     UserProfileView, DeactivateAccountView, ReactivateAccountView,
+     LogoutView, GoogleLoginView,
+     check_username, verify_phone_number, verify_mobile_otp, find_your_account,
+     suspend_account, reinstate_account,
 )
 
 urlpatterns = [
@@ -42,6 +43,10 @@ urlpatterns = [
           name='deactivateaccount'),
      path('reactivate-account/', ReactivateAccountView.as_view(),
           name='reactivateaccount'),
+     path('suspend-account/<int:user_id>/', suspend_account,
+          name='suspendaccount'),
+     path('reinstate-account/<int:user_id>/', reinstate_account,
+          name='reinstateaccount'),
 
      # -------------------- Google Authentication --------------------
      path('google-login/', GoogleLoginView.as_view(), name='google-login'),

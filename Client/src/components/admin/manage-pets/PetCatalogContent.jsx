@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react"
-import FlexiCard from "../FlexiCard"
+import FlexiCard from "../common/FlexiCard"
 import Button from "../../forms/Button"
 import TextFieldInput from "../../forms/TextInput"
 import ImageUpload from "../../forms/ImageUpload"
@@ -7,7 +7,7 @@ import axiosInstance from "../../../axios/axiosinstance"
 import AlertSnackbar from "../../Snackbar/AlertSnackbar"
 import { useDispatch, useSelector } from "react-redux"
 import { retrieveAvailablePetTypes } from "../../../utils/retrieveAvailablePets"
-import PetList from "../PetList"
+import PetList from "./PetList"
 import { retrieveAvailablePetBreeds } from "../../../utils/retrieveAvailablePetBreeds"
 
 const PetCatalogContent = () => {
@@ -161,7 +161,7 @@ const PetCatalogContent = () => {
             />
             {/* Content Section */}
             <div className="flex justify-between">
-                <div className="flex flex-col justify-between my-4">
+                <div className="flex flex-col justify-between">
                     <h1 className="text-xl lg:text-2xl font-medium text-midnightBlue">Manage Pets</h1>
                     <p className="text-xs mb-2 text-midnightBlue opacity-50">
                         Organize pet types and breeds for accurate listings and easy navigation.

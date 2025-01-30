@@ -1,12 +1,15 @@
 from rest_framework import serializers
-from accounts.serializers import PetSphereUserSerializer
+from accounts.serializers import (
+    AccountDetailSerializer
+)
 from .models import Profile
 from urllib.parse import urljoin
 from django.conf import settings
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    user = PetSphereUserSerializer(read_only=True)
+    user = AccountDetailSerializer(read_only=True)
+
     cover_image = serializers.ImageField(required=False)
 
     class Meta:
@@ -14,7 +17,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user', 'bio', 'cover_image', 'profile_picture',
             'is_private', 'pawstory_count', 'petlisting_count',
-            'push_notification', 'follower_count', 'following_count'
+            'push_notification', 'follower_count', 'following_count',
+            'free_posts', 'IsSubscribed', 'IsSeller'
         ]
         read_only_fields = ['id', 'follower_count', 'following_count']
 

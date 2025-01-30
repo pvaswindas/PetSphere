@@ -21,8 +21,8 @@ import PostDisplay from "./pages/user-ui/profile/PostDisplay";
 
 import AdminLoginPage from "./pages/admin-ui/auth/AdminLoginPage";
 import AdminDashboard from "./pages/admin-ui/dashboard/AdminDashboard";
-import PetCatalogManager from "./pages/admin-ui/PetCatalogManager";
-import AnnouncementsManager from "./pages/admin-ui/AnnouncementsManager";
+import PetCatalogManager from "./pages/admin-ui/pet-management/PetCatalogManager";
+import AnnouncementsManager from "./pages/admin-ui/update-management/AnnouncementsManager";
 import Landing from "./pages/Landing";
 import AddPetListing from "./pages/user-ui/post/AddPetListing";
 import MapExplorer from "./pages/user-ui/MapExplorer";
@@ -34,6 +34,11 @@ import ForgotPassword from "./pages/user-ui/auth/ForgotPassword";
 import FindYourAccount from "./pages/user-ui/auth/FindYourAccount";
 import MobileVerificationPage from "./pages/user-ui/profile/MobileVerificaionPage";
 import MobileNumberPage from "./pages/user-ui/profile/MobileNumberPage";
+import UserManagePage from "./pages/admin-ui/user-management/UserManagePage";
+import UserDetailedViewPage from "./pages/admin-ui/user-management/UserDetailedViewPage";
+import Feed from "./pages/user-ui/feed/Feed";
+import Messaging from "./pages/user-ui/chat/Messaging";
+import Chat from "./pages/user-ui/chat/Chat";
 
 function App() {
   const location = useLocation();
@@ -80,7 +85,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Routes>
-                <Route path="" element={<Profile />} />
+                <Route path=":username" element={<Profile />} />
                 <Route path="edit" element={<EditProfile />} />
                 <Route path="edit/:dynamicString" element={<EditFieldPage />} />
                 <Route path="mobile-number" element={<MobileNumberPage />} />
@@ -88,12 +93,18 @@ function App() {
                 <Route path="edit/username" element={<EditUsernamePage />} />
                 <Route path="add-pet-story" element={<AddPetStory />} />
                 <Route path="add-pet-listing" element={<AddPetListing />} />
-                <Route path="post/:slug" element={<PostDisplay />} />
                 <Route path="mapexplore" element={<MapExplorer />} />
               </Routes>
             </ProtectedRoute>
           } 
         />
+
+        <Route path="post/:slug" element={ <ProtectedRoute><PostDisplay /></ProtectedRoute> } />
+
+        <Route path="/feed" element={ <ProtectedRoute><Feed /></ProtectedRoute>} />
+
+        <Route path="/messages" element={ <ProtectedRoute><Messaging /></ProtectedRoute>} />
+        <Route path="/messages/chat" element={ <ProtectedRoute><Chat /></ProtectedRoute>} />
 
         <Route path="explore" element={ <ProtectedRoute><ExplorePage /></ProtectedRoute> } />
         <Route path="subscriptions" element={ <ProtectedRoute><SubscriptionPage /></ProtectedRoute> } />
@@ -109,8 +120,10 @@ function App() {
               <Routes>
                 <Route path="login" element={<AdminRestrictedRoute><AdminLoginPage /></AdminRestrictedRoute>} />
                 <Route path="" element={<AdminOnlyRoute><AdminDashboard /></AdminOnlyRoute>} />
-                <Route path="manage/pet" element={<AdminOnlyRoute><PetCatalogManager /></AdminOnlyRoute>} />
+                <Route path="manage/pets" element={<AdminOnlyRoute><PetCatalogManager /></AdminOnlyRoute>} />
                 <Route path="manage/updates" element={<AdminOnlyRoute><AnnouncementsManager /></AdminOnlyRoute>} />
+                <Route path="manage/users" element={<AdminOnlyRoute><UserManagePage /></AdminOnlyRoute>} />
+                <Route path="manage/users/view/:userId" element={<AdminOnlyRoute><UserDetailedViewPage /></AdminOnlyRoute>} />
               </Routes>
             </div>
           }

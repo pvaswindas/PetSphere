@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import AdminLayout from "../../components/admin/AdminLayout";
-import AnnouncementContent from "../../components/admin/content/AnnouncementContent";
+import AdminLayout from "../../../components/admin/AdminLayout";
+import AnnouncementContent from "../../../components/admin/manage-updates/AnnouncementContent";
 
 
 const AnnouncementsManager = () => {

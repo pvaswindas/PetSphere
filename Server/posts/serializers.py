@@ -3,6 +3,7 @@ from .models import (
     Post, PostImage, PetListing, PetListingImage, PetListingLocation,
     PetListingImageTemp
 )
+from user_profile.serializers import ProfileSerializer
 from urllib.parse import urljoin
 from django.conf import settings
 
@@ -31,15 +32,29 @@ class PostImageSerializer(serializers.ModelSerializer):
         return representation
 
 
-class PostSerializer(serializers.ModelSerializer):
+class AddPostSerializer(serializers.ModelSerializer):
     images = PostImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
         fields = [
-            'id', 'user', 'content', 'slug', 'created_at', 'updated_at',
-            'like_count', 'comment_count', 'save_count', 'images',
-            'hide_likes', 'hide_comments', 'turn_off_comments'
+            'id', 'user', 'content', 'slug', 'created_at',
+            'updated_at', 'like_count', 'comment_count', 'save_count',
+            'images', 'hide_likes', 'hide_comments', 'turn_off_comments'
+        ]
+        read_only_fields = ['slug']
+
+
+class PostSerializer(serializers.ModelSerializer):
+    user_profile = ProfileSerializer(source="user.profile", read_only=True)
+    images = PostImageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Post
+        fields = [
+            'id', 'user_profile', 'content', 'slug', 'created_at',
+            'updated_at', 'like_count', 'comment_count', 'save_count',
+            'images', 'hide_likes', 'hide_comments', 'turn_off_comments'
         ]
         read_only_fields = ['slug']
 
