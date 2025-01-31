@@ -104,7 +104,7 @@ function App() {
         <Route path="/feed" element={ <ProtectedRoute><Feed /></ProtectedRoute>} />
 
         <Route path="/messages" element={ <ProtectedRoute><Messaging /></ProtectedRoute>} />
-        <Route path="/messages/chat" element={ <ProtectedRoute><Chat /></ProtectedRoute>} />
+        <Route path="/messages/chat/:username" element={ <ProtectedRoute><Chat /></ProtectedRoute>} />
 
         <Route path="explore" element={ <ProtectedRoute><ExplorePage /></ProtectedRoute> } />
         <Route path="subscriptions" element={ <ProtectedRoute><SubscriptionPage /></ProtectedRoute> } />

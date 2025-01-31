@@ -8,3 +8,13 @@ export const getConversation = async () => {
         throw error
     }
 }
+
+
+export const getMessages = async (username) => {
+    try {
+        const response = await axiosInstance.get(`messaging/chat/${username}/`);
+        return response.data;
+    } catch (error) {
+        throw error
+    }
+};

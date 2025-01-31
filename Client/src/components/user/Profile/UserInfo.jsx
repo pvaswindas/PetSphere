@@ -28,8 +28,6 @@ const UserInfo = () => {
         
     };
 
-    console.log(profile)
-
     return (
         <div className="pt-16 px-4 lg:px-8">
             {/* Header Section */}
@@ -61,7 +59,7 @@ const UserInfo = () => {
                                 rounded="rounded"
                                 paddingx="px-3"
                                 paddingy="py-1"
-                                onClick={()=>navigate('/messages/chat')}
+                                onClick={()=>navigate(`/messages/chat/${user.username}`)}
                                 className="text-xs lg:text-sm flex-1"
                                 backgroundColor="bg-lightTextGreyOpacity20"
                                 textColor="text-blackOpacity85"
@@ -103,7 +101,7 @@ const UserInfo = () => {
                             rounded="rounded"
                             paddingx="px-4"
                             paddingy="py-1"
-                            onClick={()=>navigate('/messages/chat')}
+                            onClick={()=>navigate(`/messages/chat/${user.username}`)}
                             className="text-xs lg:text-sm"
                             backgroundColor="bg-lightTextGreyOpacity20"
                             textColor="text-blackOpacity85"

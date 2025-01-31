@@ -93,7 +93,7 @@ function NavigationPanel(){
                 </button>
 
                 {/* Nearby Services Button */}
-                <button
+                {/* <button
                     className={`${buttonCommonStyle} ${ isActive('/nearby-services') ? ifActive : ifNonActive }`}
                 >
                     <img
@@ -102,7 +102,7 @@ function NavigationPanel(){
                         className="w-[13px]"
                     />
                     <h2 className={h2CommonStyle}>Nearby Services</h2>
-                </button>
+                </button> */}
 
                 {/* Settings Button */}
                 <button

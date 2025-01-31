@@ -3,48 +3,6 @@ from .models import Message, Conversation
 from user_profile.serializers import ProfileSerializer
 
 
-class MessageSerializer(serializers.ModelSerializer):
-    sender_username = serializers.CharField(
-        source='sender.username', read_only=True
-    )
-    receiver_username = serializers.CharField(
-        source='receiver.username', read_only=True
-    )
-    sender_profile = ProfileSerializer(
-        source='sender.profile', read_only=True
-    )
-    receiver_profile = ProfileSerializer(
-        source='receiver.profile', read_only=True
-    )
-    latest_message = serializers.CharField(
-        source='content', read_only=True
-    )
-    timestamp = serializers.DateTimeField(
-        format='%b, %d %Y at %I:%M %p', read_only=True
-    )
-    unread_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Message
-        fields = [
-            'id', 'sender', 'receiver', 'content', 'timestamp', 'read',
-            'sender_username', 'receiver_username', 'latest_message',
-            'unread_count', 'sender_profile', 'receiver_profile'
-        ]
-
-    def get_unread_count(self, obj):
-        """
-        Returns the unread count of messages for a specific conversation.
-        This is calculated based on messages sent by the receiver to the
-        current user.
-        """
-        user = self.context.get('user')
-        unread_count = Message.objects.filter(
-            sender=obj.receiver, receiver=user, read=False
-        ).count()
-        return unread_count
-
-
 class ConversationSerializer(serializers.ModelSerializer):
     conversation_id = serializers.IntegerField(source='id', read_only=True)
     other_user = serializers.SerializerMethodField()
@@ -89,3 +47,22 @@ class ConversationSerializer(serializers.ModelSerializer):
             conversation=obj, receiver=user, read=False
         ).count()
         return unread_count
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    sender_username = serializers.CharField(
+        source='sender.username', read_only=True
+    )
+    receiver_username = serializers.CharField(
+        source='receiver.username', read_only=True
+    )
+    conversation_id = serializers.IntegerField(
+        source='conversation.id', read_only=True
+    )
+
+    class Meta:
+        model = Message
+        fields = [
+            'id', 'sender_username', 'receiver_username',
+            'content', 'conversation_id', 'timestamp', 'read',
+        ]
