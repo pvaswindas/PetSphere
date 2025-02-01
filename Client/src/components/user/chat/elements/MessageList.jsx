@@ -17,7 +17,7 @@ const MessageList = ({ messages = [] }) => {
                 }
             }, 200);
         }
-    };    
+    };
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -26,7 +26,6 @@ const MessageList = ({ messages = [] }) => {
     
         return () => clearTimeout(timeout);
     }, [messages]);
-    
 
     useEffect(() => {
         const checkScroll = () => {
@@ -50,14 +49,15 @@ const MessageList = ({ messages = [] }) => {
                 currentRef.removeEventListener("scroll", handleScroll);
             }
         };
-    }, [messages]);   
+    }, [messages]);
 
     return (
         <div
-            className="relative flex-1 overflow-y-auto p-6 space-y-6 h-full lg:max-h-[500px] bg-gradient-to-tl from-teal-50 to-amber-100"
+            className="relative flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-tl from-teal-50 to-amber-100"
             ref={messageListRef}
+            style={{ maxHeight: "calc(100vh - 160px)" }}
         >
-            {messages.length > 0 ? (
+            {Array.isArray(messages) && messages.length > 0 ? (
                 messages.map((message) => <MessageBubble key={message.id} message={message} />)
             ) : (
                 <div className="flex justify-center items-center h-full text-gray-500">
@@ -76,7 +76,7 @@ const MessageList = ({ messages = [] }) => {
                 </div>
             )}
         </div>
-    );    
+    );
 };
 
 export default MessageList;

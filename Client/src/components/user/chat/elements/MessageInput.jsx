@@ -1,9 +1,9 @@
 import React from 'react';
 import { Send } from 'lucide-react';
 
-const MessageInput = ({ message, setMessage, onSend }) => {
+const MessageInput = ({ message = [], setMessage, onSend }) => {
     return (
-        <form onSubmit={onSend} className="p-6 bg-white backdrop-blur-md border-t-2 border-gray-50 rounded-br-lg">
+        <form onSubmit={onSend} className="p-6 bg-white backdrop-blur-md border-t-2 border-gray-50 lg:rounded-br-lg">
             <div className="flex items-center h-[30px] space-x-4">
                 <input
                     type="text"

@@ -26,7 +26,7 @@ const ConversationCard = ({ conversation }) => {
                         <h2 className="font-medium lg:font-semibold text-gray-900 truncate">{
                             conversation?.other_user.user.name ? conversation.other_user.user.name : "Anonymous User"
                         }</h2>
-                        <span className="text-sm text-gray-500">{formatTime(conversation.timestamp)}</span>
+                        <span className="text-xs text-gray-500">{formatTime(conversation.timestamp)}</span>
                     </div>
                     <div className="flex justify-between items-center mt-1">
                         <p className="text-sm text-gray-600 truncate">

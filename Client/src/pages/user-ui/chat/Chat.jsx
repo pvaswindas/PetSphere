@@ -7,8 +7,10 @@ import ActiveChatScreen from '../../../components/user/chat/ui/ActiveChatScreen'
 function Chat() {
     return (
         <div className="bg-white lg:bg-whiteOpacity02 min-h-screen flex flex-col">
-            {/* Navbar */}
-            <Navbar />
+            {/* Navbar (Only visible on lg and above) */}
+            <div className="hidden lg:block">
+                <Navbar />
+            </div>
 
             {/* Main Layout */}
             <div className="flex flex-grow lg:flex-row lg:px-2 lg:py-6">

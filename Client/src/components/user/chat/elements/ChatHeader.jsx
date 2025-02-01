@@ -12,7 +12,7 @@ const ChatHeader = ({ recipient = [] }) => {
                     <div className="relative">
                         <img
                             src={
-                                recipient && recipient.profile_picture ? recipient.profile_picture : userAvatar
+                                recipient && recipient?.profile_picture ? recipient.profile_picture : userAvatar
                             }
                             alt=""
                             className="w-12 h-12 rounded-full object-cover ring-2 ring-teal-400"
