@@ -120,6 +120,9 @@ class PetListingRetrieveSerializer(serializers.ModelSerializer):
     images = PetListingImageSerializer(many=True, read_only=True)
     location = PetListingLocationSerializer()
 
+    pet_type = serializers.SerializerMethodField()
+    breed = serializers.SerializerMethodField()
+
     class Meta:
         model = PetListing
         fields = [
@@ -129,3 +132,9 @@ class PetListingRetrieveSerializer(serializers.ModelSerializer):
             'location'
         ]
         read_only_fields = ['slug']
+
+    def get_pet_type(self, obj):
+        return obj.pet_type.name if obj.pet_type else None
+
+    def get_breed(self, obj):
+        return obj.breed.name if obj.breed else None

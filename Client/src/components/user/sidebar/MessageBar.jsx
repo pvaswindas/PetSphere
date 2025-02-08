@@ -1,9 +1,9 @@
-import { SearchIcon } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { getConversation } from '../../../utils/ChatsUtils';
 import userAvatar from "../../../assets/icon/user-avatar.svg"
 import AlertSnackbar from '../../Snackbar/AlertSnackbar';
 import { useNavigate } from 'react-router-dom';
+import { formatTime } from '../../../utils/formatTime';
 
 function MessageBar() {
     const [searchTerm, setSearchTerm] = useState('');
@@ -32,7 +32,7 @@ function MessageBar() {
     );
 
     return (
-        <div className="w-full h-[610px] bg-white shadow-md rounded-lg py-4 px-6 flex flex-col">
+        <div className="w-80 h-[610px] bg-white shadow-md rounded-lg py-4 px-6 flex flex-col">
             <AlertSnackbar
                 open={snackbarOpen}
                 message={snackbarMessage}
@@ -42,7 +42,6 @@ function MessageBar() {
             <h3 className='text-blackOpacity85 font-medium'>Messages</h3>
             {/* Search bar */}
             <div className={`flex items-center py-1 px-2 bg-[#B9B9B9]/15 rounded-md my-3`}>
-                <SearchIcon size={20} color="rgba(185, 185, 185, 0.9)" />
                 <input
                     id="message-search"
                     name="message-search"
@@ -67,32 +66,32 @@ function MessageBar() {
                     >
                         {/* Profile picture */}
                         <img 
-                            src={
-                                conversation?.other_user.profile_picture ? conversation.other_user.profile_picture : userAvatar
-                            } 
+                            src={conversation?.other_user.profile_picture ? conversation.other_user.profile_picture : userAvatar} 
                             alt={conversation.other_user.user.username} 
-                            className="w-10 h-10 rounded-full mr-3"
+                            className="w-10 h-10 min-w-10 min-h-10 rounded-full object-cover overflow-hidden mr-3"
                         />
                         <div className="flex-grow">
-                            {/* Sender and last message */}
-                            <span className="font-semibold text-blackOpacity85">{
+                            <span className="font-semibold text-blackOpacity85 block">{
                                 conversation?.other_user.user.name ? conversation.other_user.user.name : "Anonymous User"
                             }</span>
-                            <div className="text-sm text-gray-600">
-                                {conversation.latest_message.length > 35 
-                                    ? `${conversation.latest_message.substring(0, 35)}...` 
-                                    : conversation.latest_message}
-                            </div>
+                            {conversation && conversation.last_message && (
+                                <div className="text-sm text-gray-600 flex justify-between whitespace-nowrap w-full">
+                                    <span className="truncate max-w-[150px]">
+                                        {conversation.last_message.length > 35 
+                                            ? `${conversation.last_message.substring(0, 35)}...` 
+                                            : conversation.last_message}
+                                    </span>
+                                    <span className="text-[0.6rem] text-gray-500 ml-2">{formatTime(conversation.last_message_timestamp, true)}</span>
+                                </div>
+                            )}
                         </div>
-                        <div className='flex flex-col items-end'>
+                        <div className='flex items-center'>
                             {/* New message indicator */}
                             {conversation.unread_count > 0 && (
-                                <span className="flex items-center justify-center text-xs text-white bg-teal-500 p-1 w-5 h-5 text-center rounded-full">
+                                <span className="flex items-center justify-center text-xs text-white bg-teal-500 p-1 w-5 h-5 text-center rounded-full ml-2">
                                     {conversation.unread_count > 99 ? '+99' : conversation.unread_count}
                                 </span>
                             )}
-                            {/* Last message received time */}
-                            <span className="text-xs text-gray-500">{conversation.lastMessageTime}</span>
                         </div>
                     </div>
                 ))}

@@ -15,35 +15,14 @@ def get_conversations(request):
     if isinstance(user, Response):
         return user
 
-    # Get all conversations where the user is a participant
     conversations = Conversation.objects.filter(
         users=user
     ).order_by('-timestamp')
 
-    # Prepare the data for serialization
-    conversation_data = []
-    for conversation in conversations:
-        # Get the latest message in the conversation
-        latest_message = conversation.messages.order_by('-timestamp').first()
-        unread_count = Message.objects.filter(
-            conversation=conversation, receiver=user, read=False
-        ).count()
-
-        # Serialize the conversation with context (to access the user)
-        serializer = ConversationSerializer(
-            conversation, context={'user': user}
-        )
-
-        # Add the latest message and unread count to the serialized data
-        data = serializer.data
-        data['latest_message'] = latest_message.content \
-            if latest_message else ''
-        data['timestamp'] = latest_message.timestamp if latest_message else ''
-        data['unread_count'] = unread_count
-
-        conversation_data.append(data)
-
-    return Response(conversation_data)
+    serializer = ConversationSerializer(
+        conversations, many=True, context={'user': request.user}
+    )
+    return Response(serializer.data)
 
 
 @api_view(['GET'])

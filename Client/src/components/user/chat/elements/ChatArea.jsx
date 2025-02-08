@@ -5,6 +5,7 @@ import MessageInput from './MessageInput';
 import { useParams } from 'react-router-dom';
 import { getMessages } from '../../../../utils/ChatsUtils';
 import AlertSnackbar from '../../../Snackbar/AlertSnackbar';
+import { chatWebSocket } from '../../../../utils/wsUtil';
 
 const ChatArea = ({ conversations = [] }) => {
     const { username } = useParams();
@@ -16,32 +17,24 @@ const ChatArea = ({ conversations = [] }) => {
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-
     useEffect(() => {
         const token = localStorage.getItem('ACCESS_TOKEN');
-
         if (!username || !token) return;
 
-        const ws = new WebSocket(`ws://localhost:8000/ws/chat/${username}/?token=${token}`);
-        ws.onopen = () => console.log("WebSocket connection established!");
-        ws.onerror = (err) => console.log("WebSocket error:", err);
-
-        setSocket(ws);
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            const newMessage = data.message;
-            
-            setMessages((prevMessages) => {
-                const messageExists = prevMessages.some(msg => msg.id === newMessage.id);
-                if (!messageExists) {
-                    return [...prevMessages, newMessage];
-                }
-                return prevMessages;
-            });
-        };
-
-        ws.onclose = () => console.log("WebSocket Disconnected");
+        const ws = chatWebSocket(
+            username,
+            token,
+            (data) => {
+                const newMessage = data.message;
+                setMessages((prevMessages) => {
+                    const messageExists = prevMessages.some(msg => msg.id === newMessage.id);
+                    return messageExists ? prevMessages : [...prevMessages, newMessage];
+                });
+            },
+            (ws) => setSocket(ws), // onOpen
+            () => console.log("WebSocket Disconnected"), // onClose
+            (err) => console.error("WebSocket Error:", err) // onError
+        );
 
         return () => {
             if (ws && ws.readyState === WebSocket.OPEN) {
@@ -51,29 +44,20 @@ const ChatArea = ({ conversations = [] }) => {
     }, [username]);
 
     useEffect(() => {
-        setMessages([])
+        setMessages([]);
         const fetchMessages = async () => {
             try {
                 const data = await getMessages(username);
-                console.log('Fetched initial messages:', data);
-                
-                setMessages(prevMessages => {
-                    if (prevMessages.length === 0) {
-                        return data;
-                    }
-                    return prevMessages;
-                });
+                setMessages(prevMessages => (prevMessages.length === 0 ? data : prevMessages));
 
                 if (data.length > 0) {
                     const conversationId = data[0].conversation_id;
                     const conversation = conversations.find(conv => conv.conversation_id === conversationId);
-                    if (conversation) {
-                        setRecipient(conversation.other_user);
-                    }
+                    if (conversation) setRecipient(conversation.other_user);
                 }
             } catch (error) {
-                setSnackbarMessage("Unable to fetch messages!")
-                setSnackbarOpen(true)
+                setSnackbarMessage("Unable to fetch messages!");
+                setSnackbarOpen(true);
             }
         };
 

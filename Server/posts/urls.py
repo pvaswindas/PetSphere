@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
      UserPostListCreateView, UserPostDetailView,
      PetListingDataStoreView, PetListingsView,
-     PostListView, PetListingListView,
+     PostListView, PetListingListView, UserFeedView, PetMarketplaceView,
      save_post, fetch_saved_by
 )
 
@@ -18,6 +18,10 @@ urlpatterns = [
      path('listingdatastore/', PetListingDataStoreView.as_view(),
           name='pet-listing-data-store'),
      path('petlisting/', PetListingsView.as_view(), name='pet-listing'),
+
+     # Feed-related URLs
+     path('user-feed/', UserFeedView.as_view(), name='user-feed'),
+     path('marketplace/', PetMarketplaceView.as_view(), name='marketplace'),
 
      # User-related URLs
      path('', UserPostListCreateView.as_view(), name='user-post-list-create'),

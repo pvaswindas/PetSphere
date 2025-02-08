@@ -4,6 +4,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from .models import Message, Conversation
 import jwt
+from datetime import datetime
 from django.conf import settings
 from .serializers import MessageSerializer
 from accounts.models import PetSphereUser
@@ -22,7 +23,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
             self.conversation = await self.get_or_create_conversation()
 
-            # Join the conversation group
             await self.channel_layer.group_add(
                 self.room_name, self.channel_name
             )
@@ -102,6 +102,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             conversation=conversation,
             content=message
         )
+        conversation.last_message = message
+        conversation.last_message_timestamp = datetime.now()
+        conversation.save()
 
         return MessageSerializer(saved_message).data
 

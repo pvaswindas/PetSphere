@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import SearchBar from "./SearchBar";
 import mainLogo from "../../../assets/logo/main-logo.png";
-import Button from "../../forms/Button";
 import { useLogout } from "../../../hooks/useLogout";
 import notificationIcon from "../../../assets/icon/notification-icon-active.svg";
 import saveIcon from "../../../assets/icon/save-icon.svg";
@@ -38,15 +37,17 @@ const Navbar = () => {
         {/* Middle Section */}
         <div className="hidden lg:flex items-center justify-start gap-16 ml-10 sm:ml-20 md:ml-40 w-3/4">
           <SearchBar />
-          <Button
-            rounded="rounded-md"
-            paddingx="px-10"
-            paddingy="py-1.5"
-            text="Add New Post"
-            backgroundColor="bg-og-gradient"
-            className="whitespace-nowrap"
-            onClick={() => setModalOpen(true)}
-          />
+          <div style={{ maxWidth: "240px" }}
+            className="flex rounded-full bg-og-gradient p-1">
+            <button 
+              className="flex-1 bg-white px-5 py-0.5 rounded-full"
+              onClick={() => setModalOpen(true)}
+            >
+              <h1 className="bg-og-gradient font-medium text-md inline-block text-transparent bg-clip-text">
+                Add New Post
+              </h1>
+            </button>
+          </div>
         </div>
 
         {/* End Section */}

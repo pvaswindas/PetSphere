@@ -3,8 +3,11 @@ from accounts.models import PetSphereUser
 
 
 class Conversation(models.Model):
+    name = models.CharField(max_length=255, null=True, blank=True)
     users = models.ManyToManyField(PetSphereUser, related_name="conversations")
     timestamp = models.DateTimeField(auto_now_add=True)
+    last_message = models.TextField(null=True, blank=True)
+    last_message_timestamp = models.DateTimeField(null=True, blank=True)
 
     def get_messages(self):
         """Returns all messages for this conversation."""
@@ -49,7 +52,8 @@ class Message(models.Model):
             self.receiver_deleted = True
         self.save()
 
-    def delete_for_both(self):
+    def delete_for_both(self, user):
         """Marks the message as fully deleted."""
-        self.fully_deleted = True
-        self.save()
+        if user == self.sender:
+            self.fully_deleted = True
+            self.save()

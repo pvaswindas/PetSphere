@@ -29,7 +29,7 @@ const SearchBar = ({ placeholder = "Search", addedStyles = "w-1/2 mx-12" }) => {
 
 
   return (
-    <div className={`flex items-center py-1 px-3 bg-[#B9B9B9]/15 rounded-full lg:rounded-md ${addedStyles}`}>
+    <div className={`flex items-center py-1.5 px-3 bg-[#B9B9B9]/15 rounded-full ${addedStyles}`}>
       <img
         src={searchIcon}
         alt="Search"

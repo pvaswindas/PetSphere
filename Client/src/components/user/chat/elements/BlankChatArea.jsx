@@ -3,7 +3,7 @@ import { PawPrint } from 'lucide-react';
 
 function BlankChatArea() {
     return (
-        <div className="flex-1 flex flex-col lg:rounded-e-lg h-full bg-gradient-to-tr items-center lg:shadow-md from-teal-50 to-amber-100">
+        <div className="flex-1 flex flex-col lg:rounded-e-lg h-full bg-gradient-to-tr items-center from-teal-50 to-amber-100">
             {/* Main empty state */}
             <div className="flex-1 flex flex-col items-center justify-center p-8">
                 <div className="max-w-md w-full text-center">

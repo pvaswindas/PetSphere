@@ -98,7 +98,6 @@ class UserPostListCreateView(APIView):
             return user
         data = request.data
         data['user'] = user.id
-        print(data)
         images = request.FILES.getlist('images')
         serializer = AddPostSerializer(data=data,
                                        context={'request': request})
@@ -275,7 +274,6 @@ class UserPostDetailView(APIView):
                             status=status.HTTP_404_NOT_FOUND)
 
         data = request.data.copy()
-        print(request.data)
         data.pop('slug', None)
 
         serializer = PostSerializer(
@@ -549,7 +547,6 @@ class PetListingsView(APIView):
 
                         image.delete()
                     except Exception as e:
-                        print(str(e))
                         return Response({"error": str(e)},
                                         status=status.HTTP_400_BAD_REQUEST)
                 profile.petlisting_count += 1
@@ -559,11 +556,9 @@ class PetListingsView(APIView):
                 return Response({"detail": PetListingRetrieveSerializer(
                     pet_listing).data}, status=status.HTTP_201_CREATED)
             else:
-                print(petListingSerializer.errors)
                 return Response({"error": petListingSerializer.errors},
                                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(str(e))
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -582,3 +577,59 @@ class PetListingListView(APIView):
 
         serializer = PetListingRetrieveSerializer(pet_listings, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserFeedView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
+            users_list = list(
+                user.following_relations.values_list(
+                    "following_id", flat=True
+                )
+            )
+            users_list.append(user.id)
+            pawstories = Post.objects.filter(
+                user__in=users_list
+            ).order_by('-created_at')
+            serialized_data = PostSerializer(
+                pawstories, many=True
+            ).data
+            return Response(serialized_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class PetMarketplaceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
+            users_list = list(
+                user.following_relations.values_list(
+                    "following_id", flat=True
+                )
+            )
+            users_list.append(user.id)
+            pet_listings = PetListing.objects.filter(
+                seller__user__in=users_list
+            ).order_by('-created_at')
+            serialized_data = PetListingRetrieveSerializer(
+                pet_listings, many=True
+            ).data
+            return Response(serialized_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

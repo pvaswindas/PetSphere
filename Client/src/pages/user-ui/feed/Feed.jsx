@@ -1,32 +1,82 @@
-import React, { Suspense, useState } from 'react'
+import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import Navbar from '../../../components/user/Navbar/Navbar'
 import AdPreviewBar from '../../../components/user/sidebar/AdPreviewBox'
 import Bottombar from '../../../components/user/bottombar/Bottombar'
 import Sidebar from '../../../components/user/sidebar/Sidebar'
-import HomePreview from '../../../components/user/feed/HomePreview'
 import MessageBar from '../../../components/user/sidebar/MessageBar'
-import FindAFriendPreview from '../../../components/user/feed/FindAFriendPreview'
 import Shimmer from '../../../components/Shimmer/Shimmer'
 import FeedSelection from '../../../components/user/feed/FeedSelection'
+import { getMarketPlace, getUserFeed } from '../../../utils/feedUtils'
+import AlertSnackbar from '../../../components/Snackbar/AlertSnackbar'
 
+
+const HomePreview = lazy(() => import('../../../components/user/feed/HomePreview'));
+const FindAFriendPreview = lazy(() => import('../../../components/user/feed/FindAFriendPreview'));
 
 function Feed() {
-
     const [selectedFeed, setSelectedFeed] = useState("Home")
+    const [isLoading, setIsLoading] = useState(true)
+
+    const [snackbarMessage, setSnackbarMessage] = useState("")
+    const [snackbarOpen, setSnackbarOpen] = useState(false)
+
+    const [pawStories, setPawStories] = useState([])
+    const [petListings, setPetListings] = useState([])
+
+    const renderShimmer = () => {
+        return (
+            <div className="lg:grid lg:grid-cols-2 gap-0.5 lg:gap-3">
+                {[...Array(6)].map((_, index) => (
+                    <div key={index} className="relative w-full lg:rounded-lg aspect-square">
+                        <Shimmer className="w-full h-full lg:rounded-lg" />
+                    </div>
+                ))}
+            </div>
+        )
+    }
 
     const renderSelectedFeed = () => {
-        switch (selectedFeed) {
-            case "Home":
-                return <HomePreview />
-            case "FindAFriend":
-                return <FindAFriendPreview />
-            default:
-                return <HomePreview />
+        if (isLoading) return renderShimmer();
+
+        return (
+            <Suspense fallback={renderShimmer()}>
+                {selectedFeed === "Home" ? (
+                    <HomePreview pawStories={pawStories} />
+                ) : (
+                    <FindAFriendPreview petListings={petListings} />
+                )}
+            </Suspense>
+        );
+    };  
+
+    const fetchFeed = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            if (selectedFeed === "Home") {
+                setPawStories(await getUserFeed());
+            } else {
+                setPetListings(await getMarketPlace());
+            }
+        } catch (error) {
+            setSnackbarMessage("Oops! Something went wrong");
+            setSnackbarOpen(true);
+        } finally {
+            setIsLoading(false);
         }
-    }
+    }, [selectedFeed]);
+
+    useEffect(() => {
+        fetchFeed()
+    }, [fetchFeed])
 
     return (
         <div className="bg-white lg:bg-whiteOpacity02 min-h-screen flex flex-col">
+            <AlertSnackbar
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type="error"
+                onClose={() => setSnackbarOpen(false)}
+            />
             {/* Navbar */}
             <Navbar />
 
@@ -45,23 +95,12 @@ function Feed() {
 
                 {/* Content Section */}
                 <div className="flex-1 w-full lg:w-3/5 lg:mx-3 overflow-y-auto h-[calc(100vh-56px)] lg:rounded-lg pb-12">
-                    <div className='align-top w-full'>
+                    <div className='sticky top-0 z-10'>
                         <FeedSelection selectedFeed={selectedFeed} setSelectedFeed={setSelectedFeed} />
                     </div>
 
                     {/* Feed */}
-                    <Suspense
-                        fallback={
-                            <div className="grid grid-cols-2 gap-0.5 lg:gap-3">
-                                {[...Array(6)].map((_, index) => (
-                                    <div key={index} className="relative w-full aspect-square">
-                                        {/* Shimmer Effect for Image */}
-                                    </div>
-                                ))}
-                            </div>
-                        }>
-                        {renderSelectedFeed()}
-                    </ Suspense>
+                    {renderSelectedFeed()}
                 </div>
 
                 {/* End Sidebar Section */}

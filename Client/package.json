@@ -8,6 +8,7 @@
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^1.0.6",
     "@mapbox/mapbox-sdk": "^0.16.1",
+    "@mui/icons-material": "^6.4.3",
     "@mui/material": "^6.2.0",
     "@react-oauth/google": "^0.12.1",
     "@reduxjs/toolkit": "^2.4.0",

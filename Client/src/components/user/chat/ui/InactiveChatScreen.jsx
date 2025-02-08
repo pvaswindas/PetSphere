@@ -26,7 +26,7 @@ function InactiveChatScreen() {
     }, []);
 
     return (
-        <div className="flex w-full bg-gradient-to-tr from-teal-50 to-amber-100 lg:rounded-lg h-full lg:h-[615px]"> {/* Adjusted layout */}
+        <div className="flex w-full bg-gradient-to-tr from-teal-50 to-amber-100 lg:rounded-lg h-full lg:h-[615px] lg:shadow-md">
             <AlertSnackbar
                 open={snackbarOpen}
                 message={snackbarMessage}

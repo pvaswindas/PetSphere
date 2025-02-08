@@ -26,7 +26,7 @@ function ActiveChatScreen() {
     }, []);
 
     return (
-        <div className="flex w-full bg-gradient-to-tr from-teal-50 to-amber-100 h-full lg:h-[615px] lg:shadow-md lg:rounded-lg">
+        <div className="flex w-full bg-gradient-to-tr from-teal-50 to-amber-100 h-full lg:h-[615px] lg:rounded-lg lg:shadow-md">
             <AlertSnackbar
                 open={snackbarOpen}
                 message={snackbarMessage}

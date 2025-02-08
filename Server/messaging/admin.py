@@ -25,7 +25,8 @@ class MessageAdmin(admin.ModelAdmin):
 
 class ConversationAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'get_participants', 'timestamp'
+        'id', 'get_participants', 'timestamp',
+        'last_message', 'last_message_timestamp'
     )
     list_filter = (
         'timestamp',

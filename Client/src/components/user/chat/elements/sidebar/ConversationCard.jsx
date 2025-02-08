@@ -26,16 +26,18 @@ const ConversationCard = ({ conversation }) => {
                         <h2 className="font-medium lg:font-semibold text-gray-900 truncate">{
                             conversation?.other_user.user.name ? conversation.other_user.user.name : "Anonymous User"
                         }</h2>
-                        <span className="text-xs text-gray-500">{formatTime(conversation.timestamp)}</span>
+                        <span className="text-xs text-gray-500">{formatTime(conversation.last_message_timestamp, true)}</span>
                     </div>
                     <div className="flex justify-between items-center mt-1">
-                        <p className="text-sm text-gray-600 truncate">
-                            {
-                                conversation.latest_message.length > 35 
-                                ? `${conversation.latest_message.substring(0, 35)}...` 
-                                : conversation.latest_message
-                            }
-                        </p>
+                        { conversation && conversation.last_message && (
+                            <p className="text-sm text-gray-600 truncate">
+                                {
+                                    conversation.last_message.length > 35 
+                                    ? `${conversation.last_message.substring(0, 35)}...` 
+                                    : conversation.last_message
+                                }
+                            </p>
+                        )}
                         {conversation.unread_count > 0 && (
                             <span className="ml-2 bg-teal-500 text-white text-xs rounded-full px-2 py-1 min-w-1 text-center">
                                 {conversation.unread_count}
