@@ -72,8 +72,8 @@ function HomePreview({ pawStories = [] }) {
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: "100%", opacity: 0 }}
                         transition={{ duration: 0.5, ease: "easeInOut" }}
-                        className="fixed lg:absolute top-40 lg:top-20 left-1 lg:left-0 right-1 lg:right-0 bg-white shadow-lg z-50
-                                    rounded-t-lg flex flex-col h-[calc(93vh-7rem)] lg:h-[calc(97.1vh-14rem)] mx-auto"
+                        className="fixed lg:absolute top-40 lg:top-10 left-1 lg:left-0 right-1 lg:right-0 bg-white shadow-lg z-50
+                                    rounded-t-lg flex flex-col h-[calc(93vh-7rem)] lg:h-[calc(102.8vh-14rem)] mx-auto"
                     >
                         <CommentArea
                             onClose={handleCommentAreaClose} 

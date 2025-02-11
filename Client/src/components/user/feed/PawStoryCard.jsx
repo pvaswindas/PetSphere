@@ -101,7 +101,6 @@ function PawStoryCard({ story = [], setStory, setStoryId, setShowComment }) {
                             </p>
                         </div>
                     </div>
-                    <MoreVertical size={20} color='white' className='drop-shadow-md' />
                 </div>
             </div>
 
