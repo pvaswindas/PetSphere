@@ -2,8 +2,8 @@ import React from "react"
 import WelcomeCard from "./dashboard/WelcomeCard"
 import AdminSidebar from "./AdminSidebar"
 import AdminNavbar from "./navbar/AdminNavbar"
-import InsightCard from "./InsightCard"
-import CalendarViewCard from "./CalendarViewCard"
+import InsightCard from "./common/InsightCard"
+import CalendarViewCard from "./common/CalendarViewCard"
 
 const AdminLayout = ({ activeIcon, setActiveIcon, children, showWelcomeCard }) => {
     return (
@@ -28,7 +28,9 @@ const AdminLayout = ({ activeIcon, setActiveIcon, children, showWelcomeCard }) =
                 </div>
 
                 {/* Content Section */}
-                <div>{children}</div>
+                <div className="lg:px-4 lg:py-4 flex-grow lg:overflow-y-auto" style={{ maxHeight: 'calc(100vh - 56px)' }}>
+                    {children}
+                </div>
             </div>
 
             {/* Right Section */}

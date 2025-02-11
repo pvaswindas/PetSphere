@@ -54,7 +54,8 @@ const AdminSidebar = ({ activeIcon, setActiveIcon }) => {
                     />
                 </div>
                 <div
-                    className={getIconClasses("users-manage")}
+                    className={getIconClasses("manage-users")}
+                    onClick={() => navigate('/admin/manage/users')}
                 >
                     <img
                         src={userManageIcon}
@@ -74,7 +75,7 @@ const AdminSidebar = ({ activeIcon, setActiveIcon }) => {
                 </div>
                 <div
                     className={getIconClasses("manage-pet-type")}
-                    onClick={() => navigate('/admin/manage/pet')}
+                    onClick={() => navigate('/admin/manage/pets')}
                 >
                     <img
                         src={petsIcon}

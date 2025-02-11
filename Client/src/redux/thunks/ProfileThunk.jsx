@@ -1,32 +1,23 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../../axios/axiosinstance";
-import Swal from "sweetalert2";
-import { setProfile } from "../slices/ProfileSlice";
+import { setProfile, setOtherUsersProfile } from "../slices/ProfileSlice";
 
 export const fetchProfile = createAsyncThunk(
     "profile/fetchProfile",
-    async (_, { dispatch, rejectWithValue }) => {
+    async ({ auth_username, username }, { dispatch, rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get("user/profile/")
+            const response = await axiosInstance.get(`user/profile/?username=${username}`);
+            
             if (response.status === 200) {
-                dispatch(setProfile({ profile_data: response.data }))
-            } else {
-                throw new Error("Failed to fetch profile")
+                if (auth_username === username) {
+                    dispatch(setProfile({ profile_data: response.data }));
+                } else {
+                    dispatch(setOtherUsersProfile({ username, profileData: response.data }));
+                }
             }
-            } catch (error) {
-            Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: "Error Fetching Profile",
-                position: "top",
-                toast: true,
-                timer: 3000,
-                showConfirmButton: false,
-                customClass: {
-                popup: "swal-popup",
-                },
-            })
-            return rejectWithValue("Error Fetching Profile")
+        } catch (error) {
+            console.error("Error fetching profile:", error);
+            return rejectWithValue(error.response?.data || "Error Fetching Profile");
         }
     }
-)
+);

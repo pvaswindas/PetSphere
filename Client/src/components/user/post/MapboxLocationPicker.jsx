@@ -59,7 +59,7 @@ const MapboxLocationPicker = () => {
 
     useEffect(() => {
         if (!petListingKey) {
-            navigate('/add-pet-listing');
+            navigate('/profile/add-pet-listing');
         }
 
         setLoading(true)
@@ -126,7 +126,7 @@ const MapboxLocationPicker = () => {
                     setSnackbarMessage('Pet listing successfully created!');
                     setAlertType('success');
                     setSnackbarOpen(true);
-                    setTimeout(() => navigate('/profile'), 1000);
+                    setTimeout(() => navigate('/feed'), 1000);
                     setTimeout(() => localStorage.removeItem('petListingKey'), 1000);
                 } else {
                     setSnackbarMessage('Failed to create post');

@@ -2,24 +2,31 @@ import redis
 import random
 from datetime import datetime, timedelta
 
-
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0,
                                  decode_responses=True)
-
 
 OTP_PREFIX = "otp_"
 MAX_RESEND_COUNT = 10
 OTP_EXPIRE_SECONDS = 600
 
 
-def generate_otp(email):
+def generate_otp(data):
+    """
+    Generates a one-time password (OTP) and stores it in Redis.
+
+    Parameters:
+        email (str): The email address for which the OTP is generated.
+
+    Returns:
+        tuple: A tuple containing the generated OTP and its expiry time.
+    """
     otp = str(random.randint(100000, 999999))
-    key = f"{OTP_PREFIX}{email}"
+    key = f"{OTP_PREFIX}{data}"
 
     redis_client.hmset(key, {
         "otp": otp,
         "created_at": datetime.now().isoformat(),
-        "resend_count": 0
+        "resend_count": 1
     })
 
     expiry_minutes = 10
@@ -28,6 +35,17 @@ def generate_otp(email):
 
 
 def resend_otp(email):
+    """
+    Resends the previously generated OTP if it exists and is still valid.
+
+    Parameters:
+        email (str): The email address for which the OTP is to be resent.
+
+    Returns:
+        tuple: A tuple containing:
+            - dict: The OTP entry and expiry time in minutes, or None.
+            - str: A message indicating success or failure.
+    """
     key = f"{OTP_PREFIX}{email}"
     otp_data = redis_client.hgetall(key)
     if not otp_data:
@@ -52,6 +70,18 @@ def resend_otp(email):
 
 
 def verify_otp(email, otp):
+    """
+    Verifies the OTP entered by the user.
+
+    Parameters:
+        email (str): The email address for which the OTP was generated.
+        otp (str): The OTP entered by the user.
+
+    Returns:
+        tuple: A tuple containing:
+            - bool: True if the OTP is valid, otherwise False.
+            - str: A message indicating the result of the verification.
+    """
     key = f"{OTP_PREFIX}{email}"
     otp_data = redis_client.hgetall(key)
     if not otp_data:

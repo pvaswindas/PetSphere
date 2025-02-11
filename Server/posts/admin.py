@@ -1,8 +1,8 @@
 from django.contrib import admin
 from .models import (
     Post, PostImage, PetListing, PetListingImage,
-    PetListingLocation, PetListingImageTemp, Like,
-    Comment,
+    PetListingLocation, PetListingImageTemp,
+    SavedPost
 )
 
 
@@ -14,38 +14,15 @@ class PostImageInline(admin.TabularInline):
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = ('user', 'content', 'created_at', 'updated_at',
-                    'likes_count', 'comment_count', 'shares_count')
+                    'like_count', 'comment_count', 'save_count')
     list_filter = ('created_at',)
     search_fields = ('content', 'user__username')
     inlines = [PostImageInline]
 
 
-@admin.register(Like)
-class LikeAdmin(admin.ModelAdmin):
-    list_display = ('user', 'post', 'created_at')
-    list_filter = ('created_at',)
-    search_fields = ('user__username', 'post__content')
-    raw_id_fields = ('user', 'post')
-    list_select_related = ('user', 'post')
-    date_hierarchy = 'created_at'
-    ordering = ('-created_at',)
-
-
-@admin.register(Comment)
-class CommentAdmin(admin.ModelAdmin):
-    list_display = ('user', 'post', 'content', 'created_at', 'updated_at')
-    list_filter = ('created_at',)
-    search_fields = ('user__username', 'post__content')
-    raw_id_fields = ('user', 'post')
-    list_select_related = ('user', 'post')
-    date_hierarchy = 'created_at'
-    ordering = ('-created_at',)
-
-
 @admin.register(PostImage)
 class PostImageAdmin(admin.ModelAdmin):
-    list_display = ('post__content', 'post__user__username', 'image',
-                    'created_at')
+    list_display = ('post', 'image', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('post__content',)
 
@@ -58,6 +35,16 @@ class PetListingImageInline(admin.TabularInline):
 class PetListingLocationInline(admin.StackedInline):
     model = PetListingLocation
     extra = 1
+
+
+@admin.register(SavedPost)
+class SavedPostAdmin(admin.ModelAdmin):
+    list_display = ('user', 'post', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('user__username', 'post__content')
+    autocomplete_fields = ('post',)
+    raw_id_fields = ('post',)
+    list_select_related = ('post',)
 
 
 @admin.register(PetListing)

@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from .models import (
     Post, PostImage, PetListing, PetListingImage, PetListingLocation,
-    PetListingImageTemp, Comment
+    PetListingImageTemp
 )
+from user_profile.serializers import ProfileSerializer
 from urllib.parse import urljoin
 from django.conf import settings
 
@@ -31,34 +32,39 @@ class PostImageSerializer(serializers.ModelSerializer):
         return representation
 
 
-class PostSerializer(serializers.ModelSerializer):
+class AddPostSerializer(serializers.ModelSerializer):
     images = PostImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
-        fields = ['id', 'user', 'content', 'slug', 'created_at', 'updated_at',
-                  'likes_count', 'comment_count', 'shares_count', 'images']
+        fields = [
+            'id', 'user', 'content', 'slug', 'created_at',
+            'updated_at', 'like_count', 'comment_count', 'save_count',
+            'images', 'hide_likes', 'hide_comments', 'turn_off_comments'
+        ]
         read_only_fields = ['slug']
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    replies = serializers.SerializerMethodField()
-    username = serializers.SerializerMethodField()
+class PostSerializer(serializers.ModelSerializer):
+    user_profile = serializers.SerializerMethodField()
+    images = PostImageSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Comment
+        model = Post
         fields = [
-            'id', 'user', 'username', 'post', 'content', 'parent', 'replies',
-            'created_at', 'updated_at'
+            'id', 'user_profile', 'content', 'slug', 'created_at',
+            'updated_at', 'like_count', 'comment_count', 'save_count',
+            'images', 'hide_likes', 'hide_comments', 'turn_off_comments'
         ]
+        read_only_fields = ['slug']
 
-    def get_replies(self, obj):
-        if obj.replies.exists():
-            return CommentSerializer(obj.replies.all(), many=True).data
-        return []
-
-    def get_username(self, obj):
-        return obj.user.username
+    def get_user_profile(self, obj):
+        """Pass optional_fields context to ProfileSerializer"""
+        optional_fields = self.context.get('optional_fields', None)
+        return ProfileSerializer(
+            obj.user.profile,
+            context={'optional_fields': optional_fields}
+        ).data
 
 
 class PetListingImageSerializer(serializers.ModelSerializer):
@@ -120,7 +126,10 @@ class PetListingCreateSerializer(serializers.ModelSerializer):
 
 class PetListingRetrieveSerializer(serializers.ModelSerializer):
     images = PetListingImageSerializer(many=True, read_only=True)
-    location = PetListingLocation()
+    location = PetListingLocationSerializer()
+
+    pet_type = serializers.SerializerMethodField()
+    breed = serializers.SerializerMethodField()
 
     class Meta:
         model = PetListing
@@ -131,3 +140,9 @@ class PetListingRetrieveSerializer(serializers.ModelSerializer):
             'location'
         ]
         read_only_fields = ['slug']
+
+    def get_pet_type(self, obj):
+        return obj.pet_type.name if obj.pet_type else None
+
+    def get_breed(self, obj):
+        return obj.breed.name if obj.breed else None

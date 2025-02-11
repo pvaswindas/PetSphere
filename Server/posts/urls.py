@@ -2,22 +2,29 @@ from django.urls import path
 from .views import (
      UserPostListCreateView, UserPostDetailView,
      PetListingDataStoreView, PetListingsView,
-     CreateCommentView, ListCommentsForPostView,
-     like_post, fetch_liked_users
+     PostListView, PetListingListView, UserFeedView, PetMarketplaceView,
+     save_post, fetch_saved_by
 )
 
 urlpatterns = [
-     path('', UserPostListCreateView.as_view(), name='user-post-list-create'),
+     # Post-related URLs
+     path('posts-list/', PostListView.as_view(), name='post-list'),
+     path('savepost/<int:post_id>/', save_post, name='save-post'),
+     path('saved-users/<int:post_id>/', fetch_saved_by, name='saved-users'),
+
+     # Pet Listings URLs
+     path('petlistings-list/', PetListingListView.as_view(),
+          name='petlistings-list'),
      path('listingdatastore/', PetListingDataStoreView.as_view(),
           name='pet-listing-data-store'),
      path('petlisting/', PetListingsView.as_view(), name='pet-listing'),
-     path('likepost/', like_post, name='like-post'),
-     path('likedusers/<int:post_id>/', fetch_liked_users,
-          name='fetch_liked_users'),
-     path('comments/create/', CreateCommentView.as_view(),
-          name='create-comment'),
-     path('comments/post/<int:post_id>/', ListCommentsForPostView.as_view(),
-          name='list-comments'),
+
+     # Feed-related URLs
+     path('user-feed/', UserFeedView.as_view(), name='user-feed'),
+     path('marketplace/', PetMarketplaceView.as_view(), name='marketplace'),
+
+     # User-related URLs
+     path('', UserPostListCreateView.as_view(), name='user-post-list-create'),
      path('<str:slug>/', UserPostDetailView.as_view(),
           name='user-post-detail'),
 ]

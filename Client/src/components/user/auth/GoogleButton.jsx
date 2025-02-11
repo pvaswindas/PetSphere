@@ -26,7 +26,7 @@ function GoogleButton() {
             dispatch(setProfile({ profile_data: profile }));
             dispatch(setEmail(email))
     
-            navigate('/profile/');
+            navigate('/feed');
         } catch (error) {
             setSnackbarMessage("Login Failed, Please try again")
             setSnackbarOpen(true)

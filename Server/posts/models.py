@@ -12,38 +12,38 @@ class Post(models.Model):
     slug = models.SlugField(unique=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    likes_count = models.PositiveBigIntegerField(default=0)
+    like_count = models.PositiveBigIntegerField(default=0)
     comment_count = models.PositiveBigIntegerField(default=0)
-    shares_count = models.PositiveBigIntegerField(default=0)
+    save_count = models.PositiveBigIntegerField(default=0)
+    hide_likes = models.BooleanField(default=False)
+    hide_comments = models.BooleanField(default=False)
+    turn_off_comments = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            original = Post.objects.get(pk=self.pk)
+            if original.content != self.content:
+                self.updated_at = self.created_at
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.content[:50]
-
-
-class Like(models.Model):
-    user = models.ForeignKey(PetSphereUser, on_delete=models.CASCADE,
-                             related_name='likes')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE,
-                             related_name='likes')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
-class Comment(models.Model):
-    user = models.ForeignKey(PetSphereUser, on_delete=models.CASCADE,
-                             related_name='comments')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE,
-                             related_name='comments')
-    content = models.TextField()
-    parent = models.ForeignKey('self', on_delete=models.CASCADE,
-                               null=True, blank=True, related_name='replies')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
 
 class PostImage(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE,
                              related_name='images')
     image = models.ImageField(upload_to='post_images/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class SavedPost(models.Model):
+    user = models.ForeignKey(
+        PetSphereUser, on_delete=models.CASCADE, related_name='saved_post'
+    )
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, related_name='saved_by'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
 

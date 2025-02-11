@@ -63,7 +63,7 @@ const ImageUpload = ({ onChange, image, reset }) => {
                 className="border-2 border-dashed border-gray-300 rounded-lg px-4 lg:py-4 flex flex-col items-center 
                             justify-center cursor-pointer bg-softSkyBlue hover:bg-blue-50 focus:outline-none"
             >
-                <input {...getInputProps()} id="pet-image" /> {/* Add id here */}
+                <input {...getInputProps()} id="pet-image" name="pet-image" /> {/* Add id here */}
                 {!uploadedFile ? (
                     <p className="text-darkDenimBlue text-opacity-40 text-sm my-6">
                         Drag & drop an image here, or{" "}

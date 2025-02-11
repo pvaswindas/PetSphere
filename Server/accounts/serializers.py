@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import PetSphereUser
+from .models import PetSphereUser, AccountSettings
 from .validators import validate_password
 
 
@@ -11,8 +11,32 @@ class PetSphereUserSerializer(serializers.ModelSerializer):
             'id', 'username', 'email', 'name', 'mobile_no',
             'updated_at', 'is_pending', 'is_suspended',
             'is_superuser', 'is_staff', 'is_active',
+            'date_joined', 'last_login'
         ]
-        read_only_fields = ['id', 'updated_at']
+        read_only_fields = ['id', 'updated_at', 'last_login']
+
+
+class AccountSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AccountSettings
+        fields = '__all__'
+
+
+class AccountDetailSerializer(serializers.ModelSerializer):
+    settings = AccountSettingsSerializer(
+        source='account_settings',
+        allow_null=True
+    )
+
+    class Meta:
+        model = PetSphereUser
+        fields = [
+            'id', 'username', 'email', 'name', 'mobile_no',
+            'updated_at', 'is_pending', 'is_suspended',
+            'is_superuser', 'is_staff', 'is_active',
+            'date_joined', 'settings', 'last_login'
+        ]
+        read_only_fields = ['id', 'updated_at', 'last_login']
 
 
 class UserDataStoreSerializer(serializers.ModelSerializer):

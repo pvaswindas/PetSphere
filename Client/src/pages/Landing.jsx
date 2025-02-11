@@ -10,7 +10,7 @@ import Features from '../components/landing/features/Features';
 
 function Landing() {
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white overflow-y-auto">
             <Navbar />
             <main>
                 <Hero />
@@ -22,7 +22,7 @@ function Landing() {
             </main>
             <Footer />
         </div>
-    )
+    );
 }
 
-export default Landing
+export default Landing;

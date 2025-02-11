@@ -5,41 +5,18 @@ import { clearCurrentPawstory, setCurrentPawstory, setPosts } from "../slices/Po
 
 export const fetchPawstories = createAsyncThunk(
     "posts/fetchPawstories",
-    async (_, { dispatch, rejectWithValue }) => {
+    async (username, { dispatch, rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get("posts/")
+            const params = username ? {username} : {}
+            const response = await axiosInstance.get("posts/", {params})
             if (response.status === 204) {
                 dispatch(setPosts({ pawstories: [] }))
             } else if (response.status === 200) {
                 dispatch(setPosts({ pawstories: response.data }))
             } else {
-                Swal.fire({
-                    icon: "error",
-                    title: "Oops...",
-                    text: "No PawStories found. Create one now!",
-                    position: "top",
-                    toast: true,
-                    timer: 3000,
-                    showConfirmButton: false,
-                    customClass: {
-                        popup: "swal-popup",
-                    },
-                })
                 return rejectWithValue("No PawStories found. Create one now!")
             }
         } catch (error) {
-            Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: "Unable to load PawStories. Please try later.",
-                position: "top",
-                toast: true,
-                timer: 3000,
-                showConfirmButton: false,
-                customClass: {
-                    popup: "swal-popup",
-                },
-            });
             return rejectWithValue("Unable to load PawStories. Please try later.")
         }
     }
@@ -86,12 +63,25 @@ export const fetchPawstory = createAsyncThunk(
     }
 )
 
+export const ClearCurrentPawStoryThunk = createAsyncThunk(
+    "post/ClearCurrentPawStory",
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            dispatch(clearCurrentPawstory)
+        } catch (error) {
+            return rejectWithValue(error)
+        }
+    }
+)
+
 
 export const updatePawstory = createAsyncThunk(
     "post/updatePawstory",
-    async ({ slug, content }, { dispatch, rejectWithValue }) => {
+    async ({ slug, data }, { dispatch, rejectWithValue }) => {
+        console.log(data);
+        
         try {
-            const response = await axiosInstance.patch(`posts/${slug}/`, { content })
+            const response = await axiosInstance.patch(`posts/${slug}/`, data)
             if (response.status === 200) {
                 dispatch(setCurrentPawstory({ currentPawstory: response.data }))
             } else {

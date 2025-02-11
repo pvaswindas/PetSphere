@@ -1,7 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.text import slugify
-from .models import Post
+from .models import Post, PetListing
+from user_profile.models import Profile
 
 
 @receiver(post_save, sender=Post)
@@ -33,3 +34,18 @@ def generate_slug(sender, instance, created, **kwargs):
 
         instance.slug = slug
         instance.save(update_fields=['slug'])
+
+
+@receiver(post_save, sender=PetListing)
+def set_is_seller_on_first_listing(sender, instance, created, **kwargs):
+    if created:
+        print("Signal triggered")
+        user = instance.seller.user
+        profile = Profile.objects.get(user=user)
+        profile.refresh_from_db()
+        print(profile.IsSeller)
+        if not profile.IsSeller:
+            print("ENTERED")
+            profile.IsSeller = True
+            profile.save()
+        print(profile.IsSeller)

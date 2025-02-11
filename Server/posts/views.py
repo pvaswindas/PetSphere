@@ -3,6 +3,7 @@ import redis
 import json
 from environs import Env
 from datetime import datetime
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
 
@@ -10,44 +11,38 @@ from django.core.files.base import ContentFile
 from rest_framework import status
 from cryptography.fernet import Fernet
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
 # Internal modules
 from .models import (
     Post, PetListing, PetListingImageTemp, PetListingImage,
-    Like, Comment
+    SavedPost,
 )
+from accounts.models import PetSphereUser
+from socials.models import Like
 from pets.models import Pet, PetBreed
 from sellers.models import Seller
 from .serializers import (
     PostSerializer, PostImageSerializer, PetListingCreateSerializer,
-    PetListingRetrieveSerializer, CommentSerializer,
+    PetListingRetrieveSerializer, AddPostSerializer,
     PetListingImageTempSerializer, PetListingLocationSerializer
 )
 from petsphere.utils.common_utils import (
-    validate_authenticated_user, validate_request_data
+    validate_authenticated_user, validate_request_data,
 )
 
 
-# Initialize environ
 env = Env()
 
-# Read .env file
 env.read_env()
 
-# Load the ENCRYPTION_KEY
 encryption_key = env.str("ENCRYPTION_KEY")
 
-# Create a Fernet cipher suite instance
 cipher_suite = Fernet(encryption_key)
 
-# Initialize a Redis client to connect to a local Redis server running
-# on port 6379. The client will use database 0 and decode responses
-# automatically
 redis_client = redis.StrictRedis(
     host='localhost', port=6379, db=0, decode_responses=True
 )
@@ -72,12 +67,20 @@ class UserPostListCreateView(APIView):
 
         Parameters:
             - request: The HTTP request object containing user information.
+            - username (optional): fetches posts for the specified user.
 
         Returns:
             - Response: A list of posts if they exist.
             - Response: A 204 status if no posts are found.
         """
-        user = request.user
+        username = request.query_params.get("username")
+
+        if username:
+            user = get_object_or_404(PetSphereUser, username=username)
+        else:
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
         posts = Post.objects.filter(user=user)
         if not posts:
             return Response({"detail": "No posts found"},
@@ -107,8 +110,9 @@ class UserPostListCreateView(APIView):
         data = request.data
         data['user'] = user.id
         images = request.FILES.getlist('images')
-        serializer = PostSerializer(data=data,
-                                    context={'request': request})
+        serializer = AddPostSerializer(data=data,
+                                       context={'request': request})
+        profile = user.profile
         if serializer.is_valid():
             post = serializer.save()
             if images:
@@ -123,8 +127,94 @@ class UserPostListCreateView(APIView):
                 else:
                     return Response(image_serializer.errors,
                                     status=status.HTTP_400_BAD_REQUEST)
+            profile.pawstory_count += 1
+            profile.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PostListView(APIView):
+    def get(self, request):
+        search_query = request.query_params.get('search', None)
+
+        if search_query:
+            posts = Post.objects.filter(
+                Q(content__icontains=search_query) | Q(
+                    slug__icontains=search_query)
+            )
+        else:
+            posts = Post.objects.all()
+
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def save_post(request, post_id):
+    try:
+        user = validate_authenticated_user(request)
+        if isinstance(user, Response):
+            return user
+
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        is_saved = SavedPost.objects.filter(user=user, post=post).first()
+
+        if is_saved:
+            is_saved.delete()
+            return Response(
+                {"message": "Post unsaved successfully"},
+                status=status.HTTP_200_OK
+            )
+
+        SavedPost.objects.create(
+            user=user,
+            post=post
+        )
+        return Response(
+            {"message": "Post saved successfully"},
+            status=status.HTTP_201_CREATED
+        )
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def fetch_saved_by(request, post_id):
+    try:
+        user = validate_authenticated_user(request)
+        if isinstance(user, Response):
+            return user
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        saved_users = SavedPost.objects.filter(
+            post=post).select_related('user') \
+            .order_by('-created_at').values_list('user__username', flat=True)
+
+        is_saved_by_user = user.username in saved_users
+        return Response(
+            {
+                'saved_users': list(saved_users),
+                'is_saved_by_user': is_saved_by_user
+            },
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response({"error": str(e)},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserPostDetailView(APIView):
@@ -236,119 +326,6 @@ class UserPostDetailView(APIView):
         post.delete()
         return Response({'detail': 'Post Deleted Successfully'},
                         status=status.HTTP_204_NO_CONTENT)
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def like_post(request):
-    try:
-        user = validate_authenticated_user(request)
-        if isinstance(user, Response):
-            return user
-
-        required_fields = ['post_id']
-        data = validate_request_data(request, required_fields)
-        if isinstance(data, Response):
-            return data
-        post_id = data['post_id']
-        try:
-            post = Post.objects.get(id=post_id)
-        except Post.DoesNotExist:
-            return Response({"error": "Post not found"},
-                            status=status.HTTP_404_NOT_FOUND)
-
-        like = Like.objects.filter(user=user, post=post)
-        if like.exists():
-            like.delete()
-            post.likes_count = max(0, post.likes_count - 1)
-            post.save()
-            return Response({'detail': 'Post Unliked Successfully'},
-                            status=status.HTTP_200_OK)
-        else:
-            Like.objects.create(user=user, post=post)
-            post.likes_count += 1
-            post.save()
-            return Response({'detail': 'Post Liked Successfully'},
-                            status=status.HTTP_201_CREATED)
-
-    except Exception as e:
-        print(str(e))
-        return Response({"error": str(e)},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(['get'])
-@permission_classes([IsAuthenticated])
-def fetch_liked_users(request, post_id):
-    try:
-        user = validate_authenticated_user(request)
-        if isinstance(user, Response):
-            return user
-        try:
-            post = Post.objects.get(id=post_id)
-        except Post.DoesNotExist:
-            return Response({"error": "Post not found"},
-                            status=status.HTTP_404_NOT_FOUND)
-
-        liked_users = Like.objects.filter(post=post).select_related(
-            'user').values_list('user__username', flat=True)
-        is_liked_by_user = user.username in liked_users
-        return Response(
-            {'liked_users': list(liked_users),
-             'is_liked_by_user': is_liked_by_user},
-            status=status.HTTP_200_OK
-        )
-    except Exception as e:
-        return Response({"error": str(e)},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class CreateCommentView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        try:
-            user = validate_authenticated_user(request)
-            if isinstance(user, Response):
-                return user
-            required_fields = ['content', 'post', 'parent']
-            data = validate_request_data(request, required_fields)
-            data['user'] = user.id
-            if isinstance(user, Response):
-                return data
-            post_id = data['post']
-            try:
-                post = Post.objects.get(id=post_id)
-            except Post.DoesNotExist:
-                return Response({"error": "Post not found"},
-                                status=status.HTTP_400_BAD_REQUEST)
-            serializer = CommentSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
-                post.comment_count += 1
-                post.save()
-                return Response({"success": serializer.data},
-                                status=status.HTTP_201_CREATED)
-            else:
-                print(f"SERIALIZER ERROR : {serializer.errors}")
-                return Response({"error": serializer.errors},
-                                status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            print(str)
-            return Response({"error": str(e)},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class ListCommentsForPostView(ListAPIView):
-    serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        post_id = self.kwargs['post_id']
-        get_object_or_404(Post, id=post_id)
-        return Comment.objects.filter(
-            post__id=post_id, parent=None
-        ).order_by('-created_at')
 
 
 class PetListingDataStoreView(APIView):
@@ -506,7 +483,12 @@ class PetListingsView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
-        user = validate_authenticated_user(request)
+        username = request.query_params.get("username")
+
+        if username:
+            user = get_object_or_404(PetSphereUser, username=username)
+        else:
+            user = validate_authenticated_user(request)
         if isinstance(user, Response):
             return user
         pet_listings = PetListing.objects.filter(seller__user=user)
@@ -521,6 +503,7 @@ class PetListingsView(APIView):
             user = validate_authenticated_user(request)
             if isinstance(user, Response):
                 return user
+            profile = user.profile
             required_fields = [
                 'post_type', 'pet_name', 'pet_type', 'breed',
                 'description', 'gender', 'age', 'price',
@@ -555,7 +538,6 @@ class PetListingsView(APIView):
             }
             data['pet_type'] = Pet.objects.get(name=data['pet_type']).id
             data['breed'] = PetBreed.objects.get(name=data['breed']).id
-            print(f"DATA : {data}")
             petListingSerializer = PetListingCreateSerializer(data=data)
             if petListingSerializer.is_valid():
                 pet_listing = petListingSerializer.save()
@@ -581,17 +563,98 @@ class PetListingsView(APIView):
 
                         image.delete()
                     except Exception as e:
-                        print(str(e))
                         return Response({"error": str(e)},
                                         status=status.HTTP_400_BAD_REQUEST)
-
+                profile.petlisting_count += 1
+                if not profile.IsSeller:
+                    profile.IsSeller = True
+                profile.save()
                 return Response({"detail": PetListingRetrieveSerializer(
                     pet_listing).data}, status=status.HTTP_201_CREATED)
             else:
-                print(petListingSerializer.errors)
                 return Response({"error": petListingSerializer.errors},
                                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(str(e))
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PetListingListView(APIView):
+    def get(self, request):
+        search_query = request.query_params.get('search', None)
+
+        if search_query:
+            pet_listings = PetListing.objects.filter(
+                Q(description__icontains=search_query) | Q(
+                    slug__icontains=search_query)
+            )
+        else:
+            pet_listings = PetListing.objects.all()
+
+        serializer = PetListingRetrieveSerializer(pet_listings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserFeedView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
+            users_list = list(
+                user.following_relations.values_list(
+                    "following_id", flat=True
+                )
+            )
+            users_list.append(user.id)
+
+            optional_fields = request.query_params.getlist("fields")
+            optional_fields = optional_fields if optional_fields else None
+
+            pawstories = Post.objects.filter(
+                user__in=users_list
+            ).order_by('-created_at')
+
+            serialized_data = PostSerializer(
+                pawstories, many=True,
+                context={'optional_fields': optional_fields}
+            ).data
+
+            liked_post_ids = set(
+                Like.objects.filter(user=user, post__in=pawstories)
+                .values_list('post_id', flat=True)
+            )
+
+            for post in serialized_data:
+                post['liked'] = post['id'] in liked_post_ids
+
+            return Response(serialized_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class PetMarketplaceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
+            pet_listings = PetListing.objects.filter(
+                is_available=True
+            ).order_by('-created_at')
+            serialized_data = PetListingRetrieveSerializer(
+                pet_listings, many=True
+            ).data
+            return Response(serialized_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

@@ -2,9 +2,11 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
      RegisterView, LoginView, SendOTPView, ResendOTPView, VerifyOTPView,
-     ForgotPassword, ResetPassword, ChangePasswordView, UserDataStoreView,
-     UserProfileViews, DeactivateAccountView, ReactivateAccountView,
-     LogoutView, check_username, GoogleLoginView
+     ResetPasswordView, ChangePasswordView, UserDataStoreView,
+     UserProfileView, DeactivateAccountView, ReactivateAccountView,
+     LogoutView, GoogleLoginView,
+     check_username, verify_phone_number, verify_mobile_otp, find_your_account,
+     suspend_account, reinstate_account,
 )
 
 urlpatterns = [
@@ -25,11 +27,14 @@ urlpatterns = [
      # ----------------------- User Profile & Settings -----------------------
      path('user-data-store/', UserDataStoreView.as_view(),
           name='userdatastore'),
-     path('user-profile/', UserProfileViews.as_view(), name='userprofile'),
+     path('user-profile/', UserProfileView.as_view(), name='userprofile'),
+     path('verify-phone-number/', verify_phone_number, name='verify-phone-no'),
+     path('verify-mobile-otp/', verify_mobile_otp, name='verify-mobile-otp'),
 
      # ------------------------- Password Management -------------------------
-     path('forgot-password/', ForgotPassword.as_view(), name='forgotpassword'),
-     path('reset-password/', ResetPassword.as_view(), name='resetpassword'),
+     path('find-account/', find_your_account, name='find-account'),
+     path('reset-password/', ResetPasswordView.as_view(),
+          name='resetpassword'),
      path('change-password/', ChangePasswordView.as_view(),
           name='changepassword'),
 
@@ -38,6 +43,10 @@ urlpatterns = [
           name='deactivateaccount'),
      path('reactivate-account/', ReactivateAccountView.as_view(),
           name='reactivateaccount'),
+     path('suspend-account/<int:user_id>/', suspend_account,
+          name='suspendaccount'),
+     path('reinstate-account/<int:user_id>/', reinstate_account,
+          name='reinstateaccount'),
 
      # -------------------- Google Authentication --------------------
      path('google-login/', GoogleLoginView.as_view(), name='google-login'),

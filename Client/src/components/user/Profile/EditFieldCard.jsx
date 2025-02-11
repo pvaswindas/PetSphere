@@ -3,11 +3,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axiosInstance from "../../../axios/axiosinstance";
 import { useDispatch } from "react-redux";
 import { setProfile } from "../../../redux/slices/ProfileSlice";
+import AlertSnackbar from "../../Snackbar/AlertSnackbar";
 
 const EditFieldCard = () => {
     const location = useLocation()
     const navigate = useNavigate()
     const dispatch = useDispatch()
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
 
     const { field, data } = location.state || {}
 
@@ -24,30 +27,38 @@ const EditFieldCard = () => {
     
         try {
             let response;
-            if (["name", "mobile_no"].includes(field)) {
+            if (["name"].includes(field)) {
                 response = await axiosInstance.patch('accounts/user-profile/', formData);
             } else {
                 response = await axiosInstance.patch('user/profile/', formData);
             }
-    
             if (response.status === 200) {
                 dispatch(setProfile({ profile_data: response.data }));
                 navigate(-1);
             }
         } catch (error) {
-            console.error("Error updating profile:", error.response || error);
+            setSnackbarMessage("Unable to edit field")
+            setSnackbarOpen(true)
         }
     };
 
     return (
         <div className="flex flex-col items-center justify-start w-full min-h-screen">
-            <div className="w-full bg-white p-6 lg:rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300">
+            <AlertSnackbar
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type="error"
+                onClose={() => setSnackbarOpen(false)}
+            />
+            <div className="w-full bg-white p-6 lg:rounded-2xl lg:shadow-sm lg:hover:shadow-lg transition-all duration-300">
                 <h1 className="text-lg lg:text-2xl font-semibold text-gray-800 mt-4 mb-8 text-start">Edit {label}</h1>
 
                 {/* Input Field */}
                 <div className="mb-6">
                     <label className="block text-gray-700 font-medium mb-2">{label}</label>
                     <input
+                        id="post-field"
+                        name="field"
                         type="text"
                         value={value}
                         onChange={(e) => setValue(e.target.value)}

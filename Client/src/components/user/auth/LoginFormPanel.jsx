@@ -55,7 +55,7 @@ function LoginFormPanel() {
                     dispatch(setProfile({ profile_data: profile }));
                     dispatch(setEmail({ email: profile.user.email }));
 
-                    navigate('/profile');
+                    navigate('/feed');
                 }
             } else {
                 setSnackbarMessage("Invalid Credentials")
@@ -103,7 +103,7 @@ function LoginFormPanel() {
                 />
 
                 <div className="flex justify-end">
-                    <a href="/forgot-password" className="text-lightGreen hover:text-labelGreen text-sm">
+                    <a href="/find-your-account" className="text-lightGreen hover:text-labelGreen text-sm">
                         Forgot Password?
                     </a>
                 </div>

@@ -24,12 +24,17 @@ const EditProfileCard = () => {
     };
 
     const handleEditClick = (field) => {
-        navigate(`/edit`, { state: { field, data: formData[field] } });
+        if (field === "mobile_no") {
+            navigate('/profile/mobile-number')
+        } else {
+            navigate(`/profile/edit/${field}`, { state: { field, data: formData[field] } });
+        }
     };
 
     const handleEditUsername = (field) => {
-        navigate(`/edit-username`, { state: { data: formData[field] } });
+        navigate(`/profile/edit/username`, { state: { data: formData[field] } });
     };
+
 
     const handleFileUpload = async (event) => {
         const file = event.target.files[0];
@@ -95,7 +100,7 @@ const EditProfileCard = () => {
 
     return (
         <div className="flex flex-col items-center justify-start w-full min-h-screen">
-            <div className="w-full bg-white p-6 lg:rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="w-full bg-white p-6 lg:rounded-2xl lg:shadow-sm lg:hover:shadow-lg transition-all duration-300">
                 <h1 className="text-lg lg:text-2xl font-semibold text-gray-800 mt-4 mb-8 text-start">
                     Edit Profile
                 </h1>
@@ -125,6 +130,8 @@ const EditProfileCard = () => {
                     <h5 className="mt-2 text-sm text-gray-600">Tap to Edit or Delete Profile Picture</h5>
                 </div>
                 <input
+                    id="profile-image"
+                    name="profimage"
                     type="file"
                     ref={fileInputRef}
                     style={{ display: "none" }}
@@ -143,7 +150,7 @@ const EditProfileCard = () => {
                             className="text-sm text-gray-800 cursor-pointer flex-1 hover:text-blue-600"
                             onClick={() => handleEditUsername("username")}
                         >
-                            {formData.username || "No username set"}
+                            {formData.username || "username is not set"}
                         </p>
                         <FiEdit
                             className="text-gray-500 w-5 h-5 cursor-pointer hover:text-blue-500"
@@ -164,7 +171,7 @@ const EditProfileCard = () => {
                                 className="text-sm text-gray-800 cursor-pointer flex-1 hover:text-blue-600"
                                 onClick={() => handleEditClick(field)}
                             >
-                                {formData[field] || `No ${field.replace("_", " ")} set`}
+                                {formData[field] || `${field.replace("_", " ")} is not set`}
                             </p>
                             <FiEdit
                                 className="text-gray-500 w-5 h-5 cursor-pointer hover:text-blue-500"

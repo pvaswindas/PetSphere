@@ -77,7 +77,7 @@ function CreateUsernameForm() {
 
                 localStorage.setItem('ACCESS_TOKEN', access)
                 localStorage.setItem('REFRESH_TOKEN', refresh)
-                navigate('/profile')
+                navigate('/feed')
                 
             } else {
                 setError("Registration failed. Please try again.")

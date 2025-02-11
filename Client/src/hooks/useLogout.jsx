@@ -1,9 +1,8 @@
-import { useDispatch, useSelector } from "react-redux"
+import { useSelector } from "react-redux"
 import axiosInstance from "../axios/axiosinstance"
-import { clearProfile } from "../redux/slices/ProfileSlice"
+import { clearStore } from "../redux/store"
 
 export const useLogout = () => {
-    const dispatch = useDispatch()
     const email = useSelector((state) => state.profile.email)
     const refresh_token = localStorage.getItem("REFRESH_TOKEN")
 
@@ -15,15 +14,16 @@ export const useLogout = () => {
             if (!email) {
                 throw new Error("Email is missing")
             }
-
             await axiosInstance.post('accounts/logout/', { refresh_token, email })
-            dispatch(clearProfile())
+            clearStore()
             localStorage.removeItem("ACCESS_TOKEN")
             localStorage.removeItem("REFRESH_TOKEN")
             return { success: true }
         } catch (error) {
-            console.error("Logout failed:", error.message)
-            return { success: false }
+            clearStore( )
+            localStorage.removeItem("ACCESS_TOKEN")
+            localStorage.removeItem("REFRESH_TOKEN")
+            return { success: true }
         }
     }
 
