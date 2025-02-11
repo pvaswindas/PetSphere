@@ -116,7 +116,7 @@ export function ExplorePetListings() {
                     {/* No Listings Found */}
                     {noListingsFound ? (
                         <div className="col-span-full text-center text-gray-500">
-                            No users found matching your search.
+                            Listings not found matching your search!
                         </div>
                     ) : (
                         <div className="grid gap-0.5 grid-cols-4">

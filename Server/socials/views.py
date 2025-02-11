@@ -95,6 +95,24 @@ def mutual_friends(request, user_id):
     )
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_followers(request, username):
+    try:
+        if (username):
+            user = get_object_or_404(PetSphereUser, username=username)
+        else:
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
+        followers = user.following_relations.all()
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
 # -------------------------------- Like System --------------------------------
 
 @api_view(['POST'])

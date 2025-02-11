@@ -4,6 +4,7 @@ import json
 from environs import Env
 from datetime import datetime
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
 
 # Third-party libraries
@@ -20,6 +21,8 @@ from .models import (
     Post, PetListing, PetListingImageTemp, PetListingImage,
     SavedPost,
 )
+from accounts.models import PetSphereUser
+from socials.models import Like
 from pets.models import Pet, PetBreed
 from sellers.models import Seller
 from .serializers import (
@@ -64,12 +67,20 @@ class UserPostListCreateView(APIView):
 
         Parameters:
             - request: The HTTP request object containing user information.
+            - username (optional): fetches posts for the specified user.
 
         Returns:
             - Response: A list of posts if they exist.
             - Response: A 204 status if no posts are found.
         """
-        user = request.user
+        username = request.query_params.get("username")
+
+        if username:
+            user = get_object_or_404(PetSphereUser, username=username)
+        else:
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
         posts = Post.objects.filter(user=user)
         if not posts:
             return Response({"detail": "No posts found"},
@@ -472,7 +483,12 @@ class PetListingsView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
-        user = validate_authenticated_user(request)
+        username = request.query_params.get("username")
+
+        if username:
+            user = get_object_or_404(PetSphereUser, username=username)
+        else:
+            user = validate_authenticated_user(request)
         if isinstance(user, Response):
             return user
         pet_listings = PetListing.objects.filter(seller__user=user)
@@ -593,12 +609,27 @@ class UserFeedView(APIView):
                 )
             )
             users_list.append(user.id)
+
+            optional_fields = request.query_params.getlist("fields")
+            optional_fields = optional_fields if optional_fields else None
+
             pawstories = Post.objects.filter(
                 user__in=users_list
             ).order_by('-created_at')
+
             serialized_data = PostSerializer(
-                pawstories, many=True
+                pawstories, many=True,
+                context={'optional_fields': optional_fields}
             ).data
+
+            liked_post_ids = set(
+                Like.objects.filter(user=user, post__in=pawstories)
+                .values_list('post_id', flat=True)
+            )
+
+            for post in serialized_data:
+                post['liked'] = post['id'] in liked_post_ids
+
             return Response(serialized_data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(
@@ -615,14 +646,8 @@ class PetMarketplaceView(APIView):
             user = validate_authenticated_user(request)
             if isinstance(user, Response):
                 return user
-            users_list = list(
-                user.following_relations.values_list(
-                    "following_id", flat=True
-                )
-            )
-            users_list.append(user.id)
             pet_listings = PetListing.objects.filter(
-                seller__user__in=users_list
+                is_available=True
             ).order_by('-created_at')
             serialized_data = PetListingRetrieveSerializer(
                 pet_listings, many=True

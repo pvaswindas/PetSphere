@@ -15,75 +15,67 @@ const Badges = lazy(() => import("./Content/Badges"))
 
 
 const ProfileCard = memo(() => {
-    const [selectedFeed, setSelectedFeed] = useState("PawStories")
-    const dispatch = useDispatch()
+    const [selectedFeed, setSelectedFeed] = useState("PawStories");
+    const dispatch = useDispatch();
+    const { username } = useParams();
+    
+    const profile = useSelector((state) => state.profile.profile_data);
+    const userProfile = useSelector((state) => state.profile.other_users_profile?.[username]);
 
-    const profile = useSelector((state) => state.profile.profile_data)
-    const user = profile ? profile.user : null
-
-    const { username } = useParams()
+    const isCurrentUser = profile?.user?.username === username;
+    const currentProfile = isCurrentUser ? profile : userProfile || null;
 
     useEffect(() => {
-        let newusername = username
-        if (!newusername) {
-            newusername = user.username
+        if (username && !userProfile && profile?.user?.username) {
+            dispatch(fetchProfile({ auth_username: profile.user.username, username }));
         }
-        dispatch(fetchProfile({ auth_username: user.username, username }))
-    }, [dispatch, username, user.username])
-
+    }, [dispatch, username, profile?.user?.username, userProfile]);    
 
     const renderSelectedFeed = () => {
         switch (selectedFeed) {
             case "PawStories":
-                return <PawStories />
+                return <PawStories username={username} />;
             case "PetListings":
-                return <PetListings />
+                return <PetListings username={username} />;
             case "PetPals":
-                return <PetPals />
+                return <PetPals />;
             case "Friends":
-                return <Friends />
+                return <Friends />;
             case "Badges":
-                return <Badges />
+                return <Badges />;
             default:
-                return <PawStories />
+                return <PawStories />;
         }
-    }
+    };
 
     return (
         <div className="w-full bg-white lg:rounded-lg lg:shadow-md overflow-hidden mb-1">
             {/* Profile Header */}
-            <ProfileHeader />
-
-            {/* User Info */}
-            <UserInfo />
-            <div className="px-1 lg:px-8">
-                <hr className="border-t-2 border-lightTextGreyOpacity30 hidden lg:flex lg:my-4" />
-            </div>
-                {/* Feed Selection */}
-                <ProfileFeedSelection
-                    selectedOption={selectedFeed}
-                    onSelectOption={setSelectedFeed}
-                />
-
-                {/* Feed Content */}
-                <div className="lg:px-4 lg:pt-4 lg:pb-8">
-                    <Suspense
-                        fallback={
-                            <div className="grid grid-cols-3 gap-0.5 lg:gap-3">
-                                {[...Array(6)].map((_, index) => (
-                                    <div key={index} className="relative w-full aspect-square">
-                                        {/* Shimmer Effect for Image */}
-                                        <Shimmer className="w-full h-full lg:rounded-lg" />
-                                        {/* Shimmer Effect for Status Badge */}
-                                    </div>
-                                ))}
-                            </div>
-                        }>
-                        {renderSelectedFeed()}
-                    </ Suspense>
-                </div>
+            {!currentProfile && <Shimmer className="w-full h-full lg:rounded-s-lg" />}
+            {currentProfile && (
+                <>
+                    <ProfileHeader profile={currentProfile} isCurrentUser={isCurrentUser} />
+    
+                    {/* User Info */}
+                    <UserInfo profile={currentProfile} isCurrentUser={isCurrentUser} />
+    
+                    <div className="px-1 lg:px-8">
+                        <hr className="border-t-2 border-lightTextGreyOpacity30 hidden lg:flex lg:my-4" />
+                    </div>
+    
+                    {/* Feed Selection */}
+                    <ProfileFeedSelection selectedOption={selectedFeed} onSelectOption={setSelectedFeed} />
+    
+                    {/* Feed Content */}
+                    <div className="lg:px-4 lg:pt-4 lg:pb-8">
+                        <Suspense fallback={<Shimmer className="w-full h-full lg:rounded-s-lg" />}>
+                            {renderSelectedFeed()}
+                        </Suspense>
+                    </div>
+                </>
+            )}
         </div>
-    )
-})
+    );    
+});
 
 export default ProfileCard

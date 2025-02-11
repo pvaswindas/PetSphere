@@ -22,9 +22,10 @@ const getStatusClasses = (status) => {
     }
 };
 
-const PetListings = () => {
+const PetListings = ({ username }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+
     const petListings = useSelector((state) => state.petListings.petListings || []);
     const [loading, setLoading] = useState(true);
 
@@ -37,7 +38,7 @@ const PetListings = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                dispatch(fetchPetListings());
+                dispatch(fetchPetListings(username));
             } catch (error) {
                 setSnackbarMessage("Error fetching PetListings!")
                 setSnackbarOpen(true)
@@ -46,7 +47,7 @@ const PetListings = () => {
             }
         };
         fetchData();
-    }, [dispatch]);
+    }, [dispatch, username]);
 
     const handlePostClick = () => {
 
@@ -75,7 +76,7 @@ const PetListings = () => {
                 </div>
             ) : petListings?.length === 0 ? (
                 <div className="w-full h-64 flex items-center justify-center rounded-lg px-5">
-                    <p className="text-gray-500">Share your first pet listing!</p>
+                    <p className="text-gray-500">No listings yet!</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-3 gap-0.5 lg:gap-3">

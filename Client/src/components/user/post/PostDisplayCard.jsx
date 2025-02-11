@@ -1,9 +1,6 @@
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import commentIcon from "../../../assets/icon/post/comment-icon.svg";
-import likeIcon from "../../../assets/icon/post/like-icon.svg";
-import likedIcon from "../../../assets/icon/post/liked-icon.svg";
 import dotMenuIcon from "../../../assets/icon/post/dot-menu-icon.svg";
 import { deletePawstory, fetchPawstory, updatePawstory } from "../../../redux/thunks/PostThunk";
 import Swal from "sweetalert2";
@@ -12,7 +9,7 @@ import AlertSnackbar from "../../Snackbar/AlertSnackbar";
 import { fetchLikedUsers } from "../../../redux/thunks/FetchLikedUsers";
 import { CommentArea } from "../CommentArea/CommentArea";
 import { fetchPostSavedUsers } from "../../../redux/thunks/FetchPostSavedUsers";
-import { Bookmark, BookmarkCheck, Heart, MessageSquareText } from "lucide-react";
+import { Bookmark, BookmarkCheck, Send, Heart, MessageSquareText } from "lucide-react";
 import OptionsModal from "../../common/OptionsModal";
 import Shimmer from "../../Shimmer/Shimmer";
 
@@ -211,16 +208,16 @@ const   PostDisplayCard = memo(() => {
         fetchData(slug)
     }
 
-    const handlePostSave = async () => {
-        try {
-            await axiosInstance.post(`posts/savepost/${post_id}/`)
-            fetchSavedUsers()
-        } catch (error) {
-            setSnackbarMessage("Unable to save post.")
-            setSnackbarAlertType("error")
-            setSnackbarOpen(true)
-        }
-    }
+    // const handlePostSave = async () => {
+    //     try {
+    //         await axiosInstance.post(`posts/savepost/${post_id}/`)
+    //         fetchSavedUsers()
+    //     } catch (error) {
+    //         setSnackbarMessage("Unable to save post.")
+    //         setSnackbarAlertType("error")
+    //         setSnackbarOpen(true)
+    //     }
+    // }
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href)
@@ -450,15 +447,9 @@ const   PostDisplayCard = memo(() => {
                                     <button
                                         className="flex items-center p-2 hover:bg-gray-200 rounded-full"
                                         aria-label="Save"
-                                        onClick={handlePostSave}
+                                        onClick={handleCopyLink}
                                     >
-                                        {
-                                            isSaved ? (
-                                                <BookmarkCheck size={19} className="text-gray-500" />
-                                            ) : (
-                                                <Bookmark size={19} className="text-gray-500" />
-                                            )
-                                        }
+                                        <Send size={19} className="text-gray-500" />
                                     </button>
                                 </div>
                                 {likedPeople?.length > 0 && (

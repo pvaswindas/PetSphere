@@ -81,11 +81,11 @@ function NavigationPanel(){
 
                 {/* My Profile Button */}
                 <button
-                    className={`${buttonCommonStyle} ${ isActive('/profile') ? ifActive : ifNonActive }`}
+                    className={`${buttonCommonStyle} ${ isActive(`/profile/${profile.user.username}`) ? ifActive : ifNonActive }`}
                     onClick={() => handleNavigate(`profile/${profile.user.username}`)}
                 >
                     <img
-                        src={isActive('/profile') ? activeProfileIcon : nonActiveProfileIcon}
+                        src={isActive(`/profile/${profile.user.username}`) ? activeProfileIcon : nonActiveProfileIcon}
                         alt="profile"
                         className="w-[13px]"
                     />

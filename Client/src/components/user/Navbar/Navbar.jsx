@@ -35,7 +35,7 @@ const Navbar = () => {
         </div>
 
         {/* Middle Section */}
-        <div className="hidden lg:flex items-center justify-start gap-16 ml-10 sm:ml-20 md:ml-40 w-3/4">
+        <div className="hidden lg:flex items-center justify-start gap-16 ml-10 sm:ml-20 md:ml-36 w-3/4">
           <SearchBar />
           <div style={{ maxWidth: "240px" }}
             className="flex rounded-full bg-og-gradient p-1">
@@ -61,12 +61,12 @@ const Navbar = () => {
           </button>
 
           {/* Saved Posts Button */}
-          <button
+          {/* <button
             className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200"
             aria-label="Saved Posts"
           >
             <img src={saveIcon} alt="Save" />
-          </button>
+          </button> */}
 
           {/* Profile Dropdown */}
           <div className="relative group">

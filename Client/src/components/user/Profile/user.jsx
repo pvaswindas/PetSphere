@@ -1,9 +1,37 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Button from '../../forms/Button';
-import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
+import { clearOtherUsersProfile } from '../../../redux/slices/ProfileSlice';
 
-const UserInfo = ({ profile, isCurrentUser }) => {
-    const navigate = useNavigate();
+const UserInfo = () => {
+    const UserProfile = useSelector((state) => state.profile.profile_data)
+
+    const dispatch = useDispatch()
+
+    const { username } = useParams(); 
+
+    const otherUsersProfile = useSelector((state) => state.profile.other_users_profile)
+
+    let profile = UserProfile
+
+    if (UserProfile?.user?.username !== username) {
+        profile = otherUsersProfile?.[username] || null;
+    }
+
+    useEffect(() => {
+        if (UserProfile?.user?.username && username === UserProfile.user.username) {
+            dispatch(clearOtherUsersProfile({ username }));
+        }
+    }, [username, UserProfile, dispatch]);    
+
+    const user = profile?.user || {};
+
+    const navigate = useNavigate()
+
+    const handleEditProfile = () => {
+        navigate('/profile/edit');
+    };
 
     const handleShareProfile = () => {
         
@@ -15,19 +43,19 @@ const UserInfo = ({ profile, isCurrentUser }) => {
             <div className="flex items-start justify-between">
                 <div className="w-full lg:w-0">
                     <h2 className="text-lg sm:text-lg md:text-xl font-bold text-gray-800 whitespace-nowrap">
-                        {profile.user?.name || 'Anonymous User'}
+                        {user?.name || 'Anonymous User'}
                     </h2>
-                    <p className="text-sm sm:text-base md:text-sm text-gray-500">@{profile.user?.username}</p>
+                    <p className="text-sm sm:text-base md:text-sm text-gray-500">@{user?.username}</p>
                     <p className="text-sm sm:text-base lg:hidden md:text-sm text-gray-600 mt-4">{profile?.bio}</p>
                     <div className="flex gap-3 mt-4 lg:hidden">
-                        {isCurrentUser ? (
+                        {user?.username === UserProfile?.user.username ? (
                             <Button 
                                 type="button"
                                 text="Edit Profile"
                                 rounded="rounded"
                                 paddingx="px-3"
                                 paddingy="py-1"
-                                onClick={()=>navigate('/profile/edit/')}
+                                onClick={handleEditProfile}
                                 className="text-xs lg:text-sm flex-1"
                                 backgroundColor="bg-lightTextGreyOpacity20"
                                 textColor="text-blackOpacity85"
@@ -40,7 +68,7 @@ const UserInfo = ({ profile, isCurrentUser }) => {
                                 rounded="rounded"
                                 paddingx="px-3"
                                 paddingy="py-1"
-                                onClick={()=>navigate(`/messages/chat/${profile.user.username}`)}
+                                onClick={()=>navigate(`/messages/chat/${user.username}`)}
                                 className="text-xs lg:text-sm flex-1"
                                 backgroundColor="bg-lightTextGreyOpacity20"
                                 textColor="text-blackOpacity85"
@@ -62,14 +90,14 @@ const UserInfo = ({ profile, isCurrentUser }) => {
                     </div>
                 </div>
                 <div className="space-x-4 hidden lg:flex">
-                    {isCurrentUser ? (
+                    {user?.username === UserProfile?.user.username ? (
                         <Button 
                             type="button"
                             text="Edit Profile"
                             rounded="rounded"
                             paddingx="px-4"
                             paddingy="py-1"
-                            onClick={()=>navigate('/profile/edit/')}
+                            onClick={handleEditProfile}
                             className="text-xs lg:text-sm"
                             backgroundColor="bg-lightTextGreyOpacity20"
                             textColor="text-blackOpacity85"
@@ -82,7 +110,7 @@ const UserInfo = ({ profile, isCurrentUser }) => {
                             rounded="rounded"
                             paddingx="px-4"
                             paddingy="py-1"
-                            onClick={()=>navigate(`/messages/chat/${profile.user.username}`)}
+                            onClick={()=>navigate(`/messages/chat/${user.username}`)}
                             className="text-xs lg:text-sm"
                             backgroundColor="bg-lightTextGreyOpacity20"
                             textColor="text-blackOpacity85"
@@ -108,6 +136,5 @@ const UserInfo = ({ profile, isCurrentUser }) => {
         </div>
     );
 };
-
 
 export default UserInfo;

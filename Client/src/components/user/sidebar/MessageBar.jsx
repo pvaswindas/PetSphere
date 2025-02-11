@@ -58,49 +58,58 @@ function MessageBar() {
 
             {/* Message list */}
             <div className="max-h-80 overflow-y-auto flex-grow">
-                {filteredConversations.map(conversation => (
-                    <div 
-                        key={conversation.conversation_id} 
-                        className="flex items-center py-3 cursor-pointer"
-                        onClick={() => navigate(`/messages/chat/${conversation.other_user.user.username}`)}
-                    >
-                        {/* Profile picture */}
-                        <img 
-                            src={conversation?.other_user.profile_picture ? conversation.other_user.profile_picture : userAvatar} 
-                            alt={conversation.other_user.user.username} 
-                            className="w-10 h-10 min-w-10 min-h-10 rounded-full object-cover overflow-hidden mr-3"
-                        />
-                        <div className="flex-grow">
-                            <span className="font-semibold text-blackOpacity85 block">{
-                                conversation?.other_user.user.name ? conversation.other_user.user.name : "Anonymous User"
-                            }</span>
-                            {conversation && conversation.last_message && (
-                                <div className="text-sm text-gray-600 flex justify-between whitespace-nowrap w-full">
-                                    <span className="truncate max-w-[150px]">
-                                        {conversation.last_message.length > 35 
-                                            ? `${conversation.last_message.substring(0, 35)}...` 
-                                            : conversation.last_message}
+                {filteredConversations.length > 0 ? (
+                    filteredConversations.map(conversation => (
+                        <div 
+                            key={conversation.conversation_id} 
+                            className="flex items-center py-3 cursor-pointer"
+                            onClick={() => navigate(`/messages/chat/${conversation.other_user.user.username}`)}
+                        >
+                            {/* Profile picture */}
+                            <img 
+                                src={conversation?.other_user.profile_picture ? conversation.other_user.profile_picture : userAvatar} 
+                                alt={conversation.other_user.user.username} 
+                                className="w-10 h-10 min-w-10 min-h-10 rounded-full object-cover overflow-hidden mr-3"
+                            />
+                            <div className="flex-grow">
+                                <span className="font-semibold text-blackOpacity85 block">{
+                                    conversation?.other_user.user.name ? conversation.other_user.user.name : "Anonymous User"
+                                }</span>
+                                {conversation && conversation.last_message && (
+                                    <div className="text-sm text-gray-600 flex justify-between whitespace-nowrap w-full">
+                                        <span className="truncate max-w-[150px]">
+                                            {conversation.last_message.length > 35 
+                                                ? `${conversation.last_message.substring(0, 35)}...` 
+                                                : conversation.last_message}
+                                        </span>
+                                        <span className="text-[0.6rem] text-gray-500 ml-2">{formatTime(conversation.last_message_timestamp, true)}</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div className='flex items-center'>
+                                {/* New message indicator */}
+                                {conversation.unread_count > 0 && (
+                                    <span className="flex items-center justify-center text-xs text-white bg-teal-500 p-1 w-5 h-5 text-center rounded-full ml-2">
+                                        {conversation.unread_count > 99 ? '+99' : conversation.unread_count}
                                     </span>
-                                    <span className="text-[0.6rem] text-gray-500 ml-2">{formatTime(conversation.last_message_timestamp, true)}</span>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-                        <div className='flex items-center'>
-                            {/* New message indicator */}
-                            {conversation.unread_count > 0 && (
-                                <span className="flex items-center justify-center text-xs text-white bg-teal-500 p-1 w-5 h-5 text-center rounded-full ml-2">
-                                    {conversation.unread_count > 99 ? '+99' : conversation.unread_count}
-                                </span>
-                            )}
-                        </div>
+                    ))
+                        
+                ) : (
+                    <div className='text-center my-10 text-gray-400'>
+                        No conversations available
                     </div>
-                ))}
+                )}
             </div>
 
             {/* View All link at the bottom */}
-            <div className="mt-auto text-left text-sm">
-                <a href="/messages" className="text-teal-700 hover:text-teal-500">View All</a>
-            </div>
+            {filteredConversations.length > 0 && (
+                <div className="mt-auto text-left text-sm">
+                    <a href="/messages" className="text-teal-700 hover:text-teal-500">View All</a>
+                </div>
+            )}
         </div>
     );
 }

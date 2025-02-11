@@ -17,9 +17,12 @@ function AlertSnackbar({ open, message, alert_type = "info", onClose }) {
             onClose={handleClose}
             anchorOrigin={{
                 vertical: "top",
-                horizontal: isSmallScreen ? "center" : "right",
+                horizontal: "right",
             }}
-            style={{ top: isSmallScreen ? "5vh" : "2vh" }}
+            style={{
+                top: "1vh",
+                transform: isSmallScreen ? "translateX(1%)" : "translateX(2%)",
+            }}
         >
             <Alert onClose={handleClose} severity={alert_type} variant="filled">
                 {message}

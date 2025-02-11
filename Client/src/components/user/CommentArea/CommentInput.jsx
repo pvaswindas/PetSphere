@@ -64,7 +64,7 @@ export function CommentInput({ value, onChange, onSubmit, replyingTo, replyUsern
             </div>
             {/* Emoji Picker */}
             {showEmojiPicker && (
-                <div className="absolute bottom-16 left-4 z-10">
+                <div className="absolute bottom-5 left-4 z-10">
                     <EmojiPicker
                         onEmojiClick={handleEmojiClick}
                         theme="light"

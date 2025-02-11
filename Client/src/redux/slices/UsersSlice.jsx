@@ -5,32 +5,25 @@ const usersSlice = createSlice({
     initialState: {
         followers: [],
         followings: [],
-        otherUser: null,
     },
     reducers: {
         setFollowers(state, action) {
-            state.followers = action.payload.followers
+            state.followers = action.payload
         },
         clearFollowers(state) {
             state.followers = []
         },
         setFollowings(state, action) {
-            state.followings = action.payload.followings
+            state.followings = action.payload
         },
         clearFollowings(state) {
             state.followings = []
-        },
-        setOtherUser(state, action) {
-            state.otherUser = action.payload.otherUser
-        },
-        clearOtherUser(state) {
-            state.otherUser = null
         },
     },
 })
 
 export const {
-    setFollowers, clearFollowers, setFollowings, clearFollowings, setOtherUser, clearOtherUser
+    setFollowers, clearFollowers, setFollowings, clearFollowings
 } = usersSlice.actions
 
 export default usersSlice.reducer

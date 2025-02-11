@@ -46,7 +46,7 @@ class AddPostSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    user_profile = ProfileSerializer(source="user.profile", read_only=True)
+    user_profile = serializers.SerializerMethodField()
     images = PostImageSerializer(many=True, read_only=True)
 
     class Meta:
@@ -57,6 +57,14 @@ class PostSerializer(serializers.ModelSerializer):
             'images', 'hide_likes', 'hide_comments', 'turn_off_comments'
         ]
         read_only_fields = ['slug']
+
+    def get_user_profile(self, obj):
+        """Pass optional_fields context to ProfileSerializer"""
+        optional_fields = self.context.get('optional_fields', None)
+        return ProfileSerializer(
+            obj.user.profile,
+            context={'optional_fields': optional_fields}
+        ).data
 
 
 class PetListingImageSerializer(serializers.ModelSerializer):

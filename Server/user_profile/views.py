@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .models import Profile
+from django.db.models import Count
 from django.db.models import Q
 from .serializers import ProfileSerializer
 from socials.utils.mutual_friends import get_mutual_friends_count
@@ -74,29 +75,56 @@ class ProfileView(APIView):
 
 class PeopleListView(APIView):
     def get(self, request):
-        search_query = request.query_params.get('search', None)
+        search_query = request.query_params.get("search", None)
+        optional_fields = request.query_params.get("fields", None)
         current_user = request.user
 
+        # Get users the current user is following
+        following_ids = Follower.objects.filter(
+            follower=current_user
+        ).values_list("following", flat=True)
+
+        # Base Query: Exclude staffs , current user, and already followed users
+        users = Profile.objects.filter(
+            user__is_staff=False
+        )
+
+        # Apply search filter if present
         if search_query:
-            users = Profile.objects.filter(
-                Q(user__username__icontains=search_query) | Q(
-                    user__name__icontains=search_query)
+            users = users.filter(
+                Q(user__username__icontains=search_query) |
+                Q(user__name__icontains=search_query)
             )
         else:
-            users = Profile.objects.all()
+            users = users.exclude(
+                user__id=current_user.id
+            ).exclude(user__id__in=following_ids)
 
-        users_with_mutual_friends = []
-        for profile in users:
-            mutual_friends_count = get_mutual_friends_count(current_user,
-                                                            profile.user)
-            is_following = Follower.objects.filter(
-                follower=current_user, following=profile.user).exists()
-            user_data = ProfileSerializer(profile).data
-            user_data['mutualFriends'] = mutual_friends_count
-            user_data['isFollowing'] = is_following
-            users_with_mutual_friends.append(user_data)
+        # Annotate users with mutual friend count
+        users = users.annotate(
+            mutual_friends_count=Count(
+                "user__follower_relations",
+                filter=Q(user__follower_relations__follower=current_user)
+            )
+        )
 
-        return Response(users_with_mutual_friends, status=status.HTTP_200_OK)
+        users_list = list(users)
+
+        users_with_details = []
+        for profile in users_list[:20]:
+            is_following = profile.user.id in following_ids
+            user_data = ProfileSerializer(
+                profile,
+                context={
+                    'request': request,
+                    'optional_fields': optional_fields
+                }
+            ).data
+            user_data["mutualFriends"] = profile.mutual_friends_count
+            user_data["isFollowing"] = is_following
+            users_with_details.append(user_data)
+
+        return Response(users_with_details, status=status.HTTP_200_OK)
 
 
 class CustomPagination(PageNumberPagination):

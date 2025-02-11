@@ -5,7 +5,7 @@ import FemaleIcon from "@mui/icons-material/Female";
 
 function PetListingCard({ listing = [] }) {
     return (
-        <div className='relative bg-white lg:rounded-2xl h-[29rem] shadow-lg overflow-hidden'>
+        <div className='relative bg-white rounded-2xl h-[29rem] shadow-lg overflow-hidden'>
             <img
                 src={listing?.images[0].image}
                 alt=""

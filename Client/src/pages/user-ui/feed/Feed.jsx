@@ -81,7 +81,7 @@ function Feed() {
             <Navbar />
 
             {/* Main Layout */}
-            <div className="flex flex-grow lg:flex-row lg:px-2 lg:py-6">
+            <div className="flex flex-grow lg:flex-row md:px-2 md:py-6">
                 {/* Start Sidebar Section */}
                 <div className="hidden lg:flex flex-col lg:px-4 lg:w-1/5">
                     <div className="space-y-4 h-[calc(100vh-56px)] overflow-y-auto rounded-lg pb-12">

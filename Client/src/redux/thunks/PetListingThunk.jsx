@@ -4,10 +4,11 @@ import Swal from "sweetalert2";
 import { setCurrentPetListing, clearCurrentPetListing, setPetListings, clearsetPetListings } from "../slices/PetListingSlice";
 
 export const fetchPetListings = createAsyncThunk(
-    "posts/fetchPawstories",
-    async (_, { dispatch, rejectWithValue }) => {
+    "posts/fetchPetListings",
+    async (username, { dispatch, rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get("posts/petlisting")
+            const params = username ? {username} : {}
+            const response = await axiosInstance.get("posts/petlisting/", {params})
             if (response.status === 204) {
                 dispatch(clearsetPetListings())
             } else if (response.status === 200) {
@@ -23,7 +24,7 @@ export const fetchPetListings = createAsyncThunk(
 
 
 export const fetchCurrentPetListing = createAsyncThunk(
-    "post/fetchPawstory",
+    "post/fetchListing",
     async (slug, { dispatch, rejectWithValue }) => {
         try {
             const response = await axiosInstance.get(`posts/${slug}/`)

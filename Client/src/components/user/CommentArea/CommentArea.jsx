@@ -5,7 +5,7 @@ import { CommentInput } from './CommentInput';
 import axiosInstance from '../../../axios/axiosinstance';
 import AlertSnackbar from '../../Snackbar/AlertSnackbar';
 
-export function CommentArea({ onClose, postId, post }) {
+export function CommentArea({ onClose, postId, post, className="" }) {
     const [newComment, setNewComment] = useState('');
     const [replyingTo, setReplyingTo] = useState(null);
     const [replyUsername, setReplyUsername] = useState('');
@@ -87,7 +87,7 @@ export function CommentArea({ onClose, postId, post }) {
     }
 
     return (
-        <div className="w-full flex flex-col bg-white rounded-e-lg">
+        <div className={`w-full flex flex-col bg-white ${className || "rounded-e-lg"}`}>
             <AlertSnackbar
                 open={snackbarOpen}
                 message={snackbarMessage}

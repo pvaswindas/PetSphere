@@ -17,7 +17,7 @@ const PawStories = memo(({ username }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                dispatch(fetchPawstories());
+                dispatch(fetchPawstories(username));
             } catch (error) {
                 setSnackbarMessage("Error fetching PawStories")
                 setSnackbarOpen(true)
@@ -26,7 +26,7 @@ const PawStories = memo(({ username }) => {
             }
         };
         fetchData();
-    }, [dispatch]);
+    }, [dispatch, username]);
 
     const handlePostClick = (slug) => {
         navigate(`/post/${slug}`);

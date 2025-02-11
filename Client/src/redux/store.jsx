@@ -9,6 +9,7 @@ import locationReducer from "./slices/LocationSlice";
 import petListingReducer from "./slices/PetListingSlice"
 import globalSearchReducer from "./slices/GlobalSearchSlice"
 import subscriptionReducer from "./slices/SubscriptionSlice"
+import usersReducer from "./slices/UsersSlice"
 
 const EXPIRY_TIME = 60 * 60 * 25
 
@@ -38,6 +39,7 @@ const rootReducer = combineReducers({
     admin: adminReducer,
     pets: petReducer,
     location: locationReducer,
+    users: usersReducer,
     globalSearch: globalSearchReducer,
     subscriptions: subscriptionReducer,
 });
