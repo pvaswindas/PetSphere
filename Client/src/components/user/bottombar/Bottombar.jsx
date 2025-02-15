@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, User, Map, CirclePlus } from 'lucide-react';
+import { Home, Search, User, Map, CirclePlus, Send } from 'lucide-react';
 import { useSelector } from "react-redux";
 
 
@@ -36,8 +36,9 @@ const Bottombar = () => {
                 <CirclePlus 
                     className={`w-5 h-5 ${ isActive('/explore') ? ifActive : ifNonActive }`}
                 />
-                <Map 
-                    className={`w-5 h-5 ${ isActive('/nearby-services') ? ifActive : ifNonActive }`} 
+                <Send
+                    onClick={() => handleNavigate('messages')}
+                    className={`w-5 h-5 ${ isActive('/messages') ? ifActive : ifNonActive }`} 
                 />
                 <User 
                     className={`w-5 h-5 ${ isActive('/profile') ? ifActive : ifNonActive }`}

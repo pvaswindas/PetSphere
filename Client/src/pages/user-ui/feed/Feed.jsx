@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import Navbar from '../../../components/user/Navbar/Navbar'
-import AdPreviewBar from '../../../components/user/sidebar/AdPreviewBox'
+// import AdPreviewBar from '../../../components/user/sidebar/AdPreviewBox'
 import Bottombar from '../../../components/user/bottombar/Bottombar'
 import Sidebar from '../../../components/user/sidebar/Sidebar'
 import MessageBar from '../../../components/user/sidebar/MessageBar'
@@ -8,6 +8,7 @@ import Shimmer from '../../../components/Shimmer/Shimmer'
 import FeedSelection from '../../../components/user/feed/FeedSelection'
 import { getMarketPlace, getUserFeed } from '../../../utils/feedUtils'
 import AlertSnackbar from '../../../components/Snackbar/AlertSnackbar'
+import ProfileViewBar from '../../../components/user/sidebar/ProfileViewBar';
 
 
 const HomePreview = lazy(() => import('../../../components/user/feed/HomePreview'));
@@ -86,7 +87,7 @@ function Feed() {
                 <div className="hidden lg:flex flex-col lg:px-4 lg:w-1/5">
                     <div className="space-y-4 h-full overflow-y-auto rounded-lg pb-12">
                         {/* AdPreviewBar */}
-                        <AdPreviewBar />
+                        <ProfileViewBar />
                         {/* Sidebar */}
                         <Sidebar />
                     </div>

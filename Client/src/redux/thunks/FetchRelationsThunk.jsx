@@ -7,8 +7,8 @@ export const fetchFollowers = createAsyncThunk(
     "relations/fetchFollowers",
     async(username, { dispatch, rejectWithValue }) => {
         try {
-            const params = username ? {username} : {}
-            const response = await axiosInstance.get("/api/socials/followers", {params});
+            const response = await axiosInstance.get(`socials/followers?username=${username}`);
+            console.log(response)
             dispatch(setFollowers(response.data));
         } catch (error) {
             return rejectWithValue(error)
@@ -21,8 +21,7 @@ export const fetchFollowings = createAsyncThunk(
     "relations/fetchFollowings",
     async(username, { dispatch, rejectWithValue }) => {
         try {
-            const params = username ? {username} : {}
-            const response = await axiosInstance.get("/api/socials/followings", {params});
+            const response = await axiosInstance.get(`socials/followings?username=${username}`);
             dispatch(setFollowings(response.data));
         } catch (error) {
             return rejectWithValue(error)

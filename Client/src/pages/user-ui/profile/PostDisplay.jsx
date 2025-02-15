@@ -1,9 +1,10 @@
 import React from "react"
 import Navbar from "../../../components/user/Navbar/Navbar"
 import Sidebar from "../../../components/user/sidebar/Sidebar"
-import AdPreviewBar from "../../../components/user/sidebar/AdPreviewBox"
+// import AdPreviewBar from "../../../components/user/sidebar/AdPreviewBox"
 import PostDisplayCard from "../../../components/user/post/PostDisplayCard"
 import Bottombar from "../../../components/user/bottombar/Bottombar"
+import ProfileViewBar from "../../../components/user/sidebar/ProfileViewBar"
 
 function PostDisplay() {
     return (
@@ -17,7 +18,7 @@ function PostDisplay() {
                 <div className="hidden lg:flex flex-col lg:px-4 lg:w-1/5">
                     <div className="space-y-4 h-[calc(100vh-56px)] overflow-y-auto rounded-lg pb-12">
                         {/* ProfileViewBar */}
-                        <AdPreviewBar />
+                        <ProfileViewBar />
 
                         {/* Sidebar */}
                         <Sidebar />

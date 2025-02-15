@@ -111,7 +111,7 @@ class PeopleListView(APIView):
         users_list = list(users)
 
         users_with_details = []
-        for profile in users_list[:20]:
+        for profile in users_list[:21]:
             is_following = profile.user.id in following_ids
             user_data = ProfileSerializer(
                 profile,

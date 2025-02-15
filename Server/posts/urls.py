@@ -3,7 +3,7 @@ from .views import (
      UserPostListCreateView, UserPostDetailView,
      PetListingDataStoreView, PetListingsView,
      PostListView, PetListingListView, UserFeedView, PetMarketplaceView,
-     save_post, fetch_saved_by
+     save_post, fetch_saved_by, post_engagement_metrics
 )
 
 urlpatterns = [
@@ -22,6 +22,14 @@ urlpatterns = [
      # Feed-related URLs
      path('user-feed/', UserFeedView.as_view(), name='user-feed'),
      path('marketplace/', PetMarketplaceView.as_view(), name='marketplace'),
+
+
+     # Admin-related URLs
+     path(
+          'admin/metrics/engagement',
+          post_engagement_metrics,
+          name='post-engagement-metrics'
+     ),
 
      # User-related URLs
      path('', UserPostListCreateView.as_view(), name='user-post-list-create'),

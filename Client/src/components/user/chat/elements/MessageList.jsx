@@ -5,7 +5,6 @@ import { ChevronDown } from "lucide-react";
 const MessageList = ({ messages = [] }) => {
     const messageListRef = useRef(null);
     const [showScrollButton, setShowScrollButton] = useState(false);
-
     const scrollToBottom = () => {
         if (messageListRef.current) {
             messageListRef.current.scrollTo({ top: messageListRef.current.scrollHeight, behavior: "smooth" });

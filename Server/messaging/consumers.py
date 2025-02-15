@@ -4,6 +4,11 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from .models import Message, Conversation
 import jwt
+import base64
+import magic
+import imghdr
+import mimetypes
+from django.core.files.base import ContentFile
 from datetime import datetime
 from django.conf import settings
 from .serializers import MessageSerializer
@@ -42,15 +47,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.delete_empty_conversation()
 
     async def receive(self, text_data):
+        """Handles receiving messages and file uploads."""
         data = json.loads(text_data)
-        message = data["message"]
+        message = data.get("message", "").strip()
+        file_data = data.get("file", None)
         sender = self.scope["user"]
         receiver = await sync_to_async(
             PetSphereUser.objects.get
         )(username=self.username)
 
         # Save the message
-        serialized_message = await self.save_message(sender, receiver, message)
+        serialized_message = await self.save_message(
+            sender, receiver, message, file_data
+        )
 
         # Send the message to the group
         await self.channel_layer.group_send(
@@ -93,16 +102,47 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     @database_sync_to_async
-    def save_message(self, sender, receiver, message):
-        """Store messages in the database."""
+    def save_message(self, sender, receiver, message, file_data):
         conversation = self.conversation
-        saved_message = Message.objects.create(
+        saved_message = Message(
             sender=sender,
             receiver=receiver,
             conversation=conversation,
-            content=message
+            content=message,
         )
-        conversation.last_message = message
+
+        if file_data:
+            try:
+                if "," in file_data:
+                    file_data = file_data.split(",")[1]
+
+                file_bytes = base64.b64decode(file_data)
+
+                mime = magic.Magic(mime=True)
+                detected_mime = mime.from_buffer(file_bytes)
+
+                file_extension = mimetypes.guess_extension(
+                    detected_mime
+                ) or ".bin"
+
+                if not file_extension or file_extension == ".bin":
+                    file_type = imghdr.what(None, h=file_bytes)
+                    if file_type:
+                        file_extension = f".{file_type}"
+
+                timestamp = datetime.now().timestamp()
+                file_name = f"chat_{timestamp}{file_extension}"
+
+                saved_message.media_file.save(
+                    file_name, ContentFile(file_bytes), save=False
+                )
+            except Exception as e:
+                print(f"Error saving file: {e}")
+                return None
+
+        saved_message.save()
+
+        conversation.last_message = message or ""
         conversation.last_message_timestamp = datetime.now()
         conversation.save()
 

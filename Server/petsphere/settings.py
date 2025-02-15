@@ -17,6 +17,8 @@ BASE_URL = env.str("BASE_URL")
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str("SECRET_KEY")
 
+SITE_URL = env.str("SITE_URL")
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=True)
 
@@ -53,6 +55,8 @@ INSTALLED_APPS = [
     'socials',
     'subscriptions',
     'messaging',
+    'videocall',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -205,6 +209,9 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
+# AGORA
+AGORA_APP_ID = env.str("AGORA_APP_ID")
+AGORA_APP_CERTIFICATE = env.str("AGORA_APP_CERTIFICATE")
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'

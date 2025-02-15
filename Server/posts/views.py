@@ -658,3 +658,16 @@ class PetMarketplaceView(APIView):
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+@api_view(['GET'])
+def post_engagement_metrics(request):
+    pawstories_count = Post.objects.count()
+    petlistings_count = PetListing.objects.count()
+
+    data = [
+        {"name": "Pawstories", "value": pawstories_count},
+        {"name": "Pet Listings", "value": petlistings_count},
+    ]
+
+    return Response(data)

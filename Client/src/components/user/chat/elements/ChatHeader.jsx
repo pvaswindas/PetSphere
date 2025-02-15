@@ -5,6 +5,11 @@ import { useNavigate } from 'react-router-dom';
 
 const ChatHeader = ({ recipient = [] }) => {
     const navigate = useNavigate()
+
+    const initiateCall = async (calleeUsername) => {
+        navigate(`/video-call/${calleeUsername}`, { state: { isCaller: true } });
+    };
+
     return (
         <div className="p-6 bg-white backdrop-blur-md border-b-2 border-gray-50 rounded-tr-lg">
             <div className="flex justify-between h-[30px] items-center">
@@ -20,15 +25,19 @@ const ChatHeader = ({ recipient = [] }) => {
                     </div>
                     <div
                         className='cursor-pointer'
-                        onClick={() => navigate(`/profile/${recipient.user.username}`)}
+                        onClick={() => navigate(`/profile/${recipient?.user.username}`)}
                     >
                         <h2 className="text-lg font-medium text-blackOpacity85">
-                            {recipient && recipient?.user.name ? recipient.user.name : "Anonymous User"}
+                            {recipient && recipient?.user.name ? recipient?.user.name : "Anonymous User"}
                         </h2>
                     </div>
                 </div>
                 <div className="flex items-center space-x-4">
-                    <button className="p-2 rounded-lg hover:bg-teal-50 transition-colors">
+                    <button
+                        className="p-2 rounded-lg hover:bg-teal-50 transition-colors"
+                        onClick={() => initiateCall(recipient.user.username)}
+                        
+                    >
                         <Video className="w-5 h-5 text-teal-600" />
                     </button>
                     <button className="p-2 rounded-lg hover:bg-teal-50 transition-colors">

@@ -14,8 +14,6 @@ const PricingPage = () => {
 
 
     const handleCheckout = async (stripePriceId) => {
-        console.log('Sending Plan ID to backend:', stripePriceId);
-    
         try {
             const action = await dispatch(createCheckoutSession(stripePriceId));
     

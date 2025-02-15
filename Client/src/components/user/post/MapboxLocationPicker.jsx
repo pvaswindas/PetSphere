@@ -93,7 +93,6 @@ const MapboxLocationPicker = () => {
 
             if (response.status === 200) {
                 const petListing = response.data.petListing;
-                console.log(petListing);
                 const formData = new FormData();
                 const updatedPetListing = {
                     longitude: location.longitude,

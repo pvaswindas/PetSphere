@@ -1,13 +1,14 @@
 import React from "react"
 import Navbar from "../../components/user/Navbar/Navbar"
 import Sidebar from "../../components/user/sidebar/Sidebar"
-import AdPreviewBar from "../../components/user/sidebar/AdPreviewBox"
+// import AdPreviewBar from "../../components/user/sidebar/AdPreviewBox"
 import { ExploreComponent } from "../../components/user/explore/Explore"
 import Bottombar from "../../components/user/bottombar/Bottombar"
+import ProfileViewBar from "../../components/user/sidebar/ProfileViewBar"
 
 function ExplorePage() {
     return (
-        <div className=" bg-white lg:bg-whiteOpacity02 min-h-screen">
+        <div className="bg-white lg:bg-whiteOpacity02 h-screen flex flex-col overflow-hidden">
             {/* Navbar */}
             <Navbar />
 
@@ -17,7 +18,7 @@ function ExplorePage() {
                 <div className="hidden lg:flex flex-col lg:px-4 lg:w-1/5">
                     <div className="space-y-4 lg:h-[calc(100vh-56px)] lg:overflow-y-auto rounded-lg pb-12">
                         {/* ProfileViewBar */}
-                        <AdPreviewBar />
+                        <ProfileViewBar />
 
                         {/* Sidebar */}
                         <Sidebar />

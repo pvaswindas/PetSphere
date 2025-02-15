@@ -83,7 +83,7 @@ const AdminSidebar = ({ activeIcon, setActiveIcon }) => {
                         className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"
                     />
                 </div>
-                <div
+                {/* <div
                     className={getIconClasses("reports")}
                 >
                     <img
@@ -91,7 +91,7 @@ const AdminSidebar = ({ activeIcon, setActiveIcon }) => {
                         alt="reports"
                         className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"
                     />
-                </div>
+                </div> */}
             </div>
 
             {/* Separator */}

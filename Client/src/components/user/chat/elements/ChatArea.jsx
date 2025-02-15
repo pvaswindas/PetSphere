@@ -7,12 +7,14 @@ import { getMessages } from '../../../../utils/ChatsUtils';
 import AlertSnackbar from '../../../Snackbar/AlertSnackbar';
 import { chatWebSocket } from '../../../../utils/wsUtil';
 
-const ChatArea = ({ conversations = [] }) => {
+const ChatArea = ({ activeConversation = [] }) => {
     const { username } = useParams();
     const [messages, setMessages] = useState([]);
     const [recipient, setRecipient] = useState(null);
     const [socket, setSocket] = useState(null);
+
     const [message, setMessage] = useState("");
+    const [selectedFiles, setSelectedFiles] = useState([]);
 
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -31,9 +33,9 @@ const ChatArea = ({ conversations = [] }) => {
                     return messageExists ? prevMessages : [...prevMessages, newMessage];
                 });
             },
-            (ws) => setSocket(ws), // onOpen
-            () => console.log("WebSocket Disconnected"), // onClose
-            (err) => console.error("WebSocket Error:", err) // onError
+            (ws) => setSocket(ws),
+            // () => console.log("WebSocket Disconnected"),
+            // (err) => console.error("WebSocket Error:", err)
         );
 
         return () => {
@@ -48,12 +50,10 @@ const ChatArea = ({ conversations = [] }) => {
         const fetchMessages = async () => {
             try {
                 const data = await getMessages(username);
-                setMessages(prevMessages => (prevMessages.length === 0 ? data : prevMessages));
+                setMessages(prevMessages => (prevMessages.length === 0 ? data.messages : prevMessages));
 
-                if (data.length > 0) {
-                    const conversationId = data[0].conversation_id;
-                    const conversation = conversations.find(conv => conv.conversation_id === conversationId);
-                    if (conversation) setRecipient(conversation.other_user);
+                if (activeConversation) {
+                    setRecipient(activeConversation.other_user);
                 }
             } catch (error) {
                 setSnackbarMessage("Unable to fetch messages!");
@@ -62,14 +62,20 @@ const ChatArea = ({ conversations = [] }) => {
         };
 
         fetchMessages();
-    }, [username, conversations]);
+    }, [username, activeConversation]);
 
-    const handleSend = (e) => {
-        e.preventDefault();
-        if (message.trim() && socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({ message: message.trim() }));
-            setMessage("");
+
+
+    const handleSend = async ({ text, file }) => {
+        if ((!text.trim() && !file) || !socket || socket.readyState !== WebSocket.OPEN) return;
+
+        const messageData = { message: text.trim() };
+        if (file) {
+            messageData.file = file;
         }
+        socket.send(JSON.stringify(messageData));
+        setMessage("");
+        setSelectedFiles([]);
     };
 
     return (
@@ -82,7 +88,15 @@ const ChatArea = ({ conversations = [] }) => {
             />
             <ChatHeader recipient={recipient} />
             <MessageList messages={messages} />
-            <MessageInput message={message} setMessage={setMessage} onSend={handleSend} />
+            <MessageInput 
+                message={message} 
+                setMessage={setMessage} 
+                selectedFiles={selectedFiles}
+                setSelectedFiles={setSelectedFiles}
+                onSend={handleSend}
+                setSnackbarMessage={setSnackbarMessage}
+                setSnackbarOpen={setSnackbarOpen}
+            />
         </div>
     );
 };

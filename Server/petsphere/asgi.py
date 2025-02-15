@@ -11,8 +11,14 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "petsphere.settings")
 django_asgi_app = get_asgi_application()
 
 from messaging.routers import websocket_urlpatterns as messaging_urlpatterns
+from videocall.routers import websocket_urlpatterns as videocall_urlpatterns
+from notifications.routers import (
+    websocket_urlpatterns as notification_urlpatterns
+)
 
-websocket_urlpatterns = messaging_urlpatterns
+websocket_urlpatterns = (
+    messaging_urlpatterns + videocall_urlpatterns + notification_urlpatterns
+)
 
 application = ProtocolTypeRouter({
     # Django's ASGI application to handle traditional HTTP requests

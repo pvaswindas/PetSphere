@@ -123,7 +123,6 @@ const   PostDisplayCard = memo(() => {
     };
 
     const handlePostSettingsToggle = (field, value) => {
-        console.log(field, value);
         dispatch(updatePawstory({
             slug: post.slug,
             data: {[field]: value}

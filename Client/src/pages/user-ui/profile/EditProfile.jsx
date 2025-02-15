@@ -1,8 +1,9 @@
 import React from "react";
 import Navbar from "../../../components/user/Navbar/Navbar";
 import Sidebar from "../../../components/user/sidebar/Sidebar";
-import AdPreviewBar from "../../../components/user/sidebar/AdPreviewBox";
+// import AdPreviewBar from "../../../components/user/sidebar/AdPreviewBox";
 import EditProfileCard from "../../../components/user/Profile/EditProfileCard";
+import ProfileViewBar from "../../../components/user/sidebar/ProfileViewBar";
 
 function EditProfile() {
     return (
@@ -16,7 +17,7 @@ function EditProfile() {
                 <div className="hidden lg:flex flex-col lg:px-4 lg:w-1/5">
                     <div className="space-y-4 h-[calc(100vh-56px)] overflow-y-auto rounded-lg pb-12">
                         {/* AdPreviewBar */}
-                        <AdPreviewBar />
+                        <ProfileViewBar />
 
                         {/* Sidebar */}
                         <Sidebar />

@@ -1,11 +1,41 @@
-import React from "react"
+import { BarChart } from '@mui/x-charts/BarChart';
+import { PieChart } from '@mui/x-charts/PieChart';
 
-const MetricsCard = () => {
+const COLORS = ["#0088FE", "#00C49F"];
+
+const MetricsCard = ({ title, data, type }) => {
     return (
-        <div className="bg-white shadow-lg rounded-3xl lg:rounded-[2.5rem] p-6 h-64 w-full">
-            
+        <div className="bg-white shadow-md p-4 rounded-lg">
+            <h2 className="text-lg font-medium text-gray-800">{title}</h2>
+            <div className="h-40 flex justify-center items-center">
+                {type === "bar" ? (
+                    <BarChart
+                        series={[{ data: data.map(d => d.value), label: "Value" }]}
+                        xAxis={[{ scaleType: "band", data: data.map(d => d.name) }]}
+                        width={300}
+                        height={150}
+                    />
+                ) : type === "pie" ? (
+                    <PieChart
+                        series={[
+                            {
+                                data: data.map((d, index) => ({
+                                    id: index,
+                                    value: d.value,
+                                    label: d.name,
+                                    color: COLORS[index % COLORS.length]
+                                }))
+                            }
+                        ]}
+                        width={300}
+                        height={150}
+                    />
+                ) : (
+                    <p>No chart type found</p>
+                )}
+            </div>
         </div>
-    )
-}
+    );
+};
 
-export default MetricsCard
+export default MetricsCard;

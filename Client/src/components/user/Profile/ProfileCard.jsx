@@ -40,7 +40,7 @@ const ProfileCard = memo(() => {
             case "PetPals":
                 return <PetPals />;
             case "Friends":
-                return <Friends />;
+                return <Friends username={username} />;
             case "Badges":
                 return <Badges />;
             default:

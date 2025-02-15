@@ -12,12 +12,11 @@ const AdminNavbar = () => {
     const logout = useLogout()
 
     const handleLogout = async () => {
-        const response = await logout()
-    
-        if (response.success) {
+        try {
+            await logout()
             navigate("/admin/login")
-        } else {
-            console.log(response.message);
+        } catch(error) {
+
         }
     }
 

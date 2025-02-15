@@ -22,7 +22,7 @@ function UserManager() {
 
     const [page, setPage] = useState(1);
     
-    const pageSize = 2
+    const pageSize = 10
 
     const toggleSection = () => {
         setCurrentSection((prev) => (prev === "admins" ? "users" : "admins"));

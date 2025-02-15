@@ -40,15 +40,27 @@ def get_messages(request, username):
 
     conversation = Conversation.objects.filter(
         users=user
-    ).filter(users=other_user).first()
+    ).filter(users=other_user).distinct().first()
 
     if not conversation:
-        return Response({'error': 'No conversation found'}, status=404)
+        return Response(
+            {'messages': [], 'message': 'No conversation found'},
+            status=200
+        )
 
     messages = Message.objects.filter(
         conversation=conversation
     ).order_by('timestamp')
 
-    serializer = MessageSerializer(messages, many=True, context={'user': user})
+    response_data = {
+        "messages": MessageSerializer(
+            messages, many=True, context={"user": user}
+        ).data,
+        "message": (
+            "Messages retrieved successfully"
+            if messages.exists()
+            else "No messages found in this conversation"
+        ),
+    }
 
-    return Response(serializer.data)
+    return Response(response_data, status=200)

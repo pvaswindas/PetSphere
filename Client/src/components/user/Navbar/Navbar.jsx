@@ -8,12 +8,16 @@ import PostTypeModal from "../post/PostTypeModal";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import userAvatar from "../../../assets/icon/user-avatar.svg"
+import NotificationPanel from "./NotificationPanel";
+import IncomingCallPanel from "./IncomingCallPanel";
 
 const Navbar = () => {
   const logout = useLogout()
   const navigate = useNavigate()
   const [isModalOpen, setModalOpen] = useState(false)
   const user = useSelector((state) => state.profile.profile_data)
+
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false)
 
   const handleLogout = async () => {
     const response = await logout()
@@ -56,9 +60,16 @@ const Navbar = () => {
           <button
             className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200"
             aria-label="Notifications"
+            onClick={() => setIsNotificationPanelOpen(!isNotificationPanelOpen)}
           >
             <img src={notificationIcon} alt="Notification" />
           </button>
+
+          {/* Notification Panel */}
+          {isNotificationPanelOpen && (
+              <NotificationPanel />
+          )}
+          <IncomingCallPanel />
 
           {/* Saved Posts Button */}
           {/* <button

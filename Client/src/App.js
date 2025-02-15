@@ -39,6 +39,7 @@ import UserDetailedViewPage from "./pages/admin-ui/user-management/UserDetailedV
 import Feed from "./pages/user-ui/feed/Feed";
 import Messaging from "./pages/user-ui/chat/Messaging";
 import Chat from "./pages/user-ui/chat/Chat";
+import CallPage from "./pages/user-ui/video-call/CallPage";
 
 function App() {
   const location = useLocation();
@@ -52,6 +53,7 @@ function App() {
           document.body.classList.remove("overflow-y-auto");
       }
   }, [location]);
+
   return (
     <div className="bg-white lg:bg-gray-100 h-screen">
       <Routes>
@@ -105,6 +107,8 @@ function App() {
 
         <Route path="/messages" element={ <ProtectedRoute><Messaging /></ProtectedRoute>} />
         <Route path="/messages/chat/:username" element={ <ProtectedRoute><Chat /></ProtectedRoute>} />
+        
+        <Route path="/video-call/:username" element={ <ProtectedRoute><CallPage /></ProtectedRoute>} />
 
         <Route path="explore" element={ <ProtectedRoute><ExplorePage /></ProtectedRoute> } />
         <Route path="subscriptions" element={ <ProtectedRoute><SubscriptionPage /></ProtectedRoute> } />
