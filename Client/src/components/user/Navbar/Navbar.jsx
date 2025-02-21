@@ -3,7 +3,6 @@ import SearchBar from "./SearchBar";
 import mainLogo from "../../../assets/logo/main-logo.png";
 import { useLogout } from "../../../hooks/useLogout";
 import notificationIcon from "../../../assets/icon/notification-icon-active.svg";
-import saveIcon from "../../../assets/icon/save-icon.svg";
 import PostTypeModal from "../post/PostTypeModal";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";

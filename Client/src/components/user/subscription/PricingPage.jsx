@@ -24,7 +24,7 @@ const PricingPage = () => {
                 }
             }
         } catch (error) {
-            console.error('Error during checkout session creation:', error);
+            return
         }
     }
     

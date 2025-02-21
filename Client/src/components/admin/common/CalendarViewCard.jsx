@@ -8,7 +8,7 @@ const CalendarViewCard = () => {
     const onChange = (newDate) => setDate(newDate);
 
     return (
-        <div className="bg-deepOceanBlue shadow-lg flex items-center justify-center rounded-3xl h-[362px] my-8 w-full">
+        <div className="bg-deepOceanBlue shadow-lg flex items-center justify-center rounded-3xl h-[335px] my-8 w-full">
             <div className="relative w-full h-full p-4">
                 <Calendar
                     onChange={onChange}

@@ -19,13 +19,11 @@ const VideoCallUI = ({ isCaller = false }) => {
 
     const initiateCall = async (calleeUsername) => {
         try {
-            const response = await axiosInstance.post('notification/initiate-call/', {
+            await axiosInstance.post('notification/initiate-call/', {
                 callee: calleeUsername
             });
-
-            console.log(response.data);
         } catch (error) {
-            console.error("Error initiating call:", error.response ? error.response.data : error.message);
+            return
         }
     };
 
@@ -48,7 +46,6 @@ const VideoCallUI = ({ isCaller = false }) => {
         }, 1000);
     }, [navigate, username]);
 
-    console.log("CALLER : ", isCaller)
 
     useEffect(() => {
         const token = localStorage.getItem("ACCESS_TOKEN");
@@ -57,7 +54,6 @@ const VideoCallUI = ({ isCaller = false }) => {
         socket.current = new WebSocket(`ws://localhost:8000/ws/video_call/${username}/?token=${token}`);
 
         socket.current.onopen = () => {
-            console.log("WebSocket connection established");
             if (isCaller) {
                 initiateCall(username);
             }
@@ -113,7 +109,6 @@ const VideoCallUI = ({ isCaller = false }) => {
             localStreamRef.current = localStream;
             startCall(localStream);
         } catch (error) {
-            console.error("Error accessing media devices:", error);
             alert("An error occurred while trying to access your camera and microphone.");
         }
     };

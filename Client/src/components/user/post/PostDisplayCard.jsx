@@ -99,7 +99,7 @@ const   PostDisplayCard = memo(() => {
                 callback(response);
             }
         } catch (error) {
-            console.error("Error fetching liked users:", error);
+            return
         }
     }, [dispatch, post_id]);
 

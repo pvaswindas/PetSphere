@@ -64,7 +64,7 @@ const EditProfileCard = () => {
                 });             
             }
         } catch (error) {
-            console.error("Error updating profile picture:", error.response || error);
+            return
         }
     };
 
@@ -93,7 +93,7 @@ const EditProfileCard = () => {
                 });               
             }
         } catch (error) {
-            console.error("Error deleting profile picture:", error.response || error);
+            return
         }
     };
     

@@ -34,8 +34,6 @@ const ChatArea = ({ activeConversation = [] }) => {
                 });
             },
             (ws) => setSocket(ws),
-            // () => console.log("WebSocket Disconnected"),
-            // (err) => console.error("WebSocket Error:", err)
         );
 
         return () => {

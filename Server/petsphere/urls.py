@@ -10,6 +10,7 @@ urlpatterns = [
     path('api/messaging/', include('messaging.urls')),
     path('api/video-call/', include('videocall.urls')),
     path('api/notification/', include('notifications.urls')),
+    path('api/announcements/', include('announcements.urls')),
     path('api/user/', include('user_profile.urls')),
     path('api/posts/', include('posts.urls')),
     path('api/pet/', include('pets.urls')),

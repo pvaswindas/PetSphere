@@ -50,7 +50,6 @@ function IncomingCallPanel() {
     
             setIsCallIncoming(false);
         } catch (error) {
-            console.error("Error rejecting call:", error);
             setIsCallIncoming(false);
         }
     };    

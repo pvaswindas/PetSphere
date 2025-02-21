@@ -36,7 +36,7 @@ const ProfileHeader = ({ profile, isCurrentUser }) => {
                 dispatch(setProfile({ profile_data: response.data }));
             }
         } catch (error) {
-            console.error("Error uploading image:", error);
+            return
         }
     };
 

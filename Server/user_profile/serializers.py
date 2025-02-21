@@ -42,6 +42,9 @@ class ProfileSerializer(serializers.ModelSerializer):
                 instance.profile_picture.url
             )
 
+        if self.context.get('only_username', False):
+            representation['user'] = instance.user.username
+
         # **Handle optional fields logic**
         optional_fields = self.context.get('optional_fields', None)
 

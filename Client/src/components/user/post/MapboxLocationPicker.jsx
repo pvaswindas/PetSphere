@@ -53,7 +53,7 @@ const MapboxLocationPicker = () => {
                 pincode,
             });
         } catch (error) {
-            console.error('Error fetching address:', error);
+            return
         }
     };
 
@@ -72,7 +72,6 @@ const MapboxLocationPicker = () => {
                 setLoading(false);
             },
             (error) => {
-                console.error('Error fetching user location:', error);
                 setLoading(false);
             }
         );

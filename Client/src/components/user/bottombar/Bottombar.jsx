@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, User, Map, CirclePlus, Send } from 'lucide-react';
+import { Home, Search, User, CirclePlus, Send } from 'lucide-react';
 import { useSelector } from "react-redux";
 
 
@@ -23,7 +23,7 @@ const Bottombar = () => {
     }
 
     return (
-        <div className="lg:hidden fixed bottom-0 left-0 w-full h-10 sm:h-11 md:h-16 px-2 bg-white border-t border-gray-200">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 h-10 sm:h-11 md:h-16 px-2 bg-white border-t border-gray-200">
             <div className="flex justify-between items-center h-full px-4">
                 <Home
                     className={`w-5 h-5 ${ isActive('/feed') ? ifActive : ifNonActive }`}
@@ -34,7 +34,7 @@ const Bottombar = () => {
                     onClick={() => handleNavigate('explore')}
                 />
                 <CirclePlus 
-                    className={`w-5 h-5 ${ isActive('/explore') ? ifActive : ifNonActive }`}
+                    className={`w-5 h-5 ${ isActive('/add-post') ? ifActive : ifNonActive }`}
                 />
                 <Send
                     onClick={() => handleNavigate('messages')}

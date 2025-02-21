@@ -19,7 +19,7 @@ function RestrictedRoute({ children }) {
                 return true;
             }
         } catch (error) {
-            console.error('Token refresh failed:', error);
+            return
         }
         return false;
     }, []);
@@ -36,9 +36,8 @@ function RestrictedRoute({ children }) {
             }
             return true;
         } catch (error) {
-            console.error('Token validation failed:', error);
+            return false
         }
-        return false;
     }, [refreshAccessToken]);
 
     useEffect(() => {

@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import NavigationPanel from "./NavigationPanel";
-import NewsFeedPanel from "./NewsFeedPanel";
+import AnnouncementsPanel from "./AnnouncementsPanel";
 
 
 const Sidebar = () => {
 
+    const [announcementsAvailable, setAnnouncementsAvailable] = useState(false)
+
     return (
-        <aside className="w-full h-[620px] bg-white shadow-md rounded-lg p-4">
+        <aside className={`w-full ${announcementsAvailable ? 'h-[620px]': 'h-[425px]'} bg-white shadow-md rounded-lg p-4`}>
             <NavigationPanel />
-            <NewsFeedPanel />
+            <AnnouncementsPanel setAnnouncementsAvailable={setAnnouncementsAvailable} />
         </aside>
     );
 };

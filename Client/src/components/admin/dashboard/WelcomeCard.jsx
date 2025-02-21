@@ -6,7 +6,7 @@ const WelcomeCard = () => {
     const admin = useSelector((state) => state.profile.profile_data)
 
     return (
-        <div className="relative w-full h-24 lg:h-28 flex items-center justify-start bg-gray-100 lg:my-6 rounded-[2.5rem] shadow-md overflow-hidden">
+        <div className="relative w-full h-24 flex items-center justify-start bg-gray-100 lg:mt-6 rounded-[2.5rem] shadow-md overflow-hidden">
             <div className="absolute inset-0">
                 <img
                     src={WelcomeImage}

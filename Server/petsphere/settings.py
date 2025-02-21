@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'messaging',
     'videocall',
     'notifications',
+    'announcements',
 ]
 
 MIDDLEWARE = [

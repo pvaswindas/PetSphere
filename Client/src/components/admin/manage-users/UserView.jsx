@@ -32,7 +32,7 @@ function UserView() {
     }, [userId, fetchUser]);
 
     return (
-        <div className="px-4 lg:px-6">
+        <div className="px-4 lg:px-6 py-6">
             <AlertSnackbar
                 open={snackbarOpen}
                 message={snackbarMessage}

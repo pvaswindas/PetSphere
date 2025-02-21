@@ -4,6 +4,7 @@ import storage from 'redux-persist/lib/storage';
 import profileReducer from './slices/ProfileSlice';
 import postReducer from './slices/PostSlice';
 import adminReducer from "./slices/AdminProfileSlice";
+import adminSearchReducer from "./slices/AdminSearchSlice"
 import petReducer from "./slices/PetSlice";
 import locationReducer from "./slices/LocationSlice";
 import petListingReducer from "./slices/PetListingSlice"
@@ -37,6 +38,7 @@ const rootReducer = combineReducers({
     posts: postReducer,
     petListings: petListingReducer,
     admin: adminReducer,
+    adminSearch: adminSearchReducer,
     pets: petReducer,
     location: locationReducer,
     users: usersReducer,
@@ -48,7 +50,7 @@ const persistConfig = {
     key: 'root',
     storage,
     transforms: [expiryTransform],
-    whitelist: ['profile', 'admin', 'globalSearch', 'subscriptions',],
+    whitelist: ['profile', 'admin', 'adminSearch', 'globalSearch', 'subscriptions',],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

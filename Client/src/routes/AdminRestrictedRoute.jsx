@@ -21,7 +21,7 @@ function AdminRestrictedRoute({ children }) {
                 return true;
             }
         } catch (error) {
-            console.error('Token refresh failed:', error);
+            return false
         }
         return false;
     }, []);
@@ -38,9 +38,8 @@ function AdminRestrictedRoute({ children }) {
             }
             return true;
         } catch (error) {
-            console.error('Token validation failed:', error);
+            return false
         }
-        return false;
     }, [refreshAccessToken]);
 
     useEffect(() => {

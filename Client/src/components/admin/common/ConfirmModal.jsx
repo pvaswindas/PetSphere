@@ -5,7 +5,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, description, actionTe
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
-            <div className={`bg-softSkyBlue80 rounded-lg py-6 px-4 ${width}`}>
+            <div className={`bg-softSkyBlue rounded-lg py-6 px-4 ${width}`}>
                 {/* Title */}
                 <h3 className="text-xl font-semibold text-center text-gray-900">{title}</h3>
                 

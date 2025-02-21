@@ -16,7 +16,6 @@ export const fetchProfile = createAsyncThunk(
                 }
             }
         } catch (error) {
-            console.error("Error fetching profile:", error);
             return rejectWithValue(error.response?.data || "Error Fetching Profile");
         }
     }

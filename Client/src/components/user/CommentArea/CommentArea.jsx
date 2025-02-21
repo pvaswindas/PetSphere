@@ -26,7 +26,7 @@ export function CommentArea({ onClose, postId, post, className="" }) {
             const response = await axiosInstance.get(`socials/comments/post/${postId}`);
             setComments(response.data);
         } catch (error) {
-            console.error('Error fetching comments:', error);
+            return
         }
     }, [postId]);
 
@@ -52,7 +52,7 @@ export function CommentArea({ onClose, postId, post, className="" }) {
             setReplyingTo(null);
             setReplyUsername('');
         } catch (error) {
-            console.error('Error submitting comment:', error);
+            return
         }
     };
 
@@ -82,7 +82,7 @@ export function CommentArea({ onClose, postId, post, className="" }) {
             await axiosInstance.delete(`socials/comments/delete/${comment_id}/`);
             await fetchComments();
         } catch (error) {
-            console.error('Error deleting comment:', error);
+            return
         }
     }
 

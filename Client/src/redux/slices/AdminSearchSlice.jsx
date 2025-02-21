@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const adminSearchSlice = createSlice({
-    name: "globalSearch",
+    name: "adminGlobalSearch",
     initialState: {
         search: "",
     },

@@ -25,7 +25,6 @@ const UsernameEdit = () => {
             const result = await checkUsername(username);
             setIsAvailable(result.available);
         } catch (error) {
-            console.error("Error checking username availability:", error);
             setIsAvailable(false);
         }
         setIsLoading(false);
@@ -50,7 +49,7 @@ const UsernameEdit = () => {
                 navigate(-1);
             }
         } catch (error) {
-            console.error("Error updating profile:", error.response || error);
+            return
         }
         navigate("/profile");
     };

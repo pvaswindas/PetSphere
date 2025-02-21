@@ -32,7 +32,6 @@ function OtpVerification() {
                 setError("OTP verification failed. Please check your OTP.");
             }
         } catch (error) {
-            console.error("OTP verification error:", error.response || error);
             setError(error.response?.data?.error || "An unexpected error occurred. Please try again.");
         } finally {
             setIsSubmitting(false);
@@ -53,7 +52,6 @@ function OtpVerification() {
                 setError("Failed to resend OTP. Please try again.");
             }
         } catch (error) {
-            console.error("OTP resend error:", error.response || error);
             setError(error.response?.data?.error || "An unexpected error occurred. Please try again.");
         } finally {
             setIsResending(false);

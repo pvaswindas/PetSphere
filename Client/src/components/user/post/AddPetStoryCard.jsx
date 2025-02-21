@@ -85,7 +85,7 @@ const AddPetStoryCard = () => {
                 },
             })
         } catch (error) {
-            console.error("Error uploading data:", error)
+            return
         }
 
         setContent("")

@@ -2,15 +2,9 @@ import React from "react"
 import symbolLogo from "../../assets/logo/symbol-logo.png"
 import { useNavigate } from "react-router-dom"
 import { useLogout } from "../../hooks/useLogout"
+import { LayoutDashboard, Users, Newspaper, PawPrint, Flag, UserCog, LogOut  } from "lucide-react"
 
-import adminLogoutIcon from "../../assets/admin/SidebarIcons/logout-icon.svg"
-import dashboardIcon from "../../assets/admin/SidebarIcons/dashboard-icon.svg"
-import userManageIcon from "../../assets/admin/SidebarIcons/users-icon.svg"
-import updatesIcon from "../../assets/admin/SidebarIcons/updates-icon.svg"
-import reportsIcon from "../../assets/admin/SidebarIcons/reports-icon.svg"
-import petsIcon from "../../assets/admin/SidebarIcons/pet-icon.svg"
-
-const AdminSidebar = ({ activeIcon, setActiveIcon }) => {
+const AdminSidebar = ({ activeIcon }) => {
     const navigate = useNavigate()
     const logout = useLogout()
 
@@ -42,56 +36,57 @@ const AdminSidebar = ({ activeIcon, setActiveIcon }) => {
             </div>
 
             {/* Navigation Icons */}
-            <div className="flex-1 flex flex-col items-center space-y-6">
+            <div className="flex-1 flex flex-col items-center space-y-6 text-white">
                 <div
                     className={getIconClasses("dashboard")}
                     onClick={() => navigate('/admin')}
                 >
-                    <img
-                        src={dashboardIcon}
-                        alt="dashboard"
+                    <LayoutDashboard
                         className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"
                     />
                 </div>
+
                 <div
                     className={getIconClasses("manage-users")}
                     onClick={() => navigate('/admin/manage/users')}
                 >
-                    <img
-                        src={userManageIcon}
-                        alt="users-manage"
+                    <Users
                         className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"
                     />
                 </div>
-                <div
-                    className={getIconClasses("manage-updates")}
-                    onClick={() => navigate('/admin/manage/updates')}
-                >
-                    <img
-                        src={updatesIcon}
-                        alt="updates"
-                        className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"
-                    />
-                </div>
+
                 <div
                     className={getIconClasses("manage-pet-type")}
                     onClick={() => navigate('/admin/manage/pets')}
                 >
-                    <img
-                        src={petsIcon}
-                        alt="pets"
+                    <PawPrint
                         className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"
                     />
                 </div>
-                {/* <div
-                    className={getIconClasses("reports")}
+
+                <div
+                    className={getIconClasses("manage-updates")}
+                    onClick={() => navigate('/admin/manage/updates')}
                 >
-                    <img
-                        src={reportsIcon}
-                        alt="reports"
+                    <Newspaper
                         className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"
                     />
-                </div> */}
+                </div>
+
+                <div
+                    className={getIconClasses("manage-reports")}
+                >
+                    <Flag
+                        className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"
+                    />
+                </div>
+                <div
+                    className={getIconClasses("admin-profile")}
+                >
+                    <UserCog
+                        className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"
+                    />
+                </div>
             </div>
 
             {/* Separator */}
@@ -99,7 +94,7 @@ const AdminSidebar = ({ activeIcon, setActiveIcon }) => {
 
             {/* Logout Icon */}
             <button onClick={handleLogout} className="my-5 flex items-center justify-center transform transition-transform duration-300 hover:scale-[1.2]">
-                <img src={adminLogoutIcon} alt="logout" className="w-1/5" />
+                <LogOut className="w-4 text-white" />
             </button>
         </div>
     )

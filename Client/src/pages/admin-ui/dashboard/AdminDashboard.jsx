@@ -1,54 +1,60 @@
 import React, { useState, useEffect } from "react";
 import MetricsCard from "../../../components/admin/dashboard/MetricsCard";
-import Button from "../../../components/forms/Button";
 import AdminLayout from "../../../components/admin/AdminLayout";
 import axiosInstance from "../../../axios/axiosinstance";
+import { PieChart } from '@mui/x-charts/PieChart';
 
 const AdminDashboard = () => {
-    const [activeIcon, setActiveIcon] = useState("dashboard");
+    const activeIcon = "dashboard"
     const [engagementData, setEngagementData] = useState([]);
+
+    const COLORS = ["#89ABE1", "#ECF4FF"];
 
     useEffect(() => {
         axiosInstance.get("posts/admin/metrics/engagement")
             .then(response => {
-                console.log("Fetched engagement data:", response.data);
                 setEngagementData(response.data);
             })
             .catch(error => {
-                console.error("Error fetching engagement data:", error);
+                return
             });
-    }, []);    
-
-    const barChartData = [
-        { name: "Likes", value: 300 },
-        { name: "Comments", value: 150 },
-        { name: "Saves", value: 200 },
-    ];
+    }, []);
 
     return (
-        <AdminLayout activeIcon={activeIcon} setActiveIcon={setActiveIcon} showWelcomeCard={true}>
-            <div className="flex my-4 justify-between">
-                <h1 className="text-xl lg:text-2xl font-medium text-midnightBlue">Recent Metrics</h1>
-                <Button
-                    type="button"
-                    text="Export"
-                    textColor="text-white"
-                    rounded="rounded-full"
-                    paddingx="px-5 lg:px-10"
-                    paddingy="py-0 lg:py-2"
-                    isLoading={false}
-                    isLoadingBackground="bg-labelGreen"
-                    className=""
-                    loadingText="Loading..."
-                    backgroundColor="bg-deepOceanBlue"
-                    hoverBackgroundColor="hover:bg-deep-ocean-blue-gradient-end"
-                />
-            </div>
+        <AdminLayout
+            activeIcon={activeIcon}
+            showWelcomeCard={true}
+            pageTitle={"Recent Metrics"}
+            pageDescription={"View recent platform metrics to track performance and user activity."}
+            actionButton={"Export"}
+            buttonAction={null}
+        >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <MetricsCard title="User Engagement" data={barChartData} type="bar" />
-                <MetricsCard title="User Growth" data={barChartData} type="bar" />
-                <MetricsCard title="Post Engagement Distribution" data={engagementData} type="pie" />
-                <MetricsCard title="Other Metric" data={barChartData} type="bar" />
+                <MetricsCard title="Subscription Metrics">
+
+                </MetricsCard>
+                <MetricsCard title="User Engagement">
+
+                </MetricsCard>
+                <MetricsCard title="Post Engagement">
+                    <PieChart
+                        series={[
+                            {
+                                data: engagementData.map((d, index) => ({
+                                    id: index,
+                                    value: d.value,
+                                    label: d.name,
+                                    color: COLORS[index % COLORS.length]
+                                }))
+                            }
+                        ]}
+                        width={400}
+                        height={150}
+                    />
+                </MetricsCard>
+                <MetricsCard title="Revenue Overview" >
+
+                </MetricsCard>
             </div>
         </AdminLayout>
     );

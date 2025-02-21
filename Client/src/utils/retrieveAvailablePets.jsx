@@ -12,7 +12,6 @@ export const retrieveAvailablePetTypes = async (dispatch) => {
             return response.data
         }
     } catch (error) {
-        console.error("Failed to fetch pet types:", error)
         return []
     }
 }

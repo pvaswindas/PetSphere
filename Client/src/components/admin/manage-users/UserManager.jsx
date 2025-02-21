@@ -6,7 +6,7 @@ import AdminManagementTable from './AdminManagementTable';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { reinstateUserAccount, suspendUserAccount } from '../../../utils/admin-utils/userActions';
 
-function UserManager() {
+function UserManager({ setButtonText, setHandleButton }) {
     const [currentSection, setCurrentSection] = useState("users");
 
     const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -28,6 +28,11 @@ function UserManager() {
         setCurrentSection((prev) => (prev === "admins" ? "users" : "admins"));
         setPage(1);
     };
+
+    useEffect(() => {
+        setButtonText(currentSection === "users" ? "Admins" : "Users")
+        setHandleButton(() => toggleSection)
+    }, [currentSection, setButtonText, setHandleButton])
 
     const fetchUsers = useCallback(async (query) => {
         try {
@@ -96,23 +101,6 @@ function UserManager() {
                 onClose={() => setSnackbarOpen(false)}
             />
             {/* Content Section */}
-            <div className="flex justify-between">
-                <div className="flex flex-col">
-                    <h1 className="text-xl lg:text-2xl font-medium text-midnightBlue">Manage Accounts</h1>
-                    <p className="text-xs mb-2 text-midnightBlue opacity-50">
-                        Manage accounts, roles, and permissions effortlessly.
-                    </p>
-                </div>
-                <div className="flex items-center">
-                    <button
-                        type="button"
-                        className="text-white rounded-full px-5 lg:px-10 py-0 lg:py-2 bg-deepOceanBlue hover:bg-deep-ocean-blue-gradient-end transition duration-300"
-                        onClick={toggleSection}
-                    >
-                        {currentSection === "users" ? "Admins" : "Users"}
-                    </button>
-                </div>
-            </div>
 
             {currentSection === "users" && (
                 <UserManagementTable

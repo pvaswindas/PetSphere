@@ -11,7 +11,6 @@ export const retrievePetBreeds = async (pet_type_id) => {
             return response.data
         }
     } catch (error) {
-        console.error("Failed to fetch pet types:", error)
         return []
     }
 }

@@ -8,7 +8,6 @@ export const fetchFollowers = createAsyncThunk(
     async(username, { dispatch, rejectWithValue }) => {
         try {
             const response = await axiosInstance.get(`socials/followers?username=${username}`);
-            console.log(response)
             dispatch(setFollowers(response.data));
         } catch (error) {
             return rejectWithValue(error)

@@ -23,18 +23,19 @@ const ImageUpload = ({ onChange, image, reset }) => {
 
     const onDrop = (acceptedFiles, fileRejections) => {
         if (fileRejections.length > 0) {
-            setSnackbarMessage("Invalid file type. Please upload an image.")
-            setSnackbarOpen(true)
-            return
+            setSnackbarMessage("Invalid file type. Please upload an image.");
+            setSnackbarOpen(true);
+            return;
         }
-
-        const file = acceptedFiles[0]
+    
+        const file = acceptedFiles[0];
         if (file) {
-            setSnackbarMessage("")
-            setUploadedFile(Object.assign(file, { preview: URL.createObjectURL(file) }))
-            onChange(file)
+            setSnackbarMessage("");
+            setUploadedFile(Object.assign(file, { preview: URL.createObjectURL(file) }));
+            onChange(file);
         }
-    }
+    };
+    
 
     const { getRootProps, getInputProps } = useDropzone({
         accept: { "image/*": [] },
@@ -43,12 +44,12 @@ const ImageUpload = ({ onChange, image, reset }) => {
     })
 
     useEffect(() => {
-        return () => {
-            if (uploadedFile?.preview) {
-                URL.revokeObjectURL(uploadedFile.preview)
-            }
+        if (image) {
+            setUploadedFile({ preview: image, name: "Existing Image" });
+        } else {
+            setUploadedFile(null);
         }
-    }, [uploadedFile])
+    }, [image]);    
 
     return (
         <div className="flex flex-col space-y-2 my-3">
