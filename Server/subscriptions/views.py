@@ -1,13 +1,16 @@
 import stripe
 from environs import Env
+from django.db.models import Sum
 from django.conf import settings
 from rest_framework import status
 from django.http import JsonResponse
+from datetime import datetime, timedelta
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 import stripe.error
+from rest_framework.decorators import api_view, permission_classes
 from petsphere.utils.common_utils import validate_authenticated_user
 from .models import (
     Plan, Payment, Subscription, Recharge
@@ -185,3 +188,61 @@ class PlanListView(APIView):
             return Response(serializer.data, status=200)
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
+
+# ------------------------------ Admin Insights ------------------------------
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def get_revenue(request):
+    today = datetime.now()
+    first_day_of_this_month = today.replace(day=1)
+    first_day_of_last_month = (
+        first_day_of_this_month - timedelta(days=1)
+    ).replace(day=1)
+
+    # Total revenue
+    total_subscription_revenue = Subscription.objects.aggregate(
+        total=Sum('payment__plan__price')
+    )['total'] or 0
+
+    total_recharge_revenue = Recharge.objects.aggregate(
+        total=Sum('payment__plan__price')
+    )['total'] or 0
+
+    total_revenue = total_subscription_revenue + total_recharge_revenue
+
+    # This month revenue
+    this_month_subscription_revenue = Subscription.objects.filter(
+        start_date__gte=first_day_of_this_month
+    ).aggregate(total=Sum('payment__plan__price'))['total'] or 0
+
+    this_month_recharge_revenue = Recharge.objects.filter(
+        start_date__gte=first_day_of_last_month
+    ).aggregate(total=Sum('payment__plan__price'))['total'] or 0
+
+    revenue_this_month = (
+        this_month_subscription_revenue + this_month_recharge_revenue
+    )
+
+    # Last month revenue
+    last_month_subscription_revenue = Subscription.objects.filter(
+        start_date__gte=first_day_of_last_month,
+        start_date__lt=first_day_of_this_month
+    ).aggregate(total=Sum('payment__plan__price'))['total'] or 0
+
+    last_month_recharge_revenue = Recharge.objects.filter(
+        start_date__gte=first_day_of_last_month,
+        start_date__lt=first_day_of_this_month
+    ).aggregate(total=Sum('payment__plan__price'))['total'] or 0
+
+    revenue_last_month = (
+        last_month_subscription_revenue + last_month_recharge_revenue
+    )
+
+    data = {
+        'total_revenue': total_revenue,
+        'revenue_this_month': revenue_this_month,
+        'revenue_last_month': revenue_last_month,
+    }
+
+    return Response(data)

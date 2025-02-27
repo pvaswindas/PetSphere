@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { FaCalendarAlt, FaBell } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import adminAvatar from "../../../assets/admin/admin-avatar.svg";
-import { useLogout } from "../../../hooks/useLogout";
+import adminAvatar from "../../assets/admin/admin-avatar.svg";
+import { useLogout } from "../../hooks/useLogout";
 import { useNavigate } from "react-router-dom";
-import useDebounce from "../../../hooks/useDebounce";
-import { clearAdminSearch, setAdminSearch } from "../../../redux/slices/AdminSearchSlice";
+import useDebounce from "../../hooks/useDebounce";
+import { clearAdminSearch, setAdminSearch } from "../../redux/slices/AdminSearchSlice";
 import { X } from "lucide-react";
 
 const AdminNavbar = () => {
@@ -48,7 +48,7 @@ const AdminNavbar = () => {
     return (
         <div className="w-full flex items-center justify-between bg-softSkyBlue p-3 rounded-full shadow-md">
             {/* Container for Search Bar & Profile on small screens */}
-            <div className="flex items-center justify-between w-full sm:w-[50%]">
+            <div className="flex items-center justify-between w-full sm:w-[48%]">
                 {/* Search Bar */}
                 <div className="flex items-center bg-white px-4 py-2 rounded-full shadow-sm w-[85%] lg:w-full h-10">
                     <input
@@ -91,11 +91,11 @@ const AdminNavbar = () => {
             </div>
 
             {/* Other Elements aligned to the right */}
-            <div className="sm:flex w-[45%] hidden items-center justify-between">
+            <div className="sm:flex w-[47%] hidden items-center justify-between gap-2">
                 {/* Calendar Icon */}
-                <div className="flex bg-white py-2 px-3 rounded-lg items-center space-x-2 text-gray-600 text-xs lg:text-base">
+                <div className="flex bg-white p-2 rounded-lg items-center gap-2 text-gray-600 text-xs lg:text-base">
                     <FaCalendarAlt size={16} />
-                    <span>{new Date().toLocaleDateString()}</span>
+                    <span>{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                 </div>
 
                 {/* Notification Icon */}

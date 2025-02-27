@@ -40,7 +40,7 @@ function UserView() {
                 onClose={() => setSnackbarOpen(false)}
             />
             {profile ? (
-                <div className="max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-5 mx-auto">
+                <div className="max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6 mx-auto">
                     {/* Personal & Contact Information */}
                     <PersonalInfo 
                         profile={profile} 

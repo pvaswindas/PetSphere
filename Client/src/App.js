@@ -52,6 +52,9 @@ import Feed from "./pages/user-ui/feed/Feed";
 import Messaging from "./pages/user-ui/chat/Messaging";
 import Chat from "./pages/user-ui/chat/Chat";
 import CallPage from "./pages/user-ui/video-call/CallPage";
+import AdminProfile from "./pages/admin-ui/profile/AdminProfile";
+import ManageReports from "./pages/admin-ui/reports/ManageReports";
+import NotFoundPage from "./pages/NotFoundPage";
 
 
 function App() {
@@ -73,7 +76,7 @@ function App() {
           !online ? (
             <OfflinePage />
           ) : (
-            <div className="bg-white lg:bg-gray-100 h-screen">
+            <div className="bg-gray-75 h-screen">
               <Routes>
                 {/* Landing Route */}
                 <Route path="/" element={<RestrictedRoute><Landing /></RestrictedRoute>} />
@@ -142,15 +145,24 @@ function App() {
                       <Routes>
                         <Route path="login" element={<AdminRestrictedRoute><AdminLoginPage /></AdminRestrictedRoute>} />
                         <Route path="" element={<AdminOnlyRoute><AdminDashboard /></AdminOnlyRoute>} />
+
                         <Route path="manage/pets" element={<AdminOnlyRoute><PetCatalogManager /></AdminOnlyRoute>} />
+
                         <Route path="manage/updates" element={<AdminOnlyRoute><AnnouncementsManager /></AdminOnlyRoute>} />
                         <Route path="manage/updates/list-view" element={<AdminOnlyRoute><AnnouncementsList /></AdminOnlyRoute>} />
+
                         <Route path="manage/users" element={<AdminOnlyRoute><UserManagePage /></AdminOnlyRoute>} />
                         <Route path="manage/users/view/:userId" element={<AdminOnlyRoute><UserDetailedViewPage /></AdminOnlyRoute>} />
+
+                        <Route path="manage/profile/" element={<AdminOnlyRoute><AdminProfile /></AdminOnlyRoute>} />
+
+                        <Route path="manage/reports/" element={<AdminOnlyRoute><ManageReports /></AdminOnlyRoute>} />
                       </Routes>
                     </div>
                   }
                 />
+
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </div>
           )

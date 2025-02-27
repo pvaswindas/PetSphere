@@ -27,11 +27,11 @@ function AdminBottombar({ activeIcon }) {
                 />
                 <Flag
                     className={getIconClasses("manage-reports")}
-                    onClick={() => navigate('/admin')}
+                    onClick={() => navigate('/admin/manage/reports/')}
                 />
                 <UserCog
                     className={getIconClasses("admin-profile")}
-                    onClick={() => navigate('/admin')}
+                    onClick={() => navigate('/admin/manage/profile/')}
                 />
             </div>
         </div>

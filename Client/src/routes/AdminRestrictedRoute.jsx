@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import axiosInstance from '../axios/axiosinstance';
 import { useSelector } from 'react-redux';
-import LoadingScreen from '../components/loading/LoadingScreen';
+import LoadingPage from '../pages/LoadingPage';
 
 function AdminRestrictedRoute({ children }) {
     const [isAuthorized, setIsAuthorized] = useState(null);
@@ -53,7 +53,7 @@ function AdminRestrictedRoute({ children }) {
         })();
     }, [validateAccessToken, admin, navigate]);
 
-    if (isAuthorized === null) return <LoadingScreen />
+    if (isAuthorized === null) return <LoadingPage />
 
     return !isAuthorized ? children : null;
 }

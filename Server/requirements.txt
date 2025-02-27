@@ -86,3 +86,7 @@ Twisted==24.11.0
 txaio==23.1.1
 yarl==1.18.3
 zope.interface==7.2
+cron-descriptor==1.4.5
+django-celery-beat==2.7.0
+django-timezone-field==7.1
+python-crontab==3.2.0

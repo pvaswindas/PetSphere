@@ -6,6 +6,10 @@ from django.core.mail import EmailMessage
 from django.conf import settings
 from django.template.loader import render_to_string
 from .utils.tokens import token_generator
+from rest_framework_simplejwt.token_blacklist.models import (
+    OutstandingToken
+)
+from django.utils.timezone import now
 
 env = Env()
 env.read_env()
@@ -123,3 +127,11 @@ def twilio_send_otp(phone_number, otp):
             f"Error sending OTP to {phone_number}: {str(e)}"
         )
         return f"Failed to send OTP: {str(e)}"
+
+
+@shared_task
+def delete_expired_tokens():
+    expired_tokens = OutstandingToken.objects.filter(expires_at__lt=now())
+    count = expired_tokens.count()
+    expired_tokens.delete()
+    return f"Deleted {count} expired tokens."

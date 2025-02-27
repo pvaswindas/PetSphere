@@ -133,7 +133,7 @@ const AnnouncementsList = () => {
             pageTitle={"Manage Feed Announcements"}
             pageDescription={"Add or change announcements for users to stay engaged and informed."}
         >
-            <div>
+            <div className="pb-10 lg:pb-0">
                 <AlertSnackbar
                     open={snackbarOpen}
                     message={snackbarMessage}

@@ -1,11 +1,12 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { FiEdit, FiTrash } from "react-icons/fi";
 import axiosInstance from "../../../axios/axiosinstance";
 import { setProfile } from "../../../redux/slices/ProfileSlice";
-import adminAvatar from "../../../assets/icon/user-avatar.svg"
+import userAvatar from "../../../assets/icon/user-avatar.svg"
+import AlertSnackbar from "../../Snackbar/AlertSnackbar";
 
 const EditProfileCard = () => {
     const profile = useSelector((state) => state.profile.profile_data);
@@ -13,6 +14,10 @@ const EditProfileCard = () => {
     const dispatch = useDispatch();
     const fileInputRef = useRef();
     const navigate = useNavigate();
+
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [alertType, setAlertType] = useState("error")
 
     const formData = {
         username: user?.username,
@@ -47,21 +52,9 @@ const EditProfileCard = () => {
             const response = await axiosInstance.patch("user/profile/", formData);
             if (response.status === 200) {
                 dispatch(setProfile({ profile_data: response.data }));
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Profile picture updated successfully!',
-                    showConfirmButton: true,
-                    confirmButtonText: 'Okay',
-                    width: window.innerWidth < 1024 ? '95%' : '30%',
-                    padding: '20px',
-                    customClass: {
-                        popup: 'popup-responsive',
-                    },
-                    showCloseButton: true,
-                    backdrop: true,
-                    timer: 5000,
-                    timerProgressBar: true,
-                });             
+                setSnackbarMessage("Profile picture updated successfully!")
+                setAlertType("success")
+                setSnackbarOpen(true)
             }
         } catch (error) {
             return
@@ -76,21 +69,9 @@ const EditProfileCard = () => {
             const response = await axiosInstance.patch("user/profile/", formData);
             if (response.status === 200) {
                 dispatch(setProfile({ profile_data: response.data }));
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Profile picture deleted successfully!',
-                    showConfirmButton: true,
-                    confirmButtonText: 'Okay',
-                    width: window.innerWidth < 1024 ? '95%' : '30%',
-                    padding: '20px',
-                    customClass: {
-                        popup: 'popup-responsive',
-                    },
-                    showCloseButton: true,
-                    backdrop: true,
-                    timer: 5000,
-                    timerProgressBar: true,
-                });               
+                setSnackbarMessage("Profile picture deleted successfully!")
+                setAlertType("success")
+                setSnackbarOpen(true)        
             }
         } catch (error) {
             return
@@ -100,6 +81,12 @@ const EditProfileCard = () => {
 
     return (
         <div className="flex flex-col items-center justify-start w-full min-h-screen">
+            <AlertSnackbar
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type={alertType}
+                onClose={() => setSnackbarOpen(false)}
+            />
             <div className="w-full bg-white p-6 lg:rounded-2xl lg:shadow-sm lg:hover:shadow-lg transition-all duration-300">
                 <h1 className="text-lg lg:text-2xl font-semibold text-gray-800 mt-4 mb-8 text-start">
                     Edit Profile
@@ -109,7 +96,7 @@ const EditProfileCard = () => {
                 <div className="flex flex-col items-center mb-8">
                     <div className="relative group">
                         <img
-                            src={formData?.profile_picture || adminAvatar}
+                            src={formData?.profile_picture || userAvatar}
                             alt="Profile"
                             className="w-36 h-36 lg:w-40 lg:h-40 rounded-full border-4 border-white object-cover hover:scale-105 transition-all duration-300"
                         />

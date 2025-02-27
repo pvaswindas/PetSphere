@@ -75,6 +75,7 @@ const AdminSidebar = ({ activeIcon }) => {
 
                 <div
                     className={getIconClasses("manage-reports")}
+                    onClick={() => navigate('/admin/manage/reports/')}
                 >
                     <Flag
                         className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"
@@ -82,6 +83,7 @@ const AdminSidebar = ({ activeIcon }) => {
                 </div>
                 <div
                     className={getIconClasses("admin-profile")}
+                    onClick={() => navigate('/admin/manage/profile/')}
                 >
                     <UserCog
                         className="w-4 transform transition-transform duration-300 hover:scale-[1.3]"

@@ -61,4 +61,27 @@
     .backface-hidden {
         backface-visibility: hidden;
     }
-}  
+}
+
+
+@layer components {
+    .calendar-container {
+        @apply bg-deepOceanBlue text-white;
+    }
+
+    .calendar-container .react-calendar__tile {
+        @apply text-white;
+    }
+
+    .calendar-container .react-calendar__tile:hover {
+        @apply bg-blue-800 text-black;
+    }
+
+    .calendar-container .react-calendar__tile--active {
+        @apply bg-blue-900 text-white;
+    }
+
+    .calendar-container .react-calendar__navigation button {
+        @apply text-white;
+    }
+}

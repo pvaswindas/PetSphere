@@ -26,7 +26,7 @@ function PostDisplay() {
                 </div>
 
                 {/* Content Section */}
-                <div className="flex-1 w-full lg:w-3/5 lg:mx-3 overflow-y-auto h-[calc(100vh-56px)] lg:rounded-lg pb-12">
+                <div className="flex-1 w-full lg:w-3/5 lg:px-3 overflow-y-auto h-[calc(100vh-56px)] lg:rounded-lg pb-12">
                     {/* Profile Card */}
                     <PostDisplayCard />
                 </div>

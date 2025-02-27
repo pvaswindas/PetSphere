@@ -6,7 +6,7 @@ from .views import (
      UserProfileView, DeactivateAccountView, ReactivateAccountView,
      LogoutView, GoogleLoginView,
      check_username, verify_phone_number, verify_mobile_otp, find_your_account,
-     suspend_account, reinstate_account,
+     suspend_account, reinstate_account, active_users,
 )
 
 urlpatterns = [
@@ -51,4 +51,6 @@ urlpatterns = [
      # -------------------- Google Authentication --------------------
      path('google-login/', GoogleLoginView.as_view(), name='google-login'),
 
+     # ---------------------------- Admin Insights ----------------------------
+     path('active-users/', active_users, name='active-users'),
 ]

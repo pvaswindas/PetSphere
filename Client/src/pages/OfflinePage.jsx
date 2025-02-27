@@ -23,23 +23,14 @@ const OfflinePage = () => {
 
             {/* Main Content */}
             <div className="flex flex-col items-center justify-center h-full">
-                {/* Logo & Title */}
-                <motion.div 
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                    className="flex items-center mb-6"
-                >
-                    <h1 className="text-4xl font-bold text-white ml-3">PetSphere</h1>
-                </motion.div>
-
                 {/* Connection Status Animation */}
                 <div className="relative flex justify-center mb-6">
                     <Wifi className="w-16 h-16 text-softSkyBlue opacity-50 animate-pulse absolute" />
-                    <CloudOff className="w-16 h-16 text-palePink animate-spin-slow z-10" />
+                    <CloudOff className="w-16 h-16 text-white animate-spin-slow z-10" />
                 </div>
 
                 {/* Message */}
-                <h2 className="text-2xl font-semibold text-white mb-4">No Internet Connection</h2>
+                <h2 className="text-2xl font-semibold text-white mb-4">Lost Connection</h2>
                 <p className="text-lightTextGreyOpacity30 mb-6">
                     Oops! It seems you're offline. Please check your connection and try again.
                 </p>

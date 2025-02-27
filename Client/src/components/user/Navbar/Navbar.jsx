@@ -30,7 +30,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="w-full bg-white shadow-md flex items-center justify-between lg:px-4 py-1 lg:py-2">
+      <nav className="w-full bg-white lg:shadow-md flex items-center justify-between lg:px-4 py-1 lg:py-2">
         {/* Start Section */}
         <div className="flex items-center space-x-4">
           {/* Logo */}

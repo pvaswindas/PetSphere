@@ -11,7 +11,7 @@ export const fetchTotalReportedIssues = async () => {
 }
 
 // Team Members
-export const getLatestTeamMembers = async (count = 4) => {
+export const fetchLatestTeamMembers = async (count = 4) => {
     try {
         const response = await axiosInstance.get(`user/get-latest-staffs/?limit=${count}`)
         return response.data
@@ -21,18 +21,9 @@ export const getLatestTeamMembers = async (count = 4) => {
 }
 
 // Users
-export const fetchTotalActiveUsers = async () => {
+export const fetchActiveUsers = async () => {
     try {
-        const response = await axiosInstance.get()
-        return response.data
-    } catch (error) {
-        throw error
-    }
-}
-
-export const fetchUserGrowthFromLastMonth = async () => {
-    try {
-        const response = await axiosInstance.get()
+        const response = await axiosInstance.get('accounts/active-users/')
         return response.data
     } catch (error) {
         throw error
@@ -40,18 +31,9 @@ export const fetchUserGrowthFromLastMonth = async () => {
 }
 
 // Revenue
-export const fetchTotalRevenue = async () => {
+export const fetchRevenue = async () => {
     try {
-        const response = await axiosInstance.get()
-        return response.data
-    } catch (error) {
-        throw error
-    }
-}
-
-export const fetchRevenueGrowthFromLastMonth = async () => {
-    try {
-        const response = await axiosInstance.get()
+        const response = await axiosInstance.get('subscription/get-revenue/')
         return response.data
     } catch (error) {
         throw error

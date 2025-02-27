@@ -8,18 +8,19 @@ const CalendarViewCard = () => {
     const onChange = (newDate) => setDate(newDate);
 
     return (
-        <div className="bg-deepOceanBlue shadow-lg flex items-center justify-center rounded-3xl h-[335px] my-8 w-full">
-            <div className="relative w-full h-full p-4">
+        <div className="bg-deepOceanBlue shadow-lg p-6 flex items-center justify-center rounded-3xl h-[335px] w-full">
+            <div className="relative w-full h-full">
                 <Calendar
                     onChange={onChange}
                     value={date}
                     prevLabel="<"
                     nextLabel=">"
-                    className="calendar-container text-white bg-deepOceanBlue border-0"
+                    calendarClassName="bg-deepOceanBlue text-white hover:text-white"
+                    className="calendar-container text-white bg-deepOceanBlue border-0 hover:text-white"
                     locale="en-US"
                     tileClassName={({ date, view }) =>
-                        "transition duration-200 rounded-md hover:bg-blue-800 hover:text-black"
-                    }
+                        "transition duration-200 rounded-md hover:bg-midnightBlue text-white hover:text-white"
+                    }                    
                 />
             </div>
         </div>

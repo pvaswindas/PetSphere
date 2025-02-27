@@ -97,7 +97,7 @@ const AnnouncementContent = () => {
     };
 
     return (
-        <div>
+        <div className="pb-10 lg:pb-0">
             <AlertSnackbar
                 open={snackbarOpen}
                 message={snackbarMessage}
@@ -105,7 +105,7 @@ const AnnouncementContent = () => {
                 onClose={() => setSnackbarOpen(false)}
             />
             {/* Content Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FlexiCard title={"Add Announcement"} description={"Add new announcement for users to stay engaged and informed."}>
                     <TextFieldInput
                         label="Title"
