@@ -56,7 +56,7 @@ function HomePreview({ pawStories = [] }) {
     }, [showComment]);
 
     return (
-        <div className={`relative overflow-hidden ${!isLoading && showComment ? "md:max-h-[76.9vh] rounded-lg" : ""}`}>
+        <div className={`relative overflow-hidden pb-16 ${!isLoading && showComment ? "md:max-h-[76.9vh] rounded-lg" : ""}`}>
             <AlertSnackbar
                 open={snackbarOpen}
                 message={snackbarMessage}

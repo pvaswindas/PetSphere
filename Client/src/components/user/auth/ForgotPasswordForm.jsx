@@ -69,7 +69,6 @@ function ForgotPasswordForm() {
                     localStorage.removeItem("reset_password_url");
                 }, 3000);
             } else if (response.status === 408) {
-                console.log("TIMEOUT");
                 setSnackbarMessage("Reset Password Link Expired!");
                 setSnackbarAlertType("error");
                 setSnackbarOpen(true);
@@ -80,7 +79,6 @@ function ForgotPasswordForm() {
             }            
         } catch (error) {
             if (error.status === 408) {
-                console.log("TIMEOUT");
                 setSnackbarMessage("Reset Password Link Expired!");
                 setSnackbarAlertType("error");
                 setSnackbarOpen(true);

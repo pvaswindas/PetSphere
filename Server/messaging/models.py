@@ -25,6 +25,18 @@ class Conversation(models.Model):
 
 
 class Message(models.Model):
+    TEXT = "text"
+    IMAGE = "image"
+    VIDEO = "video"
+    MIXED = "mixed"
+
+    MESSAGE_TYPES = [
+        (TEXT, "Text"),
+        (IMAGE, "Image"),
+        (VIDEO, "Video"),
+        (MIXED, "Mixed"),
+    ]
+
     sender = models.ForeignKey(
         PetSphereUser, on_delete=models.CASCADE, related_name="sent_messages"
     )
@@ -33,16 +45,38 @@ class Message(models.Model):
         related_name="received_messages"
     )
     conversation = models.ForeignKey(
-        Conversation, on_delete=models.CASCADE, related_name="messages"
+        "Conversation", on_delete=models.CASCADE, related_name="messages"
     )
-    content = models.TextField()
+
+    content = models.TextField(null=True, blank=True)
+    media_file = models.FileField(
+        upload_to="messages/media/", null=True, blank=True
+    )
+    message_type = models.CharField(
+        max_length=10, choices=MESSAGE_TYPES, default=TEXT
+    )
+
     timestamp = models.DateTimeField(auto_now_add=True)
     read = models.BooleanField(default=False)
 
-    # Message visibility tracking
     sender_deleted = models.BooleanField(default=False)
     receiver_deleted = models.BooleanField(default=False)
     fully_deleted = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        """Automatically determine message type based on content and media."""
+        if self.content and self.media_file:
+            self.message_type = self.MIXED
+        elif self.media_file:
+            if self.media_file.name.lower().endswith(
+                (".mp4", ".mkv", ".avi", ".mov")
+            ):
+                self.message_type = self.VIDEO
+            else:
+                self.message_type = self.IMAGE
+        else:
+            self.message_type = self.TEXT
+        super().save(*args, **kwargs)
 
     def delete_for_user(self, user):
         """Marks the message as deleted for a specific user."""
@@ -57,3 +91,6 @@ class Message(models.Model):
         if user == self.sender:
             self.fully_deleted = True
             self.save()
+
+    def __str__(self):
+        return f"From {self.sender.username} to {self.receiver.username}"

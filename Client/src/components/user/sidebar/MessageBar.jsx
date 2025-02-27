@@ -105,7 +105,7 @@ function MessageBar() {
             </div>
 
             {/* View All link at the bottom */}
-            {filteredConversations.length > 0 && (
+            {filteredConversations.length > 7 && (
                 <div className="mt-auto text-left text-sm">
                     <a href="/messages" className="text-teal-700 hover:text-teal-500">View All</a>
                 </div>

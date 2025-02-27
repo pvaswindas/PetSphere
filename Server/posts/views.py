@@ -13,7 +13,7 @@ from cryptography.fernet import Fernet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.decorators import api_view, permission_classes
 
 # Internal modules
@@ -658,3 +658,19 @@ class PetMarketplaceView(APIView):
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def post_engagement_metrics(request):
+    pawstories_count = Post.objects.count()
+    petselling_count = PetListing.objects.filter(post_type="Selling").count()
+    petadoption_count = PetListing.objects.filter(post_type="Adoption").count()
+
+    data = [
+        {"name": "Listings", "value": petselling_count},
+        {"name": "Adoption", "value": petadoption_count},
+        {"name": "Stories", "value": pawstories_count},
+    ]
+
+    return Response(data)

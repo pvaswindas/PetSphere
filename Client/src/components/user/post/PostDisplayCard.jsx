@@ -99,7 +99,7 @@ const   PostDisplayCard = memo(() => {
                 callback(response);
             }
         } catch (error) {
-            console.error("Error fetching liked users:", error);
+            return
         }
     }, [dispatch, post_id]);
 
@@ -123,7 +123,6 @@ const   PostDisplayCard = memo(() => {
     };
 
     const handlePostSettingsToggle = (field, value) => {
-        console.log(field, value);
         dispatch(updatePawstory({
             slug: post.slug,
             data: {[field]: value}

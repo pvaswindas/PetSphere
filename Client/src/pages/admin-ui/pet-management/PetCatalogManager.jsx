@@ -4,11 +4,19 @@ import PetCatalogContent from "../../../components/admin/manage-pets/PetCatalogC
 
 
 const PetCatalogManager = () => {
-    const [activeIcon, setActiveIcon] = useState("manage-pet-type")
+    const activeIcon = "manage-pet-type"
+    const [buttonText, setButtonText] = useState("Breeds")
+    const [handleButton, setHandleButton] = useState(null)
     
     return (
-        <AdminLayout activeIcon={activeIcon} setActiveIcon={setActiveIcon}>
-            <PetCatalogContent />
+        <AdminLayout
+            activeIcon={activeIcon}
+            pageTitle={"Manage Pets"}
+            pageDescription={"Organize pet types and breeds for accurate listings."}
+            actionButton={buttonText}
+            buttonAction={handleButton}
+        >
+            <PetCatalogContent setButtonText={setButtonText} setHandleButton={setHandleButton} />
         </AdminLayout>
     )
 }

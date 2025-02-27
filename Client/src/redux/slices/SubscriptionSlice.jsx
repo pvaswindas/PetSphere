@@ -9,9 +9,7 @@ export const    fetchPlans = createAsyncThunk('subscriptions/fetchPlans', async 
     export const createCheckoutSession = createAsyncThunk(
         'subscriptions/createCheckoutSession',
         async (planId) => {
-            console.log("Sending Plan ID to Backend:", planId);
             const response = await axiosInstance.post('subscription/checkout-session/', { plan_id: planId });
-            console.log(response.data);
             return response.data;
         }
     );

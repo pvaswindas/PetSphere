@@ -36,7 +36,7 @@ const UserManagementTable = (
     }
 
     return (
-        <div className="min-h-[440px]">
+        <div className="min-h-[440px] pb-24 lg:pb-16">
             <table className="min-w-full border-separate text-sm text-darkDenimBlue70" style={{ borderSpacing: "0 10px" }}>
                 <thead className="bg-white shadow-sm font-light overflow-x-auto rounded-lg">
                     <tr>

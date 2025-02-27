@@ -7,7 +7,7 @@ import animation1 from "../../../assets/lottie/Animation - 1739180112457.json";
 
 function FindAFriendPreview({ petListings = [] }) {
     return (
-        <div className='md:grid md:grid-cols-2 md:gap-3 space-y-5 md:space-y-0'>
+        <div className='md:grid md:grid-cols-2 pb-16 md:gap-3 space-y-5 md:space-y-0 px-2'>
             {petListings.length > 0 ? (
                 petListings.map((listing, index) => (
                     <motion.div 

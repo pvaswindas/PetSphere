@@ -12,7 +12,6 @@ const AdminManagementTable = ({ superusers }) => {
                         <th className="px-6 py-2 text-left rounded-l-lg">Name</th>
                         <th className="px-6 py-2 hidden lg:flex text-left">Role</th>
                         <th className="px-6 py-2 text-left">Staff Since</th>
-                        <th className="px-6 py-2 text-center rounded-r-lg"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -45,9 +44,6 @@ const AdminManagementTable = ({ superusers }) => {
                             </td>
                             <td className="px-6 py-3 align-middle">
                                 {formatDate(profile.user.date_joined)}
-                            </td>
-                            <td className="px-6 py-3 align-middle flex justify-center items-center">
-                                <MoreVertical className="w-4 h-4 cursor-pointer" />
                             </td>
                         </tr>
                     ))}

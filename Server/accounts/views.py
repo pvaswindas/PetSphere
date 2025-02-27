@@ -544,6 +544,7 @@ def suspend_account(request, user_id):
     try:
         user = PetSphereUser.objects.get(pk=user_id)
         user.is_suspended = True
+        user.is_active = False
         user.save()
         return Response({'success': 'Account suspended successfully'})
     except PetSphereUser.DoesNotExist:
@@ -564,6 +565,7 @@ def reinstate_account(request, user_id):
     try:
         user = PetSphereUser.objects.get(pk=user_id)
         user.is_suspended = False
+        user.is_active = True
         user.save()
         return Response({'success': 'Account reinstate successfully'})
     except Exception as e:
@@ -624,3 +626,37 @@ class GoogleLoginView(APIView):
         except ValueError as e:
             return Response({'error': 'Invalid token', 'details': str(e)},
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+# ------------------------------ Admin Insights ------------------------------
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def active_users(request):
+    today = datetime.now()
+    first_day_of_this_month = today.replace(day=1)
+    first_day_of_last_month = (
+        first_day_of_this_month - timedelta(days=1)
+    ).replace(day=1)
+
+    active_users = PetSphereUser.objects.filter(
+        is_active=True, is_staff=False
+    ).count()
+
+    users_this_month = PetSphereUser.objects.filter(
+        is_staff=False,
+        date_joined__gte=first_day_of_this_month
+    ).count()
+
+    users_last_month = PetSphereUser.objects.filter(
+        is_staff=False,
+        date_joined__gte=first_day_of_last_month,
+        date_joined__lt=first_day_of_this_month
+    ).count()
+
+    data = {
+        "active_users": active_users,
+        "users_this_month": users_this_month,
+        "users_last_month": users_last_month,
+    }
+
+    return Response(data)

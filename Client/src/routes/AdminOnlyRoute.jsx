@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import axiosInstance from '../axios/axiosinstance';
 import { useSelector } from 'react-redux';
-import LoadingScreen from '../components/loading/LoadingScreen';
+import LoadingPage from '../pages/LoadingPage';
 
 function AdminOnlyRoute({ children }) {
     const [isAuthorized, setIsAuthorized] = useState(null);
@@ -21,7 +21,6 @@ function AdminOnlyRoute({ children }) {
                 return true;
             }
         } catch (error) {
-            console.error('Token refresh failed:', error);
             return false;
         }
     }, []);
@@ -38,9 +37,8 @@ function AdminOnlyRoute({ children }) {
             }
             return true;
         } catch (error) {
-            console.error('Token validation failed:', error);
+            return false;
         }
-        return false;
     }, [refreshAccessToken]);
 
     useEffect(() => {
@@ -64,7 +62,7 @@ function AdminOnlyRoute({ children }) {
     }, [validateAccessToken, admin, navigate]);
 
     if (isAuthorized === null) {
-        return <LoadingScreen />
+        return <LoadingPage />
     }
 
     return isAuthorized ? children : null;

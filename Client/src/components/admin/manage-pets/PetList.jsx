@@ -52,7 +52,6 @@ const PetList = ({ data, handleEdit, handleDelete, type, title, description }) =
                     {data?.length > 4 && (
                     <button
                         className="absolute bottom-[-1rem] py-2 lg:py-0 right-4 text-blue-500 text-sm font-medium hover:underline focus:outline-none"
-                        onClick={() => console.log("View All clicked")}
                     >
                         View All
                     </button>

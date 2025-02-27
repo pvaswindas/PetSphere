@@ -105,7 +105,7 @@ function NavigationPanel(){
                 </button> */}
 
                 {/* Settings Button */}
-                <button
+                {/* <button
                     className={`${buttonCommonStyle} ${ isActive('/settings') ? ifActive : ifNonActive }`}
                 >
                     <img
@@ -114,7 +114,7 @@ function NavigationPanel(){
                         className="w-[13px]"
                     />
                     <h2 className={h2CommonStyle} >Settings</h2>
-                </button>
+                </button> */}
             </div>
     )
 }

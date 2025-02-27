@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
      follow_user, unfollow_user, mutual_friends,
-     like_post, fetch_liked_users,
+     like_post, fetch_liked_users, get_followers, get_followings,
      CommentView, ListCommentsForPostView, like_comment
 )
 
@@ -31,4 +31,6 @@ urlpatterns = [
      path(
           "comments/like/<int:comment_id>/", like_comment, name="like-comment"
      ),
+     path('followers/', get_followers, name='get_followers'),
+     path('followings/', get_followings, name='get_followings'),
 ]

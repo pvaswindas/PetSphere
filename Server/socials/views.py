@@ -13,6 +13,8 @@ from rest_framework.decorators import api_view, permission_classes
 from .models import (
     Like, Comment, Follower, CommentLike
 )
+from user_profile.models import Profile
+from user_profile.serializers import ProfileSerializer
 from .serializers import (
     CommentSerializer
 )
@@ -97,15 +99,59 @@ def mutual_friends(request, user_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_followers(request, username):
+def get_followers(request):
     try:
+        username = request.query_params.get("username")
         if (username):
             user = get_object_or_404(PetSphereUser, username=username)
         else:
             user = validate_authenticated_user(request)
             if isinstance(user, Response):
                 return user
-        followers = user.following_relations.all()
+        followers = Follower.objects.filter(following=user)
+        follower_profiles = Profile.objects.filter(
+            user__in=[user.follower for user in followers]
+        )
+        serializer = ProfileSerializer(
+            follower_profiles,
+            many=True,
+            context={
+                'request': request,
+                'optional_fields': ['user', 'profile_picture']
+            }
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_followings(request):
+    try:
+        username = request.query_params.get("username")
+        if (username):
+            user = get_object_or_404(PetSphereUser, username=username)
+        else:
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
+        followings = Follower.objects.filter(follower=user)
+        followings_profiles = Profile.objects.filter(
+            user__in=[follow.following for follow in followings]
+        )
+        serializer = ProfileSerializer(
+            followings_profiles,
+            many=True,
+            context={
+                'request': request,
+                'optional_fields': ['user', 'profile_picture']
+            }
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response(
             {"error": str(e)},

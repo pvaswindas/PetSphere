@@ -10,7 +10,7 @@ import { retrieveAvailablePetTypes } from "../../../utils/retrieveAvailablePets"
 import PetList from "./PetList"
 import { retrieveAvailablePetBreeds } from "../../../utils/retrieveAvailablePetBreeds"
 
-const PetCatalogContent = () => {
+const PetCatalogContent = ({ setButtonText, setHandleButton }) => {
     const [currentSection, setCurrentSection] = useState("pet-types")
     const [title, setTitle] = useState("")
     const [content, setContent] = useState("")
@@ -33,6 +33,11 @@ const PetCatalogContent = () => {
         setContent("")
         setSelectedPetType("")
     }
+
+    useEffect(() => {
+        setButtonText(currentSection === "pet-types" ? "Breeds" : "Types")
+        setHandleButton(() => toggleSection)
+    }, [currentSection, setButtonText, setHandleButton])
 
     const handleChange = (value, field) => {
         if (field === "title") setTitle(value)
@@ -160,35 +165,9 @@ const PetCatalogContent = () => {
                 onClose={() => setSnackbarOpen(false)}
             />
             {/* Content Section */}
-            <div className="flex justify-between">
-                <div className="flex flex-col justify-between">
-                    <h1 className="text-xl lg:text-2xl font-medium text-midnightBlue">Manage Pets</h1>
-                    <p className="text-xs mb-2 text-midnightBlue opacity-50">
-                        Organize pet types and breeds for accurate listings and easy navigation.
-                    </p>
-                </div>
-                <div className="flex items-center">
-                    <Button
-                        type="button"
-                        text={`${currentSection === "pet-types" ? "Breeds" : "Types"}`}
-                        textColor="text-white"
-                        rounded="rounded-full"
-                        paddingx="px-5 lg:px-10"
-                        paddingy="py-0 lg:py-2"
-                        isLoading={false}
-                        isLoadingBackground="bg-pastelBlue"
-                        className=""
-                        loadingText="Loading..."
-                        backgroundColor="bg-deepOceanBlue"
-                        hoverBackgroundColor="hover:bg-deep-ocean-blue-gradient-end"
-                        onClick={toggleSection}
-                    />
-                </div>
-            </div>
-
             {/* Conditional Rendering for FlexiCards */}
             {currentSection === "pet-types" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FlexiCard
                         title={"Add New Pet Type"}
                         description={"Create a new pet type to categorize animals for better organization."}

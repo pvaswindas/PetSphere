@@ -6,6 +6,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        gray : {
+          75: '#f7f7f8'
+        },
         labelGreen: '#005747',
         hoverGreen: '#007058',
         borderGreen: '#69BFAE',
@@ -25,6 +28,7 @@ module.exports = {
         lightTextGreyOpacity30: 'rgba(185, 185, 185, 0.3)',
         dimGray: '#626262',
         deepOceanBlue: '#2959A1',
+        deepCrimsonRed: '#A12929',
         midnightBlue: '#08244E',
         softSkyBlue: '#ECF4FF',
         softSkyBlue80: 'rgba(236, 244, 255, 0.8)',
@@ -33,6 +37,7 @@ module.exports = {
         darkDenimBlue: '#1E4681',
         darkDenimBlue70: 'rgba(30, 70, 129, 0.7)',
         midnightNavy: '#1B3E73',
+        deepRoyalBlue: '#25079D',
       },
       backgroundImage: {
         'og-gradient': 'linear-gradient(to right, #0FA59B, #904DAC)',
@@ -49,6 +54,7 @@ module.exports = {
         'btn-disabled-gradient': 'linear-gradient(to right, #B2B2B2, #E0E0E0)',
         'deep-ocean-blue-gradient': 'linear-gradient(to bottom, #1153B4, #1151B1, #1150AE, #104DA8, #0F479B, #0C3B81, #08244E)',
         'deep-ocean-blue-gradient-end': 'linear-gradient(to right, #1153B4, #1151B1, #1150AE, #104DA8, #0F479B, #0C3B81, #08244E)',
+        'deep-crimson-red-gradient-end': 'linear-gradient(to right, #B41111, #B10F0F, #AE0F0F, #A80F0F, #9B0F0F, #810C0C, #4E0808)',
       },
       animation: {
         wobble: 'wobble 1s ease-in-out infinite',

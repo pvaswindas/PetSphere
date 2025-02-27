@@ -11,6 +11,7 @@ from socials.utils.mutual_friends import get_mutual_friends_count
 from socials.models import Follower
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.decorators import api_view, permission_classes
 
 
 class ProfileView(APIView):
@@ -111,7 +112,7 @@ class PeopleListView(APIView):
         users_list = list(users)
 
         users_with_details = []
-        for profile in users_list[:20]:
+        for profile in users_list[:21]:
             is_following = profile.user.id in following_ids
             user_data = ProfileSerializer(
                 profile,
@@ -214,3 +215,64 @@ class AccountDetailView(generics.RetrieveUpdateAPIView):
                 {"error": "Profile with the given user ID does not exist."},
                 status=status.HTTP_404_NOT_FOUND
             )
+        except Exception as e:
+            return Response(
+                {
+                    "status": "failure",
+                    "message":
+                    "An error occurred while processing your request.",
+                    "error": str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def getLatestTeamMembers(request):
+    try:
+        limit = request.query_params.get('limit', 4)
+        try:
+            limit = int(limit)
+        except ValueError:
+            return Response(
+                {
+                    "status": "failure",
+                    "message": "Invalid limit parameter."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        latest_staffs = Profile.objects.filter(
+            user__is_staff=True
+        ).order_by('-user__date_joined')[:limit]
+
+        latest_staffs = latest_staffs[::-1]
+
+        serializer = ProfileSerializer(
+            latest_staffs,
+            many=True,
+            context={
+                'request': request,
+                'optional_fields': ['user', 'profile_picture'],
+                'only_username': True
+            }
+        )
+        return Response(
+            {
+                "status": "success",
+                "data": serializer.data,
+                "message": "Latest team members retrieved successfully."
+            },
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        print(str(e))
+        return Response(
+            {
+                "status": "failure",
+                "message": "An error occurred while processing your request.",
+                "error": str(e)
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

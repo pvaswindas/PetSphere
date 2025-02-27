@@ -53,7 +53,7 @@ const MapboxLocationPicker = () => {
                 pincode,
             });
         } catch (error) {
-            console.error('Error fetching address:', error);
+            return
         }
     };
 
@@ -72,7 +72,6 @@ const MapboxLocationPicker = () => {
                 setLoading(false);
             },
             (error) => {
-                console.error('Error fetching user location:', error);
                 setLoading(false);
             }
         );
@@ -93,7 +92,6 @@ const MapboxLocationPicker = () => {
 
             if (response.status === 200) {
                 const petListing = response.data.petListing;
-                console.log(petListing);
                 const formData = new FormData();
                 const updatedPetListing = {
                     longitude: location.longitude,

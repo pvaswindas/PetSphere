@@ -4,12 +4,15 @@ import editIcon from "../../../assets/icon/edit-icon.svg"
 import axiosInstance from '../../../axios/axiosinstance'
 import { setProfile } from '../../../redux/slices/ProfileSlice'
 import userAvatar from "../../../assets/icon/user-avatar.svg"
+import { FiEdit, FiTrash } from "react-icons/fi";
 
-const ProfileHeader = ({ profile, isCurrentUser }) => {
+const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
     const [showConfirmCard, setShowConfirmCard] = useState(false);
     const dispatch = useDispatch();
+
+    const user = profile ? profile.user : null;
 
     const handleImageSelection = (event) => {
         const file = event.target.files[0];
@@ -18,6 +21,15 @@ const ProfileHeader = ({ profile, isCurrentUser }) => {
             setPreviewImage(URL.createObjectURL(file));
             setShowConfirmCard(true);
         }
+    };
+
+    const formData = {
+        username: user?.username,
+        email: user?.email,
+        name: user?.name || "",
+        bio: profile?.bio || "",
+        mobile_no: user?.mobile_no || "",
+        profile_picture: profile?.profile_picture || null,
     };
 
     const handleSaveImage = async () => {
@@ -36,7 +48,7 @@ const ProfileHeader = ({ profile, isCurrentUser }) => {
                 dispatch(setProfile({ profile_data: response.data }));
             }
         } catch (error) {
-            console.error("Error uploading image:", error);
+            return
         }
     };
 
@@ -47,17 +59,17 @@ const ProfileHeader = ({ profile, isCurrentUser }) => {
                 <img
                     src={previewImage || profile.cover_image}
                     alt="Cover"
-                    className="w-full h-[130px] lg:h-[280px] object-cover"
+                    className={`object-cover ${isAdmin ? "w-full h-[100px] lg:h-[110px] rounded-2xl" : "w-full h-[130px] lg:h-[280px]"}`}
                 />
             ) : (
-                <div className="w-full h-[130px] lg:h-[280px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                <div className={`${isAdmin ? "w-full h-[100px] lg:h-[110px] bg-deepRoyalBlue rounded-2xl" : "w-full h-[130px] lg:h-[280px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"}`}></div>
             )}
 
             {/* Edit Icon - Only for current user */}
             {isCurrentUser && (
-                <div className="absolute top-4 right-4 cursor-pointer">
+                <div className={`absolute cursor-pointer ${isAdmin ? "top-2 right-2" : "top-4 right-4"}`}>
                     <label>
-                        <img src={editIcon} alt="Edit" className="w-4 h-4 lg:w-6 lg:h-6" />
+                        <img src={editIcon} alt="Edit" className={`${isAdmin ? "w-5 h-5" : "w-4 h-4 lg:w-6 lg:h-6 cursor-pointer"}`} />
                         <input
                             type="file"
                             accept="image/*"
@@ -69,11 +81,11 @@ const ProfileHeader = ({ profile, isCurrentUser }) => {
             )}
 
             {/* Profile Image */}
-            <div className="absolute bottom-[-50px] left-4 lg:left-8">
+            <div className={`absolute ${isAdmin ? "left-1/2 transform -translate-x-1/2 bottom-[-33px]" : "bottom-[-50px] left-4 lg:left-8"}`}>
                 <img
                     src={profile?.profile_picture || userAvatar}
                     alt="Profile"
-                    className="w-[100px] h-[100px] lg:w-[140px] lg:h-[140px] rounded-full border-4 border-white object-cover"
+                    className={`rounded-full object-cover ${isAdmin ?  "w-[65px] h-[65px]" : "w-[120px] h-[120px] lg:w-[150px] lg:h-[150px]"}`}
                 />
             </div>
 
