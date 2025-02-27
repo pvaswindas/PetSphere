@@ -212,10 +212,6 @@ SIMPLE_JWT = {
     "TOKEN_BLACKLIST": "rest_framework_simplejwt.token_blacklist",
 }
 
-# AGORA
-AGORA_APP_ID = env.str("AGORA_APP_ID")
-AGORA_APP_CERTIFICATE = env.str("AGORA_APP_CERTIFICATE")
-
 # Internationalization
 LANGUAGE_CODE = 'en-us'
 
@@ -227,7 +223,8 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Media files (Uploaded content: images, videos, documents, etc.)
 
