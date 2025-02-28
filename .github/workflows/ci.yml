@@ -28,6 +28,6 @@ jobs:
         with:
           context: ./Server
           push: true
-          tags:
+          tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/petsphere-backend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/petsphere-backend:${{ github.sha }}
