@@ -6,6 +6,7 @@ on:
       - dev
     paths:
       'Server/**'
+  workflow_dispatch:
 
 
 jobs:
