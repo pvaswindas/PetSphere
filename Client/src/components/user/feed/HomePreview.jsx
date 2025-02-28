@@ -56,7 +56,7 @@ function HomePreview({ pawStories = [] }) {
     }, [showComment]);
 
     return (
-        <div className={`relative overflow-hidden pb-16 ${!isLoading && showComment ? "md:max-h-[76.9vh] rounded-lg" : ""}`}>
+        <div className={`relative overflow-hidden ${!isLoading && showComment ? "md:max-h-[76.9vh] lg:h-full rounded-lg" : ""}`}>
             <AlertSnackbar
                 open={snackbarOpen}
                 message={snackbarMessage}
@@ -72,9 +72,9 @@ function HomePreview({ pawStories = [] }) {
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: "100%", opacity: 0 }}
                         transition={{ duration: 0.5, ease: "easeInOut" }}
-                        className="fixed lg:absolute top-40 lg:top-10 left-1 lg:left-0 right-1 lg:right-0 bg-white shadow-lg z-50
-                                    rounded-t-lg flex flex-col h-[calc(93vh-7rem)] lg:h-[calc(102.8vh-14rem)] mx-auto"
-                    >
+                            className="fixed lg:absolute top-40 lg:top-16 left-1 lg:left-0 right-1 lg:right-0 bg-white shadow-lg z-50
+                                        rounded-t-lg flex flex-col h-[calc(93vh-7rem)] lg:h-[calc(90.8vh-10rem)] mx-auto"
+                        >
                         <CommentArea
                             onClose={handleCommentAreaClose} 
                             postId={storyId} 

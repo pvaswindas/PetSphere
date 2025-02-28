@@ -18,7 +18,7 @@ class Profile(models.Model):
         blank=True,
         default='default_images/user_avatar.svg'
     )
-    push_notification = models.BooleanField(default=False)
+    push_notification = models.BooleanField(default=True)
     pawstory_count = models.PositiveBigIntegerField(default=0)
     petlisting_count = models.PositiveBigIntegerField(default=0)
     follower_count = models.PositiveBigIntegerField(default=0)
