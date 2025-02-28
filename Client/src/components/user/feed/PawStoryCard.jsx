@@ -64,7 +64,7 @@ function PawStoryCard({ story = [], setStory, setStoryId, setShowComment }) {
     }
 
     return (
-        <div className='relative bg-white rounded-2xl h-[29rem] shadow-lg overflow-hidden'>
+        <div className='relative bg-white rounded-2xl h-[29rem] overflow-hidden'>
             <AlertSnackbar
                 open={snackbarOpen}
                 message={snackbarMessage}

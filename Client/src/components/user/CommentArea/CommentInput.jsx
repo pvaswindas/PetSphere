@@ -15,7 +15,7 @@ export function CommentInput({ value, onChange, onSubmit, replyingTo, replyUsern
     };
 
     return (
-        <div className="p-4 border-t bg-gray-50 relative">
+        <div className="p-4 border-t bg-white relative">
             {replyingTo && (
                 <div className="flex items-center justify-between mb-2 text-xs text-gray-500">
                     <p>Replying to @{replyUsername}</p>

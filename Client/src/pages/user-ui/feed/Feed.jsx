@@ -71,7 +71,7 @@ function Feed() {
     }, [fetchFeed])
 
     return (
-        <div className="bg-white lg:bg-whiteOpacity02 min-h-screen flex flex-col h-screen overflow-hidden">
+        <div className="bg-white lg:bg-whiteOpacity02 pb-10 lg:pb-0 min-h-screen flex flex-col h-full overflow-hidden">
             <AlertSnackbar
                 open={snackbarOpen}
                 message={snackbarMessage}
