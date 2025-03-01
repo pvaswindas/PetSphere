@@ -11,7 +11,7 @@ on:
 
 jobs:
   deploy:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -20,8 +20,7 @@ jobs:
 
       - name: Create and verify deployment files
         run: |
-          export DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
-          envsubst < Server/docker-compose.prod.yml > docker-compose.prod.yml
+          sed "s/\${DOCKERHUB_USERNAME}/${{ secrets.DOCKERHUB_USERNAME }}/g" docker-compose.prod.yml > docker-compose.prod.yml
           echo "${{ secrets.ENV_FILE }}" > .env
 
       - name: Copy files to EC2
