@@ -45,6 +45,6 @@ jobs:
           script: |
             cd /home/ubuntu/petsphere
             docker-compose -f docker-compose.prod.yml down || true
-            docker-compose -f docker-compose.prod.yml build
+            docker-compose -f docker-compose.prod.yml pull
             docker-compose -f docker-compose.prod.yml up -d
             docker system prune -f
