@@ -20,10 +20,12 @@ jobs:
 
       - name: Create and verify deployment files
         run: |
-          sed "s/\${DOCKERHUB_USERNAME}/${{ secrets.DOCKERHUB_USERNAME }}/g" docker-compose.prod.yml > docker-compose.prod.yml
+          sed "s/\${DOCKERHUB_USERNAME}/${{ secrets.DOCKERHUB_USERNAME }}/g" Server/docker-compose.prod.yml > docker-compose.prod.yml
+          print("AFTER SED")
           echo "${{ secrets.ENV_FILE }}" > .env
 
       - name: Copy files to EC2
+          print("COPY FILES")
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
