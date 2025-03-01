@@ -20,8 +20,8 @@ jobs:
 
       - name: Create and verify deployment files
         run: |
-          DOCKERHUB_USER_ESCAPED=$(printf '%s\n' "${{ secrets.DOCKERHUB_USERNAME }}" | sed 's/[&/\]/\\&/g')
-          sed "s/\${DOCKERHUB_USERNAME}/$DOCKERHUB_USER_ESCAPED/g" Server/docker-compose.prod.yml > docker-compose.prod.yml
+          export DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
+          envsubst < Server/docker-compose.prod.yml > docker-compose.prod.yml
           echo "${{ secrets.ENV_FILE }}" > .env
 
       - name: Copy files to EC2
