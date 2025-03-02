@@ -25,7 +25,7 @@ from petsphere.utils.common_utils import (
 )
 from .tasks import twilio_send_otp
 
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0,
+redis_client = redis.StrictRedis(host='redis', port=6379, db=0,
                                  decode_responses=True)
 
 
@@ -105,6 +105,7 @@ class UserDataStoreView(APIView):
 
     def post(self, request):
         user_data = request.data.get('user_data')
+        print(user_data)
         if not user_data:
             return Response({"error": "User Data is required"},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -115,9 +116,13 @@ class UserDataStoreView(APIView):
         try:
             serializer = UserDataStoreSerializer(data=user_data)
             if serializer.is_valid():
+                print("INSIDE SERIALIZER VALID")
+                print(redis_client)
                 redis_key = f"user_data:{email}"
+                print(redis_key)
                 redis_client.set(redis_key, json.dumps(user_data))
                 redis_client.expire(redis_key, 1200)
+                print("AFTER REDIS")
                 return Response({"message": "User data stored successfully"},
                                 status=status.HTTP_201_CREATED)
             return Response(serializer.errors,

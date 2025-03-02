@@ -97,7 +97,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [('redis', 6379)],
         },
     },
 }
@@ -139,7 +139,7 @@ STRIPE_PUBLISHABLE_KEY = env.str("STRIPE_PUBLISHABLE_KEY")
 CELERY_BROKER_URL = env("CBROKER_URL")
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = env("CRESULT_BACKEND")
 CELERY_TIMEZONE = 'UTC'
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
