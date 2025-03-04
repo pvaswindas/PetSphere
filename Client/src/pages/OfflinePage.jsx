@@ -8,7 +8,7 @@ const OfflinePage = () => {
     };
 
     return (
-        <div className="h-screen bg-deep-ocean-blue-gradient flex items-center justify-center text-center p-6 relative overflow-hidden">
+        <div className="h-screen bg-deep-ocean-blue-gradient flex flex-col items-center justify-center text-center p-6 relative overflow-hidden">
             {/* Background Floating Elements */}
             <motion.div 
                 className="absolute top-10 left-10 w-40 h-40 bg-midnightBlue opacity-30 rounded-full blur-3xl"
@@ -22,7 +22,7 @@ const OfflinePage = () => {
             />
 
             {/* Main Content */}
-            <div className="flex flex-col items-center justify-center h-full">
+            <div className="flex-grow flex flex-col items-center justify-center">
                 {/* Connection Status Animation */}
                 <div className="relative flex justify-center mb-6">
                     <Wifi className="w-16 h-16 text-softSkyBlue opacity-50 animate-pulse absolute" />
@@ -58,17 +58,17 @@ const OfflinePage = () => {
                         <div className="absolute w-28 h-28 border-4 border-palePink rounded-full animate-ping delay-700 opacity-25"></div>
                     </motion.div>
                 </div>
-
-                {/* Footer */}
-                <motion.div 
-                    className="mt-8 text-lightTextGrey text-sm"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.5 }}
-                >
-                    © 2025 PetSphere. All rights reserved.
-                </motion.div>
             </div>
+
+            {/* Footer - Stays at the Bottom */}
+            <motion.div 
+                className="mt-auto text-lightTextGrey text-sm pb-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+            >
+                © 2025 PetSphere. All rights reserved.
+            </motion.div>
         </div>
     );
 };
