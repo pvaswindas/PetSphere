@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { Routes, Route, useLocation } from "react-router-dom"
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Detector } from "react-detect-offline";
@@ -55,10 +55,13 @@ import CallPage from "./pages/user-ui/video-call/CallPage";
 import AdminProfile from "./pages/admin-ui/profile/AdminProfile";
 import ManageReports from "./pages/admin-ui/reports/ManageReports";
 import NotFoundPage from "./pages/NotFoundPage";
+import axiosInstance from "./axios/axiosinstance";
+import ServerDownPage from "./pages/ServerDownPage";
 
 
 function App() {
   const location = useLocation();
+  const [serverDown, setServerDown] = useState(false);
 
   useEffect(() => {
       if (location.pathname === "/") {
@@ -70,11 +73,29 @@ function App() {
       }
   }, [location]);
 
+  useEffect(() => {
+    const checkServerStatus = async () => {
+      try {
+        await axiosInstance.get("health-check/");
+        setServerDown(false);
+      } catch (error) {
+        setServerDown(true);
+      }
+    };
+
+    checkServerStatus();
+
+    const interval = setInterval(checkServerStatus, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
       <Detector
         render={({ online }) => (
           !online ? (
             <OfflinePage />
+          ) : serverDown ? (
+            <ServerDownPage />
           ) : (
             <div className="bg-gray-75 h-screen">
               <Routes>
