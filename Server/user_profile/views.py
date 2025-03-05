@@ -195,7 +195,6 @@ class AccountDetailView(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         user_id = self.kwargs.get(self.lookup_field)
         try:
-            print(request.data)
             profile = Profile.objects.get(user__id=user_id)
             pet_sphere_user = profile.user
 
@@ -267,7 +266,6 @@ def getLatestTeamMembers(request):
             status=status.HTTP_200_OK
         )
     except Exception as e:
-        print(str(e))
         return Response(
             {
                 "status": "failure",

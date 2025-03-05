@@ -137,8 +137,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     file_name, ContentFile(file_bytes), save=False
                 )
             except Exception as e:
-                print(f"Error saving file: {e}")
-                return None
+                return e
 
         saved_message.save()
 
