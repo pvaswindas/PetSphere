@@ -57,5 +57,5 @@ class MessageSerializer(serializers.ModelSerializer):
     def get_media_url(self, obj):
         """Returns the full absolute media URL without needing request."""
         if obj.media_file:
-            return f"{settings.SITE_URL}{obj.media_file.url}"
+            return f"{settings.BASE_URL}{obj.media_file.url}"
         return None

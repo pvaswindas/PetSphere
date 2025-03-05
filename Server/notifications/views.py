@@ -27,7 +27,7 @@ def send_notification(request):
 def get_profile_picture_url(profile):
     """Helper function to get absolute profile picture URL"""
     if profile.profile_picture:
-        return f"{settings.SITE_URL}{profile.profile_picture.url}"
+        return f"{settings.BASE_URL}{profile.profile_picture.url}"
     return ""
 
 
