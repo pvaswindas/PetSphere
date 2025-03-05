@@ -55,8 +55,8 @@ import CallPage from "./pages/user-ui/video-call/CallPage";
 import AdminProfile from "./pages/admin-ui/profile/AdminProfile";
 import ManageReports from "./pages/admin-ui/reports/ManageReports";
 import NotFoundPage from "./pages/NotFoundPage";
-import axiosInstance from "./axios/axiosinstance";
 import ServerDownPage from "./pages/ServerDownPage";
+import axios from "axios";
 
 
 function App() {
@@ -76,7 +76,7 @@ function App() {
   useEffect(() => {
     const checkServerStatus = async () => {
       try {
-        await axiosInstance.get("health-check/");
+        await axios.get(`${process.env.REACT_APP_API_BASE_URL}/health-check/`);
         setServerDown(false);
       } catch (error) {
         setServerDown(true);
