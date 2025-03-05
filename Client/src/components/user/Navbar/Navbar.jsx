@@ -24,7 +24,9 @@ const Navbar = () => {
     if (response.success) {
       navigate("/login")
     } else {
-      console.log(response.message);
+      localStorage.removeItem("ACCESS_TOKEN")
+      localStorage.removeItem("REFRESH_TOKEN")
+      navigate("/login")
     }
   }
 

@@ -39,7 +39,6 @@ export const updateAnnouncement = async (announcement_id, updatedData) => {
         let formData = new FormData();
         formData.append("title", updatedData.title);
         formData.append("content", updatedData.content);
-        console.log(updatedData)
         if (updatedData.icon instanceof File) {
             formData.append("icon", updatedData.icon);
         }

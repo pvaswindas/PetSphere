@@ -38,7 +38,6 @@ const InsightCard = () => {
             setTotalRevenue(getRevenue.total_revenue || 0)
             setRevenueThisMonth(getRevenue.revenue_this_month || 0)
             setRevenueLastMonth(getRevenue.revenue_last_month || 0)
-            console.log(getRevenue)
         } catch (error) {
             setSnackbarMessage("Error fetching insights!");
             setSnackbarOpen(true);

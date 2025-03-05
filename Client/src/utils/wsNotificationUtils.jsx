@@ -4,10 +4,10 @@ socket.onmessage = function (event) {
     const data = JSON.parse(event.data);
 
     if (data.type === "call_notification") {
-        console.log(data)
+        
     }
 };
 
 socket.onclose = function () {
-    console.log("WebSocket closed");
+
 };
