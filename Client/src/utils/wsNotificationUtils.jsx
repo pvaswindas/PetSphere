@@ -1,4 +1,4 @@
-const socket = new WebSocket("ws://localhost:8000/ws/notifications/");
+const socket = new WebSocket("ws://13.51.205.208/ws/notifications/");
 
 socket.onmessage = function (event) {
     const data = JSON.parse(event.data);

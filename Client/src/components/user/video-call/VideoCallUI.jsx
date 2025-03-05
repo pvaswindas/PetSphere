@@ -51,7 +51,7 @@ const VideoCallUI = ({ isCaller = false }) => {
         const token = localStorage.getItem("ACCESS_TOKEN");
         if (!token) return;
     
-        socket.current = new WebSocket(`ws://localhost:8000/ws/video_call/${username}/?token=${token}`);
+        socket.current = new WebSocket(`ws://13.51.205.208/ws/video_call/${username}/?token=${token}`);
 
         socket.current.onopen = () => {
             if (isCaller) {

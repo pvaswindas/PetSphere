@@ -115,7 +115,7 @@ const PetCatalogContent = ({ setButtonText, setHandleButton }) => {
         setIsLoading(true)
         try {
             await axiosInstance.post(
-                "pet/breed/",
+                "pet/breeds/",
                 formData
             )
             setIsPetAdded(true)

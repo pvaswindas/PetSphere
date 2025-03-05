@@ -85,7 +85,7 @@ function App() {
 
     checkServerStatus();
 
-    const interval = setInterval(checkServerStatus, 10000);
+    const interval = setInterval(checkServerStatus, 60000);
     return () => clearInterval(interval);
   }, []);
 
