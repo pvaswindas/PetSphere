@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import PetSphereUser
+from storages.backends.s3boto3 import S3Boto3Storage
 
 
 class Conversation(models.Model):
@@ -50,7 +51,10 @@ class Message(models.Model):
 
     content = models.TextField(null=True, blank=True)
     media_file = models.FileField(
-        upload_to="messages/media/", null=True, blank=True
+        upload_to="messages/media/",
+        null=True,
+        blank=True,
+        storage=S3Boto3Storage(),
     )
     message_type = models.CharField(
         max_length=10, choices=MESSAGE_TYPES, default=TEXT
@@ -76,7 +80,24 @@ class Message(models.Model):
                 self.message_type = self.IMAGE
         else:
             self.message_type = self.TEXT
+        try:
+            old_instance = Message.objects.get(pk=self.pk)
+
+            if (
+                old_instance.media_file and
+                old_instance.media_file.name != self.icon.name
+            ):
+                old_instance.media_file.delete(save=False)
+        except Message.DoesNotExist:
+            pass
+
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.media_file:
+            self.media_file.delete(save=False)
+
+        super().delete(*args, **kwargs)
 
     def delete_for_user(self, user):
         """Marks the message as deleted for a specific user."""

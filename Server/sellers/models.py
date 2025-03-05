@@ -39,6 +39,20 @@ class BadgeLevel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        try:
+            old_instance = BadgeLevel.objects.get(pk=self.pk)
+
+            if (
+                old_instance.icon and
+                old_instance.icon.name != self.icon.name
+            ):
+                old_instance.icon.delete(save=False)
+        except BadgeLevel.DoesNotExist:
+            pass
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.badge.name} - Level {self.level} ({self.name})"
 
