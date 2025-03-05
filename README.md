@@ -1,14 +1,14 @@
 # Petsphere - Social Media & Marketplace for Pet Lovers
 
-![Petsphere Logo](petsphere.preview.png)
+![Petsphere Logo](petsphere-preview.png)
 
-## 🐶 Overview
+## 🐾 Overview
 
 **Petsphere** is a unique **social media plus marketplace** designed exclusively for pet lovers. It allows users to connect, share, and interact through engaging social features while also providing a dedicated space for buying, selling, or adopting pets. Users can create profiles and share updates, message other pet enthusiasts, engage in one-on-one video calls, and explore pet listings. Petsphere fosters a fun and interactive community while making pet adoption and pet-related transactions seamless and secure.
 
 ## 🌟 Features
 
-### 🐾 Social Interaction
+### 💬 Social Interaction
 - User profiles with pet galleries
 - Like, comment, and share posts
 - Follow other pet owners
@@ -104,24 +104,35 @@ docker-compose up --build
 ## 📁 Project Structure
 
 ```
-Petsphere/
-├── backend/               # Django backend
-│   ├── apps/
-│   │   ├── accounts/      # User authentication
-│   │   ├── chat/          # WebSocket chat
-│   │   ├── posts/         # Posts & media sharing
-│   │   ├── petlistings/   # Buy, sell, and adopt pets
-│   │   ├── payments/      # Stripe integration (future)
-│   └── config/           # Django settings & configurations
-├── frontend/              # React frontend
-│   ├── src/
-│   │   ├── components/    # UI components
-│   │   ├── pages/        # Page components
-│   │   ├── store/        # Redux store
-│   └── public/           # Static assets
-├── docker/                # Docker-related files
-├── .github/workflows/     # CI/CD workflows
-└── Dockerfile             # Backend Dockerfile
+Petsphere/  
+├── Server/                  # Django backend  
+│   ├── apps/                # Django applications  
+│   │   ├── accounts/        # User authentication & profile management  
+│   │   ├── announcements/   # Community announcements management  
+│   │   ├── messaging/       # WebSocket-based real-time chat  
+│   │   ├── notifications/   # User notifications & alerts  
+│   │   ├── pets/            # Pet & breed management  
+│   │   ├── posts/           # Posts, media sharing, and interactions  
+│   │   ├── seller/          # Seller functionalities (future feature)  
+│   │   ├── socials/         # Followers & following logic  
+│   │   ├── subscriptions/   # Stripe integration for premium features (future)  
+│   │   ├── videocall/       # WebRTC-based one-on-one video calling  
+│   ├── config/              # Django settings & configurations
+│   ├── Dockerfile           # Dockerfile for backend containerization  
+│   ├── docker-compose.yml   # Docker Compose setup for backend services  
+└── Client/                  # React frontend  
+    ├── src/  
+    │   ├── api/             # API service handlers  
+    │   ├── assets/          # Images and static assets  
+    │   ├── axios/           # Axios interceptor for API requests  
+    │   ├── components/      # Reusable UI components  
+    │   ├── hooks/           # Custom React hooks  
+    │   ├── pages/           # Page components  
+    │   ├── redux/           # Redux store and slices  
+    │   ├── routes/          # Route handling and authentication logic  
+    │   ├── utils/           # Utility functions  
+    └── public/              # Static public assets  
+├── .github/workflows/       # GitHub Actions CI/CD workflows  
 ```
 
 ## 🔍 API Overview
