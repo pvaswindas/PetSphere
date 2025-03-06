@@ -63,15 +63,15 @@ function App() {
   const location = useLocation();
   const [serverDown, setServerDown] = useState(false);
 
-  // useEffect(() => {
-  //     if (location.pathname === "/") {
-  //         document.body.classList.remove("overflow-hidden");
-  //         document.body.classList.add("overflow-y-auto");
-  //     } else {
-  //         document.body.classList.add("overflow-hidden");
-  //         document.body.classList.remove("overflow-y-auto");
-  //     }
-  // }, [location]);
+  useEffect(() => {
+      if (location.pathname === "/") {
+          document.body.classList.remove("overflow-hidden");
+          document.body.classList.add("overflow-y-auto");
+      } else {
+          document.body.classList.add("overflow-hidden");
+          document.body.classList.remove("overflow-y-auto");
+      }
+  }, [location]);
 
   useEffect(() => {
     const checkServerStatus = async () => {
@@ -127,7 +127,7 @@ function App() {
                 <Route 
                   path="/profile/*"
                   element={
-                    <ProtectedRoute>
+                    <AdminOnlyRoute>
                       <Routes>
                         <Route path=":username" element={<Profile />} />
                         <Route path="edit" element={<EditProfile />} />
@@ -139,7 +139,7 @@ function App() {
                         <Route path="add-pet-listing" element={<AddPetListing />} />
                         <Route path="mapexplore" element={<MapExplorer />} />
                       </Routes>
-                    </ProtectedRoute>
+                    </AdminOnlyRoute>
                   } 
                 />
         
