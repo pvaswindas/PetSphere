@@ -60,7 +60,7 @@ function IncomingCallPanel() {
         const token = localStorage.getItem("ACCESS_TOKEN");
         if (!token) return;
 
-        socketRef.current = new WebSocket(`ws://13.51.205.208/ws/notifications/?token=${token}`);
+        socketRef.current = new WebSocket(`wss://${process.env.REACT_APP_API_SITE_URL}/ws/notifications/?token=${token}`);
 
         socketRef.current.onmessage = function (event) {
             const data = JSON.parse(event.data);

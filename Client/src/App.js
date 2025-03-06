@@ -127,7 +127,7 @@ function App() {
                 <Route 
                   path="/profile/*"
                   element={
-                    <AdminOnlyRoute>
+                    <ProtectedRoute>
                       <Routes>
                         <Route path=":username" element={<Profile />} />
                         <Route path="edit" element={<EditProfile />} />
@@ -139,7 +139,7 @@ function App() {
                         <Route path="add-pet-listing" element={<AddPetListing />} />
                         <Route path="mapexplore" element={<MapExplorer />} />
                       </Routes>
-                    </AdminOnlyRoute>
+                    </ProtectedRoute>
                   } 
                 />
         

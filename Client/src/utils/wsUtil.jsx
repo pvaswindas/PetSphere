@@ -1,7 +1,7 @@
 export const chatWebSocket = (username, token, onMessage, onOpen, onClose, onError) => {
     if (!username || !token) return null;
 
-    const ws = new WebSocket(`ws://13.51.205.208/ws/chat/${username}/?token=${token}`);
+    const ws = new WebSocket(`wss://${process.env.REACT_APP_API_SITE_URL}/ws/chat/${username}/?token=${token}`);
 
     ws.onopen = () => {
         if (onOpen) onOpen(ws);
