@@ -77,9 +77,6 @@ function App() {
 
   useEffect(() => {
     const checkServerStatus = async () => {
-      if (!serverDown) {
-        setLoading(true)
-      }
       try {
         await axios.get(`${process.env.REACT_APP_API_BASE_URL}/health-check/`);
         setServerDown(false);
