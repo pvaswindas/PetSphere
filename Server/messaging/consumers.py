@@ -8,169 +8,243 @@ import base64
 import magic
 import imghdr
 import mimetypes
+import logging
+from urllib.parse import parse_qs
 from django.core.files.base import ContentFile
 from datetime import datetime
 from django.conf import settings
 from .serializers import MessageSerializer
 from accounts.models import PetSphereUser
 
+# Set up logger
+logger = logging.getLogger('websockets')
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         """Handles a new WebSocket connection."""
-        self.username = self.scope["url_route"]["kwargs"]["username"]
-        self.current_user = await self.authenticate_user()
+        try:
+            self.username = self.scope["url_route"]["kwargs"]["username"]
+            logger.debug(f"Chat WebSocket connection attempt: username={self.username}")
+            
+            # Log query string
+            query_string = self.scope.get('query_string', b'').decode('utf-8')
+            logger.debug(f"Chat WebSocket query string: {query_string}")
+            
+            self.current_user = await self.authenticate_user()
 
-        if self.current_user is not None:
-            self.scope["user"] = self.current_user
-            self.room_name = self.get_room_name(
-                self.current_user.username, self.username
-            )
-            self.conversation = await self.get_or_create_conversation()
+            if self.current_user is not None:
+                logger.info(f"Chat WebSocket authenticated: user_id={self.current_user.id}, username={self.current_user.username}")
+                self.scope["user"] = self.current_user
+                self.room_name = self.get_room_name(
+                    self.current_user.username, self.username
+                )
+                logger.debug(f"Chat room name: {self.room_name}")
+                
+                self.conversation = await self.get_or_create_conversation()
+                logger.debug(f"Retrieved conversation ID: {self.conversation.id}")
 
-            await self.channel_layer.group_add(
-                self.room_name, self.channel_name
-            )
-            await self.accept()
-
-        else:
+                await self.channel_layer.group_add(
+                    self.room_name, self.channel_name
+                )
+                logger.info(f"Added to chat group: {self.room_name}")
+                
+                await self.accept()
+                logger.info(f"Chat WebSocket connection accepted for user_id={self.current_user.id}")
+            else:
+                logger.warning("Chat WebSocket authentication failed")
+                await self.close()
+        except Exception as e:
+            logger.error(f"Error in chat connect: {str(e)}", exc_info=True)
             await self.close()
 
     async def disconnect(self, close_code):
         """Handles WebSocket disconnection."""
-        if hasattr(self, 'room_name') and self.room_name:
-            await self.channel_layer.group_discard(
-                self.room_name, self.channel_name
-            )
+        try:
+            logger.info(f"Chat WebSocket disconnection with code {close_code}")
+            if hasattr(self, 'room_name') and self.room_name:
+                logger.debug(f"Removing from chat group: {self.room_name}")
+                await self.channel_layer.group_discard(
+                    self.room_name, self.channel_name
+                )
 
-        if hasattr(self, 'conversation') and self.conversation:
-            await self.delete_empty_conversation()
+            if hasattr(self, 'conversation') and self.conversation:
+                await self.delete_empty_conversation()
+        except Exception as e:
+            logger.error(f"Error in chat disconnect: {str(e)}", exc_info=True)
 
     async def receive(self, text_data):
         """Handles receiving messages and file uploads."""
-        data = json.loads(text_data)
-        message = data.get("message", "").strip()
-        file_data = data.get("file", None)
-        sender = self.scope["user"]
-        receiver = await sync_to_async(
-            PetSphereUser.objects.get
-        )(username=self.username)
+        try:
+            logger.debug(f"Chat received data: {text_data[:100]}...")  # Log first 100 chars for privacy
+            data = json.loads(text_data)
+            message = data.get("message", "").strip()
+            file_data = data.get("file", None)
+            sender = self.scope["user"]
+            receiver = await sync_to_async(
+                PetSphereUser.objects.get
+            )(username=self.username)
 
-        # Save the message
-        serialized_message = await self.save_message(
-            sender, receiver, message, file_data
-        )
+            # Save the message
+            serialized_message = await self.save_message(
+                sender, receiver, message, file_data
+            )
 
-        # Send the message to the group
-        await self.channel_layer.group_send(
-            self.room_name,
-            {
-                "type": "chat_message",
-                "message": serialized_message,
-                "sender": sender.username,
-            }
-        )
+            # Send the message to the group
+            await self.channel_layer.group_send(
+                self.room_name,
+                {
+                    "type": "chat_message",
+                    "message": serialized_message,
+                    "sender": sender.username,
+                }
+            )
+            logger.debug(f"Message sent to group {self.room_name}")
+        except Exception as e:
+            logger.error(f"Error in chat receive: {str(e)}", exc_info=True)
 
     async def authenticate_user(self):
-        token = self.scope[
-            'query_string'
-            ].decode().split('=')[1] if '=' in self.scope[
-                'query_string'].decode() else None
-        if not token:
-            await self.close()
-            return None
+        """Authenticate user using JWT token from query string."""
         try:
-            payload = jwt.decode(
-                token, settings.SECRET_KEY, algorithms=["HS256"]
-            )
+            # Extract token from query string
+            query_string = self.scope['query_string'].decode()
+            params = parse_qs(query_string)
+            token = params.get('token', [''])[0]
+
+            if not token:
+                logger.warning("No token provided in Chat WebSocket connection")
+                return None
+
+            # Decode and verify JWT token
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user_id = payload.get('user_id')
+
+            if not user_id:
+                logger.warning("Invalid token payload - no user_id")
+                return None
+
+            # Get user from database
             user = await database_sync_to_async(
                 PetSphereUser.objects.get
-            )(id=payload['user_id'])
+            )(id=user_id)
+            logger.info(f"User {user.id} authenticated successfully")
             return user
+
         except jwt.ExpiredSignatureError:
-            await self.close()
+            logger.warning("Token expired")
             return None
         except jwt.InvalidTokenError:
-            await self.close()
+            logger.warning("Invalid token")
+            return None
+        except PetSphereUser.DoesNotExist:
+            logger.warning(f"User with id {user_id if 'user_id' in locals() else 'unknown'} not found")
+            return None
+        except Exception as e:
+            logger.error(f"Authentication error: {str(e)}")
             return None
 
     async def chat_message(self, event):
         """Send messages to WebSocket."""
-        await self.send(text_data=json.dumps({
-            "message": event["message"],
-            "sender": event["sender"],
-        }))
+        try:
+            await self.send(text_data=json.dumps({
+                "message": event["message"],
+                "sender": event["sender"],
+            }))
+            logger.debug(f"Message forwarded to client")
+        except Exception as e:
+            logger.error(f"Error sending chat message: {str(e)}", exc_info=True)
 
     @database_sync_to_async
     def save_message(self, sender, receiver, message, file_data):
-        conversation = self.conversation
-        saved_message = Message(
-            sender=sender,
-            receiver=receiver,
-            conversation=conversation,
-            content=message,
-        )
+        """Save message and handle file uploads."""
+        try:
+            conversation = self.conversation
+            saved_message = Message(
+                sender=sender,
+                receiver=receiver,
+                conversation=conversation,
+                content=message,
+            )
 
-        if file_data:
-            try:
-                if "," in file_data:
-                    file_data = file_data.split(",")[1]
+            if file_data:
+                try:
+                    if "," in file_data:
+                        file_data = file_data.split(",")[1]
 
-                file_bytes = base64.b64decode(file_data)
+                    file_bytes = base64.b64decode(file_data)
 
-                mime = magic.Magic(mime=True)
-                detected_mime = mime.from_buffer(file_bytes)
+                    mime = magic.Magic(mime=True)
+                    detected_mime = mime.from_buffer(file_bytes)
 
-                file_extension = mimetypes.guess_extension(
-                    detected_mime
-                ) or ".bin"
+                    file_extension = mimetypes.guess_extension(
+                        detected_mime
+                    ) or ".bin"
 
-                if not file_extension or file_extension == ".bin":
-                    file_type = imghdr.what(None, h=file_bytes)
-                    if file_type:
-                        file_extension = f".{file_type}"
+                    if not file_extension or file_extension == ".bin":
+                        file_type = imghdr.what(None, h=file_bytes)
+                        if file_type:
+                            file_extension = f".{file_type}"
 
-                timestamp = datetime.now().timestamp()
-                file_name = f"chat_{timestamp}{file_extension}"
+                    timestamp = datetime.now().timestamp()
+                    file_name = f"chat_{timestamp}{file_extension}"
 
-                saved_message.media_file.save(
-                    file_name, ContentFile(file_bytes), save=False
-                )
-            except Exception as e:
-                return e
+                    saved_message.media_file.save(
+                        file_name, ContentFile(file_bytes), save=False
+                    )
+                except Exception as e:
+                    logger.error(f"Error processing file data: {str(e)}", exc_info=True)
+                    return {"error": f"File upload failed: {str(e)}"}
 
-        saved_message.save()
+            saved_message.save()
+            logger.debug(f"Message saved: id={saved_message.id}")
 
-        conversation.last_message = message or ""
-        conversation.last_message_timestamp = datetime.now()
-        conversation.save()
+            conversation.last_message = message or ""
+            conversation.last_message_timestamp = datetime.now()
+            conversation.save()
+            logger.debug(f"Conversation updated: id={conversation.id}")
 
-        return MessageSerializer(saved_message).data
+            return MessageSerializer(saved_message).data
+        except Exception as e:
+            logger.error(f"Error saving message: {str(e)}", exc_info=True)
+            return {"error": str(e)}
 
     @sync_to_async
     def get_or_create_conversation(self):
         """Get or create a conversation between two users."""
-        current_user = self.current_user
+        try:
+            current_user = self.current_user
 
-        conversation = Conversation.objects.filter(
-            users=current_user
-        ).filter(users__username=self.username).first()
+            conversation = Conversation.objects.filter(
+                users=current_user
+            ).filter(users__username=self.username).first()
 
-        if not conversation:
-            conversation = Conversation.objects.create()
-            conversation.users.add(
-                current_user,
-                PetSphereUser.objects.get(username=self.username)
-            )
+            if not conversation:
+                logger.info(f"Creating new conversation between {current_user.username} and {self.username}")
+                conversation = Conversation.objects.create()
+                conversation.users.add(
+                    current_user,
+                    PetSphereUser.objects.get(username=self.username)
+                )
+            else:
+                logger.info(f"Found existing conversation ID: {conversation.id}")
 
-        return conversation
+            return conversation
+        except Exception as e:
+            logger.error(f"Error in get_or_create_conversation: {str(e)}", exc_info=True)
+            raise
 
     @database_sync_to_async
     def delete_empty_conversation(self):
         """Deletes the conversation while disconnecting if no message exists"""
-        if not self.conversation.messages.exists():
-            self.conversation.delete()
+        try:
+            if not self.conversation.messages.exists():
+                logger.info(f"Deleting empty conversation: {self.conversation.id}")
+                self.conversation.delete()
+        except Exception as e:
+            logger.error(f"Error deleting empty conversation: {str(e)}", exc_info=True)
 
     def get_room_name(self, user1, user2):
         """Generate room name."""
-        return f"chat_{'_'.join(sorted([user1, user2]))}"
+        room_name = f"chat_{'_'.join(sorted([user1, user2]))}"
+        logger.debug(f"Generated room name: {room_name}")
+        return room_name
