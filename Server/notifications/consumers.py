@@ -14,11 +14,11 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         try:
             logger.debug(f"Notification WebSocket connection attempt: {self.scope}")
-            
+
             # Log query string
             query_string = self.scope.get('query_string', b'').decode('utf-8')
             logger.debug(f"Notification WebSocket query string: {query_string}")
-            
+
             self.current_user = await self.authenticate_user()
 
             if self.current_user:
@@ -38,6 +38,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 logger.warning("Notification WebSocket authentication failed")
                 await self.close()
         except Exception as e:
+            print(str(e))
             logger.error(f"Error in notification connect: {str(e)}", exc_info=True)
             await self.close()
 
@@ -66,20 +67,20 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         try:
             query_string = self.scope.get('query_string', b'').decode('utf-8')
             logger.debug(f"Authenticating with query string: {query_string}")
-            
+
             token = query_string.split('=')[1] if '=' in query_string else None
             if not token:
                 logger.warning("No token found in query string")
                 return None
-                
+
             logger.debug(f"Token found: {token[:10]}...{token[-10:] if len(token) > 20 else ''}")
-            
+
             try:
                 payload = jwt.decode(
                     token, settings.SECRET_KEY, algorithms=["HS256"]
                 )
                 logger.debug(f"Token decoded: user_id={payload.get('user_id', 'unknown')}")
-                
+
                 user = await sync_to_async(
                     PetSphereUser.objects.get
                 )(id=payload["user_id"])
@@ -95,5 +96,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 logger.error(f"Authentication error: {str(e)}", exc_info=True)
                 return None
         except Exception as e:
+            print(str(e))
             logger.error(f"Unexpected error in authenticate_user: {str(e)}", exc_info=True)
             return None
