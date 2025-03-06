@@ -57,11 +57,13 @@ import ManageReports from "./pages/admin-ui/reports/ManageReports";
 import NotFoundPage from "./pages/NotFoundPage";
 import ServerDownPage from "./pages/ServerDownPage";
 import axios from "axios";
+import LoadingPage from "./pages/LoadingPage";
 
 
 function App() {
   const location = useLocation();
   const [serverDown, setServerDown] = useState(false);
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
       if (location.pathname === "/") {
@@ -75,11 +77,16 @@ function App() {
 
   useEffect(() => {
     const checkServerStatus = async () => {
+      if (!serverDown) {
+        setLoading(true)
+      }
       try {
         await axios.get(`${process.env.REACT_APP_API_BASE_URL}/health-check/`);
         setServerDown(false);
       } catch (error) {
         setServerDown(true);
+      } finally {
+        setLoading(false)
       }
     };
 
@@ -87,7 +94,11 @@ function App() {
 
     const interval = setInterval(checkServerStatus, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [serverDown]);
+
+  if (loading) {
+    return <LoadingPage />
+  }
 
   return (
       <Detector
