@@ -21,8 +21,8 @@ websocket_urlpatterns = (
 )
 
 application = ProtocolTypeRouter({
-    # Django's ASGI application to handle traditional HTTPS requests
-    "https": django_asgi_app,
+    # Django's ASGI application to handle traditional HTTP requests
+    "http": django_asgi_app,
 
     # WebSocket chat handler
     "websocket": AllowedHostsOriginValidator(
