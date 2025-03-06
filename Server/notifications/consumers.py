@@ -1,6 +1,9 @@
 import json
 import logging
+import jwt
+from channels.db import database_sync_to_async
 from urllib.parse import parse_qs
+from django.contrib.auth import get_user_model
 from django.conf import settings
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
@@ -75,41 +78,20 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             logger.error(f"Error sending notification: {str(e)}", exc_info=True)
 
     async def authenticate_user(self):
+        token = self.scope['query_string'].decode().split('=')[1]
         try:
-            query_string = self.scope.get('query_string', b'').decode('utf-8')
-            logger.debug(f"Authenticating with query string: {query_string}")
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user = await database_sync_to_async(get_user_model().objects.get)(id=payload['user_id'])
 
-            # Parse query parameters
-            query_params = parse_qs(query_string)
-            token = query_params.get('token', [None])[0]
-   
-            if not token:
-                logger.warning("No token found in query string")
+            is_authorized = await self.is_user_allowed(user)
+            if not is_authorized:
+                logger.warning(f"Unauthorized user {user.email} tried to access room {self.room_id}")
+                await self.close()
                 return None
-
-            try:
-                # Use SimpleJWT's AccessToken for validation
-                access_token = AccessToken(token)
-                user_id = access_token.payload.get('user_id')
-                
-                if not user_id:
-                    logger.warning("No user_id found in token payload")
-                    return None
-                
-                logger.debug(f"Token decoded: user_id={user_id}")
-                
-                user = await sync_to_async(PetSphereUser.objects.get)(id=user_id)
-                logger.info(f"User authenticated: {user.username} (ID: {user.id})")
-                return user
-            except TokenError as e:
-                logger.warning(f"Token error: {str(e)}")
-                return None
-            except PetSphereUser.DoesNotExist:
-                logger.warning(f"User with ID {user_id} does not exist")
-                return None
-            except Exception as e:
-                logger.error(f"Authentication error: {str(e)}", exc_info=True)
-                return None
-        except Exception as e:
-            logger.error(f"Unexpected error in authenticate_user: {str(e)}", exc_info=True)
+            return user
+        except jwt.ExpiredSignatureError:
+            await self.close()
+            return None
+        except jwt.InvalidTokenError:
+            await self.close()
             return None
