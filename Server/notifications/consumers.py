@@ -78,20 +78,38 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             logger.error(f"Error sending notification: {str(e)}", exc_info=True)
 
     async def authenticate_user(self):
-        token = self.scope['query_string'].decode().split('=')[1]
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            user = await database_sync_to_async(get_user_model().objects.get)(id=payload['user_id'])
+            # Extract token from query string
+            query_string = self.scope['query_string'].decode()
+            params = parse_qs(query_string)
+            token = params.get('token', [''])[0]
 
-            is_authorized = await self.is_user_allowed(user)
-            if not is_authorized:
-                logger.warning(f"Unauthorized user {user.email} tried to access room {self.room_id}")
-                await self.close()
+            if not token:
+                logger.warning("No token provided in WebSocket connection")
                 return None
+
+            # Decode and verify JWT token
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user_id = payload.get('user_id')
+
+            if not user_id:
+                logger.warning("Invalid token payload - no user_id")
+                return None
+
+            # Get user from database
+            user = await database_sync_to_async(get_user_model().objects.get)(id=user_id)
+            logger.info(f"User {user.id} authenticated successfully")
             return user
+
         except jwt.ExpiredSignatureError:
-            await self.close()
+            logger.warning("Token expired")
             return None
         except jwt.InvalidTokenError:
-            await self.close()
+            logger.warning("Invalid token")
+            return None
+        except get_user_model().DoesNotExist:
+            logger.warning(f"User with id {user_id if 'user_id' in locals() else 'unknown'} not found")
+            return None
+        except Exception as e:
+            logger.error(f"Authentication error: {str(e)}")
             return None
