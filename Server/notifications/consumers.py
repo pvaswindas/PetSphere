@@ -63,17 +63,18 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             logger.error(f"Error in notification receive: {str(e)}", exc_info=True)
 
     async def authenticate_user(self):
-        """Authenticates user from query token."""
         try:
             query_string = self.scope.get('query_string', b'').decode('utf-8')
             logger.debug(f"Authenticating with query string: {query_string}")
 
-            token = query_string.split('=')[1] if '=' in query_string else None
+            # More robust token extraction
+            from urllib.parse import parse_qs
+            query_params = parse_qs(query_string)
+            token = query_params.get('token', [None])[0]
+   
             if not token:
                 logger.warning("No token found in query string")
                 return None
-
-            logger.debug(f"Token found: {token[:10]}...{token[-10:] if len(token) > 20 else ''}")
 
             try:
                 payload = jwt.decode(
