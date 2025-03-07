@@ -4,6 +4,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from .models import Message, Conversation
 import jwt
+import io
 import base64
 import magic
 import imghdr
@@ -12,7 +13,6 @@ import uuid
 import mimetypes
 import logging
 from urllib.parse import parse_qs
-from django.core.files.base import ContentFile
 from datetime import datetime
 from django.conf import settings
 from .serializers import MessageSerializer
@@ -172,40 +172,86 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             if file_data:
                 try:
-                    if "," in file_data:
-                        file_data = file_data.split(",")[1]
+                    # Process file data if it's a base64 string
+                    if isinstance(file_data, str):
+                        if "," in file_data:
+                            file_data = file_data.split(",")[1]
 
-                    file_bytes = base64.b64decode(file_data)
+                        file_bytes = base64.b64decode(file_data)
 
-                    mime = magic.Magic(mime=True)
-                    detected_mime = mime.from_buffer(file_bytes)
+                        # Detect mimetype and determine extension
+                        mime = magic.Magic(mime=True)
+                        detected_mime = mime.from_buffer(file_bytes)
 
-                    file_extension = mimetypes.guess_extension(
-                        detected_mime
-                    ) or ".bin"
+                        file_extension = mimetypes.guess_extension(
+                            detected_mime
+                        ) or ".bin"
 
-                    if not file_extension or file_extension == ".bin":
-                        file_type = imghdr.what(None, h=file_bytes)
-                        if file_type:
-                            file_extension = f".{file_type}"
+                        if not file_extension or file_extension == ".bin":
+                            file_type = imghdr.what(None, h=file_bytes)
+                            if file_type:
+                                file_extension = f".{file_type}"
 
-                    timestamp = datetime.now().timestamp()
-                    file_name = f"chat_{timestamp}{file_extension}"
-                    media_key = f'messages/{uuid.uuid4()}-{file_data.name}'
+                        # Generate file name with timestamp, proper extension
+                        timestamp = datetime.now().timestamp()
+                        file_name = f"chat_{timestamp}{file_extension}"
 
-                    print("BEFORE S3 INITIALIZATION")
+                        # Generate a unique media key
+                        media_key = f'messages/{uuid.uuid4()}-{file_name}'
 
-                    # Initialize the S3 client
-                    s3_client = boto3.client(
-                        's3',
-                        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                        region_name=settings.AWS_S3_REGION_NAME
-                    )
+                        print("BEFORE S3 INITIALIZATION")
 
-                    print("AFTER S3 INITIALIZATION")
+                        # Initialize the S3 client
+                        s3_client = boto3.client(
+                            's3',
+                            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                            aws_secret_access_key=(
+                                settings.AWS_SECRET_ACCESS_KEY
+                            ),
+                            region_name=settings.AWS_S3_REGION_NAME
+                        )
 
-                    try:
+                        print("AFTER S3 INITIALIZATION")
+
+                        try:
+                            # Create a BytesIO object to act as a object
+                            file_obj = io.BytesIO(file_bytes)
+
+                            # Upload the file-like object
+                            s3_client.upload_fileobj(
+                                file_obj,
+                                settings.AWS_STORAGE_BUCKET_NAME,
+                                media_key,
+                                ExtraArgs={'ACL': 'public-read'}
+                            )
+                            media_url = (
+                                f'https://{settings.AWS_S3_CUSTOM_DOMAIN}/'
+                                f'{media_key}'
+                            )
+                        except Exception as e:
+                            print("S3 CONNECTION ERROR : ", str(e))
+                            return {"error": f"File upload failed: {str(e)}"}
+
+                        print("BEFORE SAVING")
+                        # Set the media_url directly rather than using save()
+                        saved_message.media_url = media_url
+                        print("AFTER SAVING :", saved_message)
+                    else:
+                        # Handle if file_data is already a file-like object
+                        file_name = getattr(
+                            file_data, 'name', f"file_{uuid.uuid4()}"
+                        )
+                        media_key = f'messages/{uuid.uuid4()}-{file_name}'
+
+                        s3_client = boto3.client(
+                            's3',
+                            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                            aws_secret_access_key=(
+                                settings.AWS_SECRET_ACCESS_KEY
+                            ),
+                            region_name=settings.AWS_S3_REGION_NAME
+                        )
+
                         s3_client.upload_fileobj(
                             file_data,
                             settings.AWS_STORAGE_BUCKET_NAME,
@@ -216,15 +262,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             f'https://{settings.AWS_S3_CUSTOM_DOMAIN}/'
                             f'{media_key}'
                         )
-                    except Exception as e:
-                        print("S3 CONNECTION ERROR : ", str(e))
-                        return {"error": f"File upload failed: {str(e)}"}
+                        saved_message.media_url = media_url
 
-                    print("BEFORE SAVING")
-                    saved_message.media_file.save(
-                        media_url,
-                    )
-                    print("AFTER SAVING :", saved_message)
                 except Exception as e:
                     print("ERROR IN SAVING")
                     logger.error(
