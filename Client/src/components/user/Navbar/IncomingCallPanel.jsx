@@ -34,7 +34,7 @@ function IncomingCallPanel() {
                 caller_username: caller.username
             });
     
-            websocketService.sendMessage({
+            WebSocketService.sendMessage({
                 type: "call_rejected",
                 caller: caller.username
             });
@@ -47,7 +47,7 @@ function IncomingCallPanel() {
 
     useEffect(() => {
         // Subscribe to call notifications
-        const unsubscribe = websocketService.subscribe('call_notification', (data) => {
+        const unsubscribe = WebSocketService.subscribe('call_notification', (data) => {
             setCaller(data.caller);
             setIsCallIncoming(true);
         });
