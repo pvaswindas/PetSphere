@@ -15,7 +15,6 @@ export const chatWebSocket = (username, token, onMessage, onOpen, onClose, onErr
     };
 
     ws.onmessage = (event) => {
-        // Skip processing if data is empty or null
         if (!event.data) {
             console.log("Empty message received, ignoring");
             return;

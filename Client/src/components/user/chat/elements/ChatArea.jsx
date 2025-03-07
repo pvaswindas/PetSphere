@@ -7,7 +7,7 @@ import { getMessages } from '../../../../utils/ChatsUtils';
 import AlertSnackbar from '../../../Snackbar/AlertSnackbar';
 import { chatWebSocket } from '../../../../utils/wsUtil';
 
-const ChatArea = ({ activeConversation = [] }) => {
+const ChatArea = ({ activeConversation = null, setIsNewMessage }) => {
     const { username } = useParams();
     const [messages, setMessages] = useState([]);
     const [recipient, setRecipient] = useState(null);
@@ -20,7 +20,6 @@ const ChatArea = ({ activeConversation = [] }) => {
 
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [connecting, setConnecting] = useState(false);
     
     // Track seen message IDs to avoid duplicates
     const seenMessageIds = useRef(new Set());
@@ -29,7 +28,6 @@ const ChatArea = ({ activeConversation = [] }) => {
         // Cleanup function for WebSocket and any pending timeouts
         return () => {
             if (webSocketRef.current) {
-                console.log("Cleaning up WebSocket connection");
                 webSocketRef.current.close();
                 webSocketRef.current = null;
             }
@@ -41,7 +39,6 @@ const ChatArea = ({ activeConversation = [] }) => {
         };
     }, []);
 
-    // Improved WebSocket connection logic
     useEffect(() => {
         const token = localStorage.getItem('ACCESS_TOKEN');
         if (!username || !token) return;
@@ -52,22 +49,19 @@ const ChatArea = ({ activeConversation = [] }) => {
         // Connection state tracking
         let isConnecting = false;
         let reconnectAttempts = 0;
-        const maxReconnectAttempts = 5;
+        const maxReconnectAttempts = 10;
         const reconnectDelay = attempt => Math.min(1000 * Math.pow(2, attempt), 30000);
         
         const connectWebSocket = () => {
             if (isConnecting) return;
             
             isConnecting = true;
-            setConnecting(true);
             
             // Close any existing connection
             if (webSocketRef.current) {
                 webSocketRef.current.close();
                 webSocketRef.current = null;
             }
-            
-            console.log(`Attempting connection (attempt ${reconnectAttempts + 1})`);
             
             const wsConnection = chatWebSocket(
                 username,
@@ -96,17 +90,13 @@ const ChatArea = ({ activeConversation = [] }) => {
                 },
                 (ws) => {
                     // Connection success
-                    console.log("WebSocket connected successfully");
                     setSocketInstance(ws);
-                    setConnecting(false);
                     isConnecting = false;
                     reconnectAttempts = 0;
                 },
                 () => {
                     // Connection closed handler
-                    console.log("WebSocket connection closed");
                     setSocketInstance(null);
-                    setConnecting(false);
                     isConnecting = false;
                     
                     // Only attempt reconnect if component is still mounted
@@ -120,10 +110,8 @@ const ChatArea = ({ activeConversation = [] }) => {
                 },
                 (error) => {
                     // Error handler
-                    console.error("WebSocket connection error:", error);
                     setSnackbarMessage("Connection error! Please try again later.");
                     setSnackbarOpen(true);
-                    setConnecting(false);
                     isConnecting = false;
                     
                     // Only attempt reconnect if component is still mounted
@@ -134,7 +122,6 @@ const ChatArea = ({ activeConversation = [] }) => {
                 }
             );
             
-            // Store the reference to allow cleanup
             webSocketRef.current = wsConnection;
         };
         
@@ -142,7 +129,6 @@ const ChatArea = ({ activeConversation = [] }) => {
         
         // Clean up on unmount
         return () => {
-            console.log("Component unmounting, cleaning up WebSocket");
             if (webSocketRef.current) {
                 webSocketRef.current.close();
                 webSocketRef.current = null;
@@ -157,7 +143,7 @@ const ChatArea = ({ activeConversation = [] }) => {
 
     useEffect(() => {
         setMessages([]);
-        seenMessageIds.current = new Set(); // Reset seen message IDs
+        seenMessageIds.current = new Set();
         
         const fetchMessages = async () => {
             try {
@@ -189,6 +175,7 @@ const ChatArea = ({ activeConversation = [] }) => {
     }, [username, activeConversation]);
 
     const handleSend = async ({ text, file }) => {
+        console.log(text)
         if ((!text.trim() && !file) || !socketInstance) {
             setSnackbarMessage("Cannot send message");
             setSnackbarOpen(true);
