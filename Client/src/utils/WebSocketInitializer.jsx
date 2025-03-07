@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import websocketService from '../services/websocketService';
+import WebSocketService from '../services/WebSocketService';
 
 function WebSocketInitializer() {
   const isLoggedIn = useSelector(state => !!state.profile.profile_data);
@@ -8,13 +8,13 @@ function WebSocketInitializer() {
   useEffect(() => {
     if (isLoggedIn) {
       // Initialize the WebSocket connection when user is logged in
-      websocketService.connect();
+      WebSocketService.connect();
       
       // Clean up on component unmount
       return () => {
         // Don't disconnect completely - just clean up resources
-        if (websocketService.pingInterval) {
-          clearInterval(websocketService.pingInterval);
+        if (WebSocketService.pingInterval) {
+          clearInterval(WebSocketService.pingInterval);
         }
       };
     }
