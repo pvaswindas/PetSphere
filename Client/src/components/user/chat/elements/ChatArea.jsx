@@ -72,22 +72,19 @@ const ChatArea = ({ activeConversation = [] }) => {
             const wsConnection = chatWebSocket(
                 username,
                 token,
-                // In the WebSocket message handler
                 (data) => {
-                    // Message handler
                     const newMessage = data.message;
                     
                     // Ensure the message has an id property
                     if (!newMessage.id) {
-                        newMessage.id = Date.now().toString(); // Generate temporary ID if missing
+                        newMessage.id = Date.now().toString();
                     }
                     
-                    // Check if we've already seen this message ID
+
                     if (!seenMessageIds.current.has(newMessage.id)) {
                         seenMessageIds.current.add(newMessage.id);
                         
                         setMessages((prevMessages) => {
-                            // Double-check to avoid race conditions
                             if (prevMessages.some(msg => msg.id === newMessage.id)) {
                                 return prevMessages;
                             }
@@ -95,7 +92,6 @@ const ChatArea = ({ activeConversation = [] }) => {
                         });
                     }
                     
-                    // Reset reconnect attempts on successful data
                     reconnectAttempts = 0;
                 },
                 (ws) => {
@@ -118,7 +114,7 @@ const ChatArea = ({ activeConversation = [] }) => {
                         reconnectAttempts++;
                         reconnectTimeoutRef.current = setTimeout(connectWebSocket, reconnectDelay(reconnectAttempts));
                     } else {
-                        setSnackbarMessage("Connection failed after multiple attempts. Please reload the page.");
+                        setSnackbarMessage("Failed to connect. Please reload the page and try again.");
                         setSnackbarOpen(true);
                     }
                 },
