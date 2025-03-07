@@ -60,8 +60,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             connection_attempts[identifier].append(now)
 
             # Log query string
-            query_string = self.scope.get('query_string', b'').decode('utf-8')
-            logger.debug(f"Chat WebSocket query string: {query_string}")
 
             self.current_user = await self.authenticate_user()
 
@@ -70,7 +68,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.room_name = self.get_room_name(
                     self.current_user.username, self.username
                 )
-                logger.debug(f"Chat room name: {self.room_name}")
 
                 self.conversation = await self.get_or_create_conversation()
 
@@ -98,7 +95,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             logger.info(f"Chat WebSocket disconnection with code {close_code}")
             if hasattr(self, 'room_name') and self.room_name:
-                logger.debug(f"Removing from chat group: {self.room_name}")
                 await self.channel_layer.group_discard(
                     self.room_name, self.channel_name
                 )
@@ -198,7 +194,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "message": event["message"],
                 "sender": event["sender"],
             }))
-            logger.debug("Message forwarded to client")
         except Exception as e:
             logger.error(
                 f"Error sending chat message: {str(e)}", exc_info=True
@@ -366,5 +361,4 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def get_room_name(self, user1, user2):
         """Generate room name."""
         room_name = f"chat_{'_'.join(sorted([user1, user2]))}"
-        logger.debug(f"Generated room name: {room_name}")
         return room_name
