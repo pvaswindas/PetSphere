@@ -3,7 +3,7 @@ import { PhoneCall, PhoneOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../../axios/axiosinstance";
-import WebSocketService from "../../../services/WebSocketService";
+import websocketServiceInstance from "../../../services/WebSocketService";
 
 function IncomingCallPanel() {
     const [isCallIncoming, setIsCallIncoming] = useState(false);
@@ -16,7 +16,7 @@ function IncomingCallPanel() {
                 caller_username: caller.username
             });
     
-            WebSocketService.sendMessage({
+            websocketServiceInstance.sendMessage({
                 type: "call_accepted",
                 caller: caller.username
             });
@@ -34,7 +34,7 @@ function IncomingCallPanel() {
                 caller_username: caller.username
             });
     
-            WebSocketService.sendMessage({
+            websocketServiceInstance.sendMessage({
                 type: "call_rejected",
                 caller: caller.username
             });
@@ -47,7 +47,7 @@ function IncomingCallPanel() {
 
     useEffect(() => {
         // Subscribe to call notifications
-        const unsubscribe = WebSocketService.subscribe('call_notification', (data) => {
+        const unsubscribe = websocketServiceInstance.subscribe('call_notification', (data) => {
             setCaller(data.caller);
             setIsCallIncoming(true);
         });
