@@ -9,6 +9,7 @@ import magic
 import imghdr
 import boto3
 import uuid
+import io  # Added missing import
 import mimetypes
 import logging
 from urllib.parse import parse_qs
@@ -148,10 +149,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
         """Send messages to WebSocket."""
         try:
+            # Only send the message once and don't log redundantly
             await self.send(text_data=json.dumps({
                 "message": event["message"],
                 "sender": event["sender"],
             }))
+            # Log once per message, not multiple times
             logger.debug("Message forwarded to client")
         except Exception as e:
             logger.error(
@@ -194,10 +197,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         timestamp = datetime.now().timestamp()
                         file_name = f"chat_{timestamp}{file_extension}"
                         
-                        # Generate a unique media key (fixed from original code)
+                        # Generate a unique media key
                         media_key = f'messages/{uuid.uuid4()}-{file_name}'
-
-                        print("BEFORE S3 INITIALIZATION")
 
                         # Initialize the S3 client
                         s3_client = boto3.client(
@@ -206,8 +207,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                             region_name=settings.AWS_S3_REGION_NAME
                         )
-
-                        print("AFTER S3 INITIALIZATION")
 
                         try:
                             # Create a BytesIO object to act as a file-like object
@@ -225,16 +224,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                                 f'{media_key}'
                             )
                         except Exception as e:
-                            print("S3 CONNECTION ERROR : ", str(e))
+                            logger.error(f"S3 CONNECTION ERROR: {str(e)}")
                             return {"error": f"File upload failed: {str(e)}"}
 
-                        print("BEFORE SAVING")
-                        # Set the media_url directly rather than using save()
+                        # Set the media_url directly
                         saved_message.media_url = media_url
-                        print("AFTER SAVING :", saved_message)
                     else:
-                        # Handle if file_data is already a file-like object 
-                        # (this branch may not be needed depending on your implementation)
+                        # Handle if file_data is already a file-like object
                         file_name = getattr(file_data, 'name', f"file_{uuid.uuid4()}")
                         media_key = f'messages/{uuid.uuid4()}-{file_name}'
                         
@@ -258,7 +254,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         saved_message.media_url = media_url
                         
                 except Exception as e:
-                    print("ERROR IN SAVING")
                     logger.error(
                         f"Error processing file data: {str(e)}", exc_info=True
                     )
