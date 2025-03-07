@@ -162,7 +162,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """Save message and handle file uploads."""
         try:
             conversation = self.conversation
-            print("MESSAGE :", message)
             if not file_data and not len(message) > 0:
                 return {"status": "ignored", "reason": "Empty message"}
             else:
@@ -182,7 +181,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
                             # Upload to S3 and get URL
                             media_url = upload_to_s3(
-                                file_data, s3_path="messages"
+                                file_data,
+                                s3_path="messages",
+                                media_name="chat"
                             )
 
                             if media_url:

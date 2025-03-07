@@ -10,12 +10,12 @@ from django.conf import settings
 from botocore.exceptions import NoCredentialsError
 
 
-def upload_to_s3(file_base64, s3_folder="messages"):
+def upload_to_s3(file_base64, s3_path="common", media_name="common"):
     """
     Uploads a base64-encoded file to an S3 bucket.
 
     :param file_base64: Base64-encoded file data
-    :param s3_folder: Folder in S3 where the file should be stored
+    :param s3_path: Folder in S3 where the file should be stored
     :return: S3 file URL or None if upload fails
     """
     try:
@@ -35,8 +35,8 @@ def upload_to_s3(file_base64, s3_folder="messages"):
 
         # Generate a unique file name
         timestamp = int(datetime.now().timestamp())
-        file_name = f"chat_{timestamp}{file_extension}"
-        media_key = f"{s3_folder}/{uuid.uuid4()}-{file_name}"
+        file_name = f"{media_name}_{timestamp}{file_extension}"
+        media_key = f"{s3_path}/{uuid.uuid4()}-{file_name}"
 
         # Convert bytes to a file-like object
         file_obj = io.BytesIO(file_bytes)

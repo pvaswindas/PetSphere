@@ -1,6 +1,5 @@
 from django.db import models
 from accounts.models import PetSphereUser
-from storages.backends.s3boto3 import S3Boto3Storage
 
 
 class Conversation(models.Model):
