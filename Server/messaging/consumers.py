@@ -193,6 +193,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     file_name = f"chat_{timestamp}{file_extension}"
                     media_key = f'messages/{uuid.uuid4()}-{file_data.name}'
 
+                    print("BEFORE S3 INITIALIZATION")
+
                     # Initialize the S3 client
                     s3_client = boto3.client(
                         's3',
@@ -200,6 +202,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                         region_name=settings.AWS_S3_REGION_NAME
                     )
+
+                    print("AFTER S3 INITIALIZATION")
 
                     try:
                         s3_client.upload_fileobj(
@@ -213,12 +217,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             f'{media_key}'
                         )
                     except Exception as e:
+                        print("S3 CONNECTION ERROR : ", str(e))
                         return {"error": f"File upload failed: {str(e)}"}
 
+                    print("BEFORE SAVING")
                     saved_message.media_file.save(
                         media_url,
                     )
+                    print("AFTER SAVING :", saved_message)
                 except Exception as e:
+                    print("ERROR IN SAVING")
                     logger.error(
                         f"Error processing file data: {str(e)}", exc_info=True
                     )
