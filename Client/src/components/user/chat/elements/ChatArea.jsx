@@ -32,52 +32,103 @@ const ChatArea = ({ activeConversation = [] }) => {
         };
     }, []);
 
+    // ChatArea.jsx - improved WebSocket connection logic
     useEffect(() => {
         const token = localStorage.getItem('ACCESS_TOKEN');
-        if (!username || !token || connecting) return;
-
-        // Close previous connection if it exists
-        if (webSocketRef.current) {
-            webSocketRef.current.close();
-            webSocketRef.current = null;
-        }
-
-        setConnecting(true);
-
-        const wsConnection = chatWebSocket(
-            username,
-            token,
-            (data) => {
-                const newMessage = data.message;
-                setMessages((prevMessages) => {
-                    const messageExists = prevMessages.some(msg => msg.id === newMessage.id);
-                    return messageExists ? prevMessages : [...prevMessages, newMessage];
-                });
-            },
-            (ws) => {
-                setSocketInstance(ws);
-                setConnecting(false);
-            },
-            () => {
-                setSocketInstance(null);
-                setConnecting(false);
-            },
-            (error) => {
-                setSnackbarMessage("Connection error! Please try again later.");
-                setSnackbarOpen(true);
-                setConnecting(false);
+        if (!username || !token) return;
+        
+        // Connection state tracking
+        let isConnecting = false;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        const reconnectDelay = attempt => Math.min(1000 * Math.pow(2, attempt), 30000);
+        
+        const connectWebSocket = () => {
+            if (isConnecting) return;
+            
+            isConnecting = true;
+            setConnecting(true);
+            
+            // Close any existing connection
+            if (webSocketRef.current) {
+                webSocketRef.current.close();
+                webSocketRef.current = null;
             }
-        );
-
-        // Store the reference to allow cleanup
-        webSocketRef.current = wsConnection;
-
+            
+            console.log(`Attempting connection (attempt ${reconnectAttempts + 1})`);
+            
+            const wsConnection = chatWebSocket(
+                username,
+                token,
+                (data) => {
+                    // Message handler
+                    const newMessage = data.message;
+                    setMessages((prevMessages) => {
+                        // Proper deduplication by ID
+                        if (prevMessages.some(msg => msg.id === newMessage.id)) {
+                            return prevMessages;
+                        }
+                        return [...prevMessages, newMessage];
+                    });
+                    
+                    // Reset reconnect attempts on successful data
+                    reconnectAttempts = 0;
+                },
+                (ws) => {
+                    // Connection success
+                    console.log("WebSocket connected successfully");
+                    setSocketInstance(ws);
+                    setConnecting(false);
+                    isConnecting = false;
+                    reconnectAttempts = 0;
+                },
+                () => {
+                    // Connection closed handler
+                    console.log("WebSocket connection closed");
+                    setSocketInstance(null);
+                    setConnecting(false);
+                    isConnecting = false;
+                    
+                    // Only attempt reconnect if component is still mounted
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        reconnectAttempts++;
+                        setTimeout(connectWebSocket, reconnectDelay(reconnectAttempts));
+                    } else {
+                        setSnackbarMessage("Connection failed after multiple attempts. Please reload the page.");
+                        setSnackbarOpen(true);
+                    }
+                },
+                (error) => {
+                    // Error handler
+                    console.error("WebSocket connection error:", error);
+                    setSnackbarMessage("Connection error! Please try again later.");
+                    setSnackbarOpen(true);
+                    setConnecting(false);
+                    isConnecting = false;
+                    
+                    // Only attempt reconnect if component is still mounted
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        reconnectAttempts++;
+                        setTimeout(connectWebSocket, reconnectDelay(reconnectAttempts));
+                    }
+                }
+            );
+            
+            // Store the reference to allow cleanup
+            webSocketRef.current = wsConnection;
+        };
+        
+        connectWebSocket();
+        
+        // Clean up on unmount
         return () => {
-            if (wsConnection) {
-                wsConnection.close();
+            console.log("Component unmounting, cleaning up WebSocket");
+            if (webSocketRef.current) {
+                webSocketRef.current.close();
+                webSocketRef.current = null;
             }
         };
-    }, [username, connecting]);
+    }, [username]);
 
     useEffect(() => {
         setMessages([]);
