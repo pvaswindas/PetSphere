@@ -4,17 +4,15 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from .models import Message, Conversation
 import jwt
-import io
 import base64
 import magic
 import imghdr
 import boto3
 import uuid
-import time
 import mimetypes
 import logging
 from urllib.parse import parse_qs
-from collections import defaultdict
+from django.core.files.base import ContentFile
 from datetime import datetime
 from django.conf import settings
 from .serializers import MessageSerializer
@@ -23,43 +21,16 @@ from accounts.models import PetSphereUser
 # Set up logger
 logger = logging.getLogger('websockets')
 
-connection_attempts = defaultdict(list)
-CONNECTION_LIMIT = 5  # Max connections per minute
-CONNECTION_WINDOW = 60  # 60 seconds window
-
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        """Handles a new WebSocket connection with rate limiting."""
+        """Handles a new WebSocket connection."""
         try:
             self.username = self.scope["url_route"]["kwargs"]["username"]
 
-            # Rate limiting logic
-            now = time.time()
-            user_ip = self.scope.get(
-                'client'
-            )[0] if 'client' in self.scope else 'unknown'
-            identifier = f"{user_ip}_{self.username}"
-
-            # Clean old connection attempts
-            connection_attempts[identifier] = [
-                t for t in connection_attempts[identifier]
-                if t > now - CONNECTION_WINDOW
-            ]
-
-            # Check rate limit
-            if len(connection_attempts[identifier]) >= CONNECTION_LIMIT:
-                logger.warning(
-                    f"Rate limit exceeded for {identifier}. "
-                    f"Rejecting connection."
-                )
-                await self.close(code=1008)
-                return
-
-            # Record this connection attempt
-            connection_attempts[identifier].append(now)
-
             # Log query string
+            query_string = self.scope.get('query_string', b'').decode('utf-8')
+            logger.debug(f"Chat WebSocket query string: {query_string}")
 
             self.current_user = await self.authenticate_user()
 
@@ -68,6 +39,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.room_name = self.get_room_name(
                     self.current_user.username, self.username
                 )
+                logger.debug(f"Chat room name: {self.room_name}")
 
                 self.conversation = await self.get_or_create_conversation()
 
@@ -77,24 +49,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 logger.info(f"Added to chat group: {self.room_name}")
 
                 await self.accept()
-
-                # Send a connection acknowledgment
-                await self.send(text_data=json.dumps({
-                    "type": "connection_established",
-                    "status": "connected"
-                }))
             else:
                 logger.warning("Chat WebSocket authentication failed")
-                await self.close(code=4001)
+                await self.close()
         except Exception as e:
             logger.error(f"Error in chat connect: {str(e)}", exc_info=True)
-            await self.close(code=1011)
+            await self.close()
 
     async def disconnect(self, close_code):
         """Handles WebSocket disconnection."""
         try:
             logger.info(f"Chat WebSocket disconnection with code {close_code}")
             if hasattr(self, 'room_name') and self.room_name:
+                logger.debug(f"Removing from chat group: {self.room_name}")
                 await self.channel_layer.group_discard(
                     self.room_name, self.channel_name
                 )
@@ -108,15 +75,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """Handles receiving messages and file uploads."""
         try:
             data = json.loads(text_data)
-
-            # Handle ping messages
-            if data.get('type') == 'ping':
-                await self.send(text_data=json.dumps({
-                    "type": "pong",
-                    "timestamp": datetime.now().timestamp()
-                }))
-                return
-
             message = data.get("message", "").strip()
             file_data = data.get("file", None)
             sender = self.scope["user"]
@@ -194,6 +152,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "message": event["message"],
                 "sender": event["sender"],
             }))
+            logger.debug("Message forwarded to client")
         except Exception as e:
             logger.error(
                 f"Error sending chat message: {str(e)}", exc_info=True
@@ -224,20 +183,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         mime = magic.Magic(mime=True)
                         detected_mime = mime.from_buffer(file_bytes)
 
-                        file_extension = mimetypes.guess_extension(
-                            detected_mime
-                        ) or ".bin"
+                        file_extension = mimetypes.guess_extension(detected_mime) or ".bin"
 
                         if not file_extension or file_extension == ".bin":
                             file_type = imghdr.what(None, h=file_bytes)
                             if file_type:
                                 file_extension = f".{file_type}"
 
-                        # Generate file name with timestamp, proper extension
+                        # Generate file name with timestamp and proper extension
                         timestamp = datetime.now().timestamp()
                         file_name = f"chat_{timestamp}{file_extension}"
-
-                        # Generate a unique media key
+                        
+                        # Generate a unique media key (fixed from original code)
                         media_key = f'messages/{uuid.uuid4()}-{file_name}'
 
                         print("BEFORE S3 INITIALIZATION")
@@ -246,18 +203,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         s3_client = boto3.client(
                             's3',
                             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                            aws_secret_access_key=(
-                                settings.AWS_SECRET_ACCESS_KEY
-                            ),
+                            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                             region_name=settings.AWS_S3_REGION_NAME
                         )
 
                         print("AFTER S3 INITIALIZATION")
 
                         try:
-                            # Create a BytesIO object to act as a object
+                            # Create a BytesIO object to act as a file-like object
                             file_obj = io.BytesIO(file_bytes)
-
+                            
                             # Upload the file-like object
                             s3_client.upload_fileobj(
                                 file_obj,
@@ -278,21 +233,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         saved_message.media_url = media_url
                         print("AFTER SAVING :", saved_message)
                     else:
-                        # Handle if file_data is already a file-like object
-                        file_name = getattr(
-                            file_data, 'name', f"file_{uuid.uuid4()}"
-                        )
+                        # Handle if file_data is already a file-like object 
+                        # (this branch may not be needed depending on your implementation)
+                        file_name = getattr(file_data, 'name', f"file_{uuid.uuid4()}")
                         media_key = f'messages/{uuid.uuid4()}-{file_name}'
-
+                        
                         s3_client = boto3.client(
                             's3',
                             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                            aws_secret_access_key=(
-                                settings.AWS_SECRET_ACCESS_KEY
-                            ),
+                            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                             region_name=settings.AWS_S3_REGION_NAME
                         )
-
+                        
                         s3_client.upload_fileobj(
                             file_data,
                             settings.AWS_STORAGE_BUCKET_NAME,
@@ -304,7 +256,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             f'{media_key}'
                         )
                         saved_message.media_url = media_url
-
+                        
                 except Exception as e:
                     print("ERROR IN SAVING")
                     logger.error(
@@ -361,4 +313,5 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def get_room_name(self, user1, user2):
         """Generate room name."""
         room_name = f"chat_{'_'.join(sorted([user1, user2]))}"
+        logger.debug(f"Generated room name: {room_name}")
         return room_name
