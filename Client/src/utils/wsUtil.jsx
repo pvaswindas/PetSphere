@@ -1,9 +1,8 @@
 // wsUtil.js
 export const chatWebSocket = (username, token, onMessage, onOpen, onClose, onError) => {
     // Use secure WebSocket if on HTTPS
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    const wsUrl = `${protocol}//${host}/ws/chat/${username}/?token=${token}`;
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${process.env.REACT_APP_API_SITE_URL}/ws/chat/${username}/?token=${token}`;
     
     let ws;
     try {
