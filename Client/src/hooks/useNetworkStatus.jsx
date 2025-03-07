@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// Custom hook that monitors both internet connection and server status
 export const useNetworkStatus = () => {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [isServerUp, setIsServerUp] = useState(true);
