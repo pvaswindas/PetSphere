@@ -43,7 +43,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             # Clean old connection attempts
             connection_attempts[identifier] = [
-                t for t in connection_attempts[identifier] 
+                t for t in connection_attempts[identifier]
                 if t > now - CONNECTION_WINDOW
             ]
 
