@@ -10,9 +10,11 @@ import magic
 import imghdr
 import boto3
 import uuid
+import time
 import mimetypes
 import logging
 from urllib.parse import parse_qs
+from collections import defaultdict
 from datetime import datetime
 from django.conf import settings
 from .serializers import MessageSerializer
@@ -21,12 +23,41 @@ from accounts.models import PetSphereUser
 # Set up logger
 logger = logging.getLogger('websockets')
 
+connection_attempts = defaultdict(list)
+CONNECTION_LIMIT = 5  # Max connections per minute
+CONNECTION_WINDOW = 60  # 60 seconds window
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        """Handles a new WebSocket connection."""
+        """Handles a new WebSocket connection with rate limiting."""
         try:
             self.username = self.scope["url_route"]["kwargs"]["username"]
+
+            # Rate limiting logic
+            now = time.time()
+            user_ip = self.scope.get(
+                'client'
+            )[0] if 'client' in self.scope else 'unknown'
+            identifier = f"{user_ip}_{self.username}"
+
+            # Clean old connection attempts
+            connection_attempts[identifier] = [
+                t for t in connection_attempts[identifier] 
+                if t > now - CONNECTION_WINDOW
+            ]
+
+            # Check rate limit
+            if len(connection_attempts[identifier]) >= CONNECTION_LIMIT:
+                logger.warning(
+                    f"Rate limit exceeded for {identifier}. "
+                    f"Rejecting connection."
+                )
+                await self.close(code=1008)
+                return
+
+            # Record this connection attempt
+            connection_attempts[identifier].append(now)
 
             # Log query string
             query_string = self.scope.get('query_string', b'').decode('utf-8')
@@ -49,12 +80,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 logger.info(f"Added to chat group: {self.room_name}")
 
                 await self.accept()
+
+                # Send a connection acknowledgment
+                await self.send(text_data=json.dumps({
+                    "type": "connection_established",
+                    "status": "connected"
+                }))
             else:
                 logger.warning("Chat WebSocket authentication failed")
-                await self.close()
+                await self.close(code=4001)
         except Exception as e:
             logger.error(f"Error in chat connect: {str(e)}", exc_info=True)
-            await self.close()
+            await self.close(code=1011)
 
     async def disconnect(self, close_code):
         """Handles WebSocket disconnection."""
@@ -75,6 +112,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """Handles receiving messages and file uploads."""
         try:
             data = json.loads(text_data)
+
+            # Handle ping messages
+            if data.get('type') == 'ping':
+                await self.send(text_data=json.dumps({
+                    "type": "pong",
+                    "timestamp": datetime.now().timestamp()
+                }))
+                return
+
             message = data.get("message", "").strip()
             file_data = data.get("file", None)
             sender = self.scope["user"]
