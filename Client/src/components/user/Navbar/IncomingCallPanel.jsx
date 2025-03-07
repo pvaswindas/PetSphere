@@ -24,7 +24,6 @@ function IncomingCallPanel() {
         socketRef.current = new WebSocket(`${wsProtocol}://${process.env.REACT_APP_API_SITE_URL}/ws/notifications/?token=${token}`);
         
         socketRef.current.onopen = function() {
-            console.log('WebSocket notification connection established');
             if (reconnectTimeoutRef.current) {
                 clearTimeout(reconnectTimeoutRef.current);
                 reconnectTimeoutRef.current = null;
@@ -33,8 +32,6 @@ function IncomingCallPanel() {
 
         socketRef.current.onmessage = function(event) {
             try {
-                console.log('WebSocket message received:', event.data);
-                
                 if (event.data === "ping") {
                     socketRef.current.send("pong");
                     return;
@@ -91,7 +88,7 @@ function IncomingCallPanel() {
                     caller: caller.username
                 }));
             }
-    
+
             setIsCallIncoming(false);
         } catch (error) {
             setIsCallIncoming(false);

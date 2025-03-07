@@ -43,7 +43,6 @@ const ChatArea = ({ activeConversation = [] }) => {
         }
 
         setConnecting(true);
-        console.log(`Connecting to chat WebSocket for ${username}`);
 
         const wsConnection = chatWebSocket(
             username,
@@ -56,18 +55,15 @@ const ChatArea = ({ activeConversation = [] }) => {
                 });
             },
             (ws) => {
-                console.log(`Successfully connected to chat with ${username}`);
                 setSocketInstance(ws);
                 setConnecting(false);
             },
             () => {
-                console.log(`WebSocket connection to ${username} closed`);
                 setSocketInstance(null);
                 setConnecting(false);
             },
             (error) => {
-                console.error(`WebSocket error with ${username}:`, error);
-                setSnackbarMessage("Connection error! Please try again.");
+                setSnackbarMessage("Connection error! Please try again later.");
                 setSnackbarOpen(true);
                 setConnecting(false);
             }
@@ -81,7 +77,7 @@ const ChatArea = ({ activeConversation = [] }) => {
                 wsConnection.close();
             }
         };
-    }, [username]);
+    }, [username, connecting]);
 
     useEffect(() => {
         setMessages([]);
@@ -107,7 +103,8 @@ const ChatArea = ({ activeConversation = [] }) => {
 
     const handleSend = async ({ text, file }) => {
         if ((!text.trim() && !file) || !socketInstance) {
-            console.log("Cannot send message: empty content or no socket connection");
+            setSnackbarMessage("Cannot send message")
+            setSnackbarOpen(true)
             return;
         }
 
@@ -117,12 +114,10 @@ const ChatArea = ({ activeConversation = [] }) => {
                 messageData.file = file;
             }
             
-            console.log("Sending message:", messageData);
             socketInstance.send(JSON.stringify(messageData));
             setMessage("");
             setSelectedFiles([]);
         } catch (error) {
-            console.error("Error sending message:", error);
             setSnackbarMessage("Failed to send message");
             setSnackbarOpen(true);
         }
