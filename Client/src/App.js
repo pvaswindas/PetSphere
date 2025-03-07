@@ -58,6 +58,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ServerDownPage from "./pages/ServerDownPage";
 import axios from "axios";
 import LoadingPage from "./pages/LoadingPage";
+import WebSocketInitializer from "./utils/WebSocketInitializer";
 
 
 function App() {
@@ -106,6 +107,7 @@ function App() {
             <ServerDownPage />
           ) : (
             <div className="bg-gray-75 h-screen">
+              <WebSocketInitializer />
               <Routes>
                 {/* Landing Route */}
                 <Route path="/" element={<RestrictedRoute><Landing /></RestrictedRoute>} />
