@@ -15,10 +15,20 @@ export const chatWebSocket = (username, token, onMessage, onOpen, onClose, onErr
     };
 
     ws.onmessage = (event) => {
+        // Skip processing if data is empty or null
+        if (!event.data) {
+            console.log("Empty message received, ignoring");
+            return;
+        }
+        
         try {
             const data = JSON.parse(event.data);
             console.log(`Chat message received:`, data);
-            if (onMessage) onMessage(data);
+            
+            // Add validation to ensure the message has content before forwarding
+            if (data && (data.message || data.type !== "ping")) {
+                if (onMessage) onMessage(data);
+            }
         } catch (error) {
             console.error(`Error parsing chat message:`, error);
             if (onError) onError(error);

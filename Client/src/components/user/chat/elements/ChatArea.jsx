@@ -13,6 +13,7 @@ const ChatArea = ({ activeConversation = [] }) => {
     const [recipient, setRecipient] = useState(null);
     const [socketInstance, setSocketInstance] = useState(null);
     const webSocketRef = useRef(null);
+    const reconnectTimeoutRef = useRef(null);
 
     const [message, setMessage] = useState("");
     const [selectedFiles, setSelectedFiles] = useState([]);
@@ -20,22 +21,33 @@ const ChatArea = ({ activeConversation = [] }) => {
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [connecting, setConnecting] = useState(false);
+    
+    // Track seen message IDs to avoid duplicates
+    const seenMessageIds = useRef(new Set());
 
     useEffect(() => {
-        // Cleanup function for WebSocket
+        // Cleanup function for WebSocket and any pending timeouts
         return () => {
             if (webSocketRef.current) {
                 console.log("Cleaning up WebSocket connection");
                 webSocketRef.current.close();
                 webSocketRef.current = null;
             }
+            
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+                reconnectTimeoutRef.current = null;
+            }
         };
     }, []);
 
-    // ChatArea.jsx - improved WebSocket connection logic
+    // Improved WebSocket connection logic
     useEffect(() => {
         const token = localStorage.getItem('ACCESS_TOKEN');
         if (!username || !token) return;
+        
+        // Reset seen message IDs when changing conversations
+        seenMessageIds.current = new Set();
         
         // Connection state tracking
         let isConnecting = false;
@@ -70,13 +82,18 @@ const ChatArea = ({ activeConversation = [] }) => {
                         newMessage.id = Date.now().toString(); // Generate temporary ID if missing
                     }
                     
-                    setMessages((prevMessages) => {
-                        // Proper deduplication by ID with null check
-                        if (prevMessages.some(msg => msg.id && newMessage.id && msg.id === newMessage.id)) {
-                            return prevMessages;
-                        }
-                        return [...prevMessages, newMessage];
-                    });
+                    // Check if we've already seen this message ID
+                    if (!seenMessageIds.current.has(newMessage.id)) {
+                        seenMessageIds.current.add(newMessage.id);
+                        
+                        setMessages((prevMessages) => {
+                            // Double-check to avoid race conditions
+                            if (prevMessages.some(msg => msg.id === newMessage.id)) {
+                                return prevMessages;
+                            }
+                            return [...prevMessages, newMessage];
+                        });
+                    }
                     
                     // Reset reconnect attempts on successful data
                     reconnectAttempts = 0;
@@ -99,7 +116,7 @@ const ChatArea = ({ activeConversation = [] }) => {
                     // Only attempt reconnect if component is still mounted
                     if (reconnectAttempts < maxReconnectAttempts) {
                         reconnectAttempts++;
-                        setTimeout(connectWebSocket, reconnectDelay(reconnectAttempts));
+                        reconnectTimeoutRef.current = setTimeout(connectWebSocket, reconnectDelay(reconnectAttempts));
                     } else {
                         setSnackbarMessage("Connection failed after multiple attempts. Please reload the page.");
                         setSnackbarOpen(true);
@@ -116,7 +133,7 @@ const ChatArea = ({ activeConversation = [] }) => {
                     // Only attempt reconnect if component is still mounted
                     if (reconnectAttempts < maxReconnectAttempts) {
                         reconnectAttempts++;
-                        setTimeout(connectWebSocket, reconnectDelay(reconnectAttempts));
+                        reconnectTimeoutRef.current = setTimeout(connectWebSocket, reconnectDelay(reconnectAttempts));
                     }
                 }
             );
@@ -134,15 +151,31 @@ const ChatArea = ({ activeConversation = [] }) => {
                 webSocketRef.current.close();
                 webSocketRef.current = null;
             }
+            
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+                reconnectTimeoutRef.current = null;
+            }
         };
     }, [username]);
 
     useEffect(() => {
         setMessages([]);
+        seenMessageIds.current = new Set(); // Reset seen message IDs
+        
         const fetchMessages = async () => {
             try {
                 const data = await getMessages(username);
-                setMessages(data.messages || []);
+                const initialMessages = data.messages || [];
+                
+                // Add initial message IDs to seen set
+                initialMessages.forEach(msg => {
+                    if (msg.id) {
+                        seenMessageIds.current.add(msg.id);
+                    }
+                });
+                
+                setMessages(initialMessages);
 
                 if (activeConversation) {
                     setRecipient(activeConversation.other_user);
@@ -161,8 +194,8 @@ const ChatArea = ({ activeConversation = [] }) => {
 
     const handleSend = async ({ text, file }) => {
         if ((!text.trim() && !file) || !socketInstance) {
-            setSnackbarMessage("Cannot send message")
-            setSnackbarOpen(true)
+            setSnackbarMessage("Cannot send message");
+            setSnackbarOpen(true);
             return;
         }
 
