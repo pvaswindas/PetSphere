@@ -194,7 +194,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
                             if not media_url:
                                 return {
-                                    "error": "File upload failed. Message not sent."
+                                    "error": "File upload failed. "
+                                    "Message not sent."
                                 }
                             saved_message.media_url = media_url
                     except Exception as e:

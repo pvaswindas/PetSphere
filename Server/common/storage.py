@@ -16,7 +16,7 @@ def upload_to_s3(file_base64, s3_path="common", media_name="common"):
 
     :param file_base64: Base64-encoded file data
     :param s3_path: Folder in S3 where the file should be stored
-    :return: Dictionary with file info or None if upload fails
+    :return: S3 file URL or None if upload fails
     """
     try:
         # Decode base64 file
@@ -55,13 +55,7 @@ def upload_to_s3(file_base64, s3_path="common", media_name="common"):
             media_key,
         )
 
-        # Return file information instead of just the URL
-        return {
-            'url': f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{media_key}",
-            'name': file_name,
-            'mime_type': detected_mime,
-            'extension': file_extension
-        }
+        return f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{media_key}"
 
     except NoCredentialsError:
         print("AWS credentials not found")
