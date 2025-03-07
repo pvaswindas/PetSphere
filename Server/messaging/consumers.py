@@ -4,19 +4,13 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from .models import Message, Conversation
 import jwt
-import base64
-import magic
-import imghdr
-import boto3
-import uuid
-import io  # Added missing import
-import mimetypes
 import logging
 from urllib.parse import parse_qs
 from datetime import datetime
 from django.conf import settings
 from .serializers import MessageSerializer
 from accounts.models import PetSphereUser
+from common.storage import upload_to_s3
 
 # Set up logger
 logger = logging.getLogger('websockets')
@@ -83,19 +77,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )(username=self.username)
 
             # Save the message
-            serialized_message = await self.save_message(
-                sender, receiver, message, file_data
-            )
+            if file_data or len(message) > 0:
+                serialized_message = await self.save_message(
+                    sender, receiver, message, file_data
+                )
 
-            # Send the message to the group
-            await self.channel_layer.group_send(
-                self.room_name,
-                {
-                    "type": "chat_message",
-                    "message": serialized_message,
-                    "sender": sender.username,
-                }
-            )
+                # Send the message to the group
+                await self.channel_layer.group_send(
+                    self.room_name,
+                    {
+                        "type": "chat_message",
+                        "message": serialized_message,
+                        "sender": sender.username,
+                    }
+                )
+            else:
+                return {"status": "ignored", "reason": "Empty message"}
         except Exception as e:
             logger.error(f"Error in chat receive: {str(e)}", exc_info=True)
 
@@ -165,109 +162,43 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """Save message and handle file uploads."""
         try:
             conversation = self.conversation
-            if not message or len(message) == 0 or (len(message) == 0 and not file_data):
+            if not file_data or not len(message) > 0:
                 return {"status": "ignored", "reason": "Empty message"}
-            print(message)
-            saved_message = Message(
-                sender=sender,
-                receiver=receiver,
-                conversation=conversation,
-                content=message,
-            )
+            else:
+                saved_message = Message(
+                    sender=sender,
+                    receiver=receiver,
+                    conversation=conversation,
+                    content=message,
+                )
 
-            if file_data:
-                try:
-                    # Process file data if it's a base64 string
-                    if isinstance(file_data, str):
-                        if "," in file_data:
-                            file_data = file_data.split(",")[1]
+                if file_data:
+                    try:
+                        # Process file data (base64)
+                        if isinstance(file_data, str):
+                            if "," in file_data:
+                                file_data = file_data.split(",")[1]
 
-                        file_bytes = base64.b64decode(file_data)
-
-                        # Detect mimetype and determine extension
-                        mime = magic.Magic(mime=True)
-                        detected_mime = mime.from_buffer(file_bytes)
-
-                        file_extension = mimetypes.guess_extension(detected_mime) or ".bin"
-
-                        if not file_extension or file_extension == ".bin":
-                            file_type = imghdr.what(None, h=file_bytes)
-                            if file_type:
-                                file_extension = f".{file_type}"
-
-                        # Generate file name with timestamp and proper extension
-                        timestamp = datetime.now().timestamp()
-                        file_name = f"chat_{timestamp}{file_extension}"
-
-                        # Generate a unique media key
-                        media_key = f'messages/{uuid.uuid4()}-{file_name}'
-
-                        # Initialize the S3 client
-                        s3_client = boto3.client(
-                            's3',
-                            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                            region_name=settings.AWS_S3_REGION_NAME
-                        )
-
-                        try:
-                            # Create a BytesIO object to act as a file-like object
-                            file_obj = io.BytesIO(file_bytes)
-
-                            # Upload the file-like object
-                            s3_client.upload_fileobj(
-                                file_obj,
-                                settings.AWS_STORAGE_BUCKET_NAME,
-                                media_key,
-                                ExtraArgs={'ACL': 'public-read'}
+                            # Upload to S3 and get URL
+                            media_url = upload_to_s3(
+                                file_data, s3_path="messages"
                             )
-                            media_url = (
-                                f'https://{settings.AWS_S3_CUSTOM_DOMAIN}/'
-                                f'{media_key}'
-                            )
-                        except Exception as e:
-                            logger.error(f"S3 CONNECTION ERROR: {str(e)}")
-                            return {"error": f"File upload failed: {str(e)}"}
 
-                        # Set the media_url directly
-                        saved_message.media_url = media_url
-                    else:
-                        # Handle if file_data is already a file-like object
-                        file_name = getattr(file_data, 'name', f"file_{uuid.uuid4()}")
-                        media_key = f'messages/{uuid.uuid4()}-{file_name}'
-
-                        s3_client = boto3.client(
-                            's3',
-                            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                            region_name=settings.AWS_S3_REGION_NAME
+                            if media_url:
+                                saved_message.media_url = media_url
+                    except Exception as e:
+                        logger.error(
+                            f"Error processing file data: {str(e)}",
+                            exc_info=True
                         )
+                        return {"error": f"File upload failed: {str(e)}"}
 
-                        s3_client.upload_fileobj(
-                            file_data,
-                            settings.AWS_STORAGE_BUCKET_NAME,
-                            media_key,
-                            ExtraArgs={'ACL': 'public-read'}
-                        )
-                        media_url = (
-                            f'https://{settings.AWS_S3_CUSTOM_DOMAIN}/'
-                            f'{media_key}'
-                        )
-                        saved_message.media_url = media_url
+                saved_message.save()
 
-                except Exception as e:
-                    logger.error(
-                        f"Error processing file data: {str(e)}", exc_info=True
-                    )
-                    return {"error": f"File upload failed: {str(e)}"}
-
-            saved_message.save()
-
-            conversation.last_message = message or ""
-            conversation.last_message_timestamp = datetime.now()
-            conversation.save()
-
-            return MessageSerializer(saved_message).data
+                conversation.last_message = message or "[File Uploaded]"
+                conversation.last_message_timestamp = datetime.now()
+                conversation.save()
+                return MessageSerializer(saved_message).data
         except Exception as e:
             logger.error(f"Error saving message: {str(e)}", exc_info=True)
             return {"error": str(e)}
