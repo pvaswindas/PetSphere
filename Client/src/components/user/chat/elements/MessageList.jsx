@@ -57,7 +57,12 @@ const MessageList = ({ messages = [] }) => {
             style={{ maxHeight: "calc(100vh - 160px)" }}
         >
             {Array.isArray(messages) && messages.length > 0 ? (
-                messages.map((message) => <MessageBubble key={message.id} message={message} />)
+                messages.map((message, index) => (
+                    <MessageBubble 
+                        key={message.id || `message-${index}`} 
+                        message={message} 
+                    />
+                ))
             ) : (
                 <div className="flex justify-center items-center h-full text-gray-500">
                     No messages yet. Start the conversation!
