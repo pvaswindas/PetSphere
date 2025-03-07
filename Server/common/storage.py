@@ -53,7 +53,6 @@ def upload_to_s3(file_base64, s3_path="common", media_name="common"):
             file_obj,
             settings.AWS_STORAGE_BUCKET_NAME,
             media_key,
-            ExtraArgs={'ACL': 'public-read'}
         )
 
         return f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{media_key}"

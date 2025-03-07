@@ -82,6 +82,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     sender, receiver, message, file_data
                 )
 
+                if "error" in serialized_message:
+                    logger.error(
+                        f"Message save failed: {serialized_message['error']}"
+                    )
+                    return {"status": "failed", "reason": "Failed to save"}
+
                 # Send the message to the group
                 await self.channel_layer.group_send(
                     self.room_name,
@@ -186,8 +192,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                                 media_name="chat"
                             )
 
-                            if media_url:
-                                saved_message.media_url = media_url
+                            if not media_url:
+                                return {
+                                    "error": "File upload failed. Message not sent."
+                                }
+                            saved_message.media_url = media_url
                     except Exception as e:
                         logger.error(
                             f"Error processing file data: {str(e)}",
