@@ -207,7 +207,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
                 saved_message.save()
 
-                conversation.last_message = message or "[File Uploaded]"
+                conversation.last_message = message or "File Uploaded"
                 conversation.last_message_timestamp = datetime.now()
                 conversation.save()
                 return MessageSerializer(saved_message).data
