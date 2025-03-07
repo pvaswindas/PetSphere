@@ -60,12 +60,19 @@ const ChatArea = ({ activeConversation = [] }) => {
             const wsConnection = chatWebSocket(
                 username,
                 token,
+                // In the WebSocket message handler
                 (data) => {
                     // Message handler
                     const newMessage = data.message;
+                    
+                    // Ensure the message has an id property
+                    if (!newMessage.id) {
+                        newMessage.id = Date.now().toString(); // Generate temporary ID if missing
+                    }
+                    
                     setMessages((prevMessages) => {
-                        // Proper deduplication by ID
-                        if (prevMessages.some(msg => msg.id === newMessage.id)) {
+                        // Proper deduplication by ID with null check
+                        if (prevMessages.some(msg => msg.id && newMessage.id && msg.id === newMessage.id)) {
                             return prevMessages;
                         }
                         return [...prevMessages, newMessage];
