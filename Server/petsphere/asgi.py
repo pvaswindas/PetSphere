@@ -20,6 +20,10 @@ websocket_urlpatterns = (
     messaging_urlpatterns + videocall_urlpatterns + notification_urlpatterns
 )
 
+print("Registered WebSocket patterns:")
+for pattern in websocket_urlpatterns:
+    print(f" - {pattern.pattern}")
+
 application = ProtocolTypeRouter({
     # Django's ASGI application to handle traditional HTTP requests
     "http": django_asgi_app,
