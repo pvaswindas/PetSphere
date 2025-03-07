@@ -13,7 +13,6 @@ import io  # Added missing import
 import mimetypes
 import logging
 from urllib.parse import parse_qs
-from django.core.files.base import ContentFile
 from datetime import datetime
 from django.conf import settings
 from .serializers import MessageSerializer
@@ -167,7 +166,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             conversation = self.conversation
             if not message or len(message) == 0 or (len(message) == 0 and not file_data):
-                return None
+                return {"status": "ignored", "reason": "Empty message"}
             print(message)
             saved_message = Message(
                 sender=sender,
