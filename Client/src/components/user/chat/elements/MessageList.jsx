@@ -5,10 +5,11 @@ import { ChevronDown } from "lucide-react";
 const MessageList = ({ messages = [] }) => {
     const messageListRef = useRef(null);
     const [showScrollButton, setShowScrollButton] = useState(false);
+
     const scrollToBottom = () => {
         if (messageListRef.current) {
             messageListRef.current.scrollTo({ top: messageListRef.current.scrollHeight, behavior: "smooth" });
-    
+
             setTimeout(() => {
                 if (messageListRef.current) {
                     const { scrollTop, scrollHeight, clientHeight } = messageListRef.current;
@@ -22,7 +23,7 @@ const MessageList = ({ messages = [] }) => {
         const timeout = setTimeout(() => {
             scrollToBottom();
         }, 100);
-    
+
         return () => clearTimeout(timeout);
     }, [messages]);
 
@@ -33,22 +34,28 @@ const MessageList = ({ messages = [] }) => {
                 setShowScrollButton(scrollTop + clientHeight < scrollHeight - 20);
             }
         };
-    
+
         checkScroll();
-    
+
         const handleScroll = () => checkScroll();
-    
+
         const currentRef = messageListRef.current;
         if (currentRef) {
             currentRef.addEventListener("scroll", handleScroll);
         }
-    
+
         return () => {
             if (currentRef) {
                 currentRef.removeEventListener("scroll", handleScroll);
             }
         };
     }, [messages]);
+
+    // Function to format timestamps (HH:mm)
+    const formatTimestamp = (timestamp) => {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    };
 
     return (
         <div
@@ -58,14 +65,20 @@ const MessageList = ({ messages = [] }) => {
         >
             {Array.isArray(messages) && messages.length > 0 ? (
                 messages.map((message, index) => {
-                    // Ensure message is not null or undefined before rendering
                     if (!message) return null;
-                    
+
+                    const currentTimestamp = formatTimestamp(message.timestamp);
+                    const previousTimestamp = index > 0 ? formatTimestamp(messages[index - 1].timestamp) : null;
+
+                    const showTimestamp = currentTimestamp !== previousTimestamp;
+
                     return (
-                        <MessageBubble 
-                            key={message.id || `message-${index}`} 
-                            message={message} 
-                        />
+                        <div key={message.id || `message-${index}`}>
+                            {showTimestamp && (
+                                <div className="text-center text-gray-400 text-sm my-2">{currentTimestamp}</div>
+                            )}
+                            <MessageBubble message={message} />
+                        </div>
                     );
                 })
             ) : (
@@ -73,7 +86,7 @@ const MessageList = ({ messages = [] }) => {
                     No messages yet. Start the conversation!
                 </div>
             )}
-    
+
             {showScrollButton && (
                 <div className="sticky bottom-2 flex justify-center">
                     <button
