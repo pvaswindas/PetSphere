@@ -166,6 +166,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """Save message and handle file uploads."""
         try:
             conversation = self.conversation
+            if not message or len(message) == 0 or (len(message) == 0 and not file_data):
+                return None
+            print(message)
             saved_message = Message(
                 sender=sender,
                 receiver=receiver,
@@ -196,7 +199,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         # Generate file name with timestamp and proper extension
                         timestamp = datetime.now().timestamp()
                         file_name = f"chat_{timestamp}{file_extension}"
-                        
+
                         # Generate a unique media key
                         media_key = f'messages/{uuid.uuid4()}-{file_name}'
 
@@ -211,7 +214,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         try:
                             # Create a BytesIO object to act as a file-like object
                             file_obj = io.BytesIO(file_bytes)
-                            
+
                             # Upload the file-like object
                             s3_client.upload_fileobj(
                                 file_obj,
@@ -233,14 +236,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         # Handle if file_data is already a file-like object
                         file_name = getattr(file_data, 'name', f"file_{uuid.uuid4()}")
                         media_key = f'messages/{uuid.uuid4()}-{file_name}'
-                        
+
                         s3_client = boto3.client(
                             's3',
                             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                             region_name=settings.AWS_S3_REGION_NAME
                         )
-                        
+
                         s3_client.upload_fileobj(
                             file_data,
                             settings.AWS_STORAGE_BUCKET_NAME,
@@ -252,7 +255,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             f'{media_key}'
                         )
                         saved_message.media_url = media_url
-                        
+
                 except Exception as e:
                     logger.error(
                         f"Error processing file data: {str(e)}", exc_info=True
