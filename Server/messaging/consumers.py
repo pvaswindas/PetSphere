@@ -7,6 +7,8 @@ import jwt
 import base64
 import magic
 import imghdr
+import boto3
+import uuid
 import mimetypes
 import logging
 from urllib.parse import parse_qs
@@ -25,32 +27,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """Handles a new WebSocket connection."""
         try:
             self.username = self.scope["url_route"]["kwargs"]["username"]
-            logger.debug(f"Chat WebSocket connection attempt: username={self.username}")
-            
+
             # Log query string
             query_string = self.scope.get('query_string', b'').decode('utf-8')
             logger.debug(f"Chat WebSocket query string: {query_string}")
-            
+
             self.current_user = await self.authenticate_user()
 
             if self.current_user is not None:
-                logger.info(f"Chat WebSocket authenticated: user_id={self.current_user.id}, username={self.current_user.username}")
                 self.scope["user"] = self.current_user
                 self.room_name = self.get_room_name(
                     self.current_user.username, self.username
                 )
                 logger.debug(f"Chat room name: {self.room_name}")
-                
+
                 self.conversation = await self.get_or_create_conversation()
-                logger.debug(f"Retrieved conversation ID: {self.conversation.id}")
 
                 await self.channel_layer.group_add(
                     self.room_name, self.channel_name
                 )
                 logger.info(f"Added to chat group: {self.room_name}")
-                
+
                 await self.accept()
-                logger.info(f"Chat WebSocket connection accepted for user_id={self.current_user.id}")
             else:
                 logger.warning("Chat WebSocket authentication failed")
                 await self.close()
@@ -76,7 +74,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         """Handles receiving messages and file uploads."""
         try:
-            logger.debug(f"Chat received data: {text_data[:100]}...")  # Log first 100 chars for privacy
             data = json.loads(text_data)
             message = data.get("message", "").strip()
             file_data = data.get("file", None)
@@ -99,7 +96,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     "sender": sender.username,
                 }
             )
-            logger.debug(f"Message sent to group {self.room_name}")
         except Exception as e:
             logger.error(f"Error in chat receive: {str(e)}", exc_info=True)
 
@@ -112,11 +108,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             token = params.get('token', [''])[0]
 
             if not token:
-                logger.warning("No token provided in Chat WebSocket connection")
+                logger.warning("No token in Chat WebSocket connection")
                 return None
 
             # Decode and verify JWT token
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            payload = jwt.decode(
+                token, settings.SECRET_KEY, algorithms=["HS256"]
+            )
             user_id = payload.get('user_id')
 
             if not user_id:
@@ -137,7 +135,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             logger.warning("Invalid token")
             return None
         except PetSphereUser.DoesNotExist:
-            logger.warning(f"User with id {user_id if 'user_id' in locals() else 'unknown'} not found")
+            logger.warning(
+                f"User with id "
+                f"{user_id if 'user_id' in locals() else 'unknown'} "
+                "not found"
+            )
             return None
         except Exception as e:
             logger.error(f"Authentication error: {str(e)}")
@@ -150,9 +152,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "message": event["message"],
                 "sender": event["sender"],
             }))
-            logger.debug(f"Message forwarded to client")
+            logger.debug("Message forwarded to client")
         except Exception as e:
-            logger.error(f"Error sending chat message: {str(e)}", exc_info=True)
+            logger.error(
+                f"Error sending chat message: {str(e)}", exc_info=True
+            )
 
     @database_sync_to_async
     def save_message(self, sender, receiver, message, file_data):
@@ -187,21 +191,44 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
                     timestamp = datetime.now().timestamp()
                     file_name = f"chat_{timestamp}{file_extension}"
+                    media_key = f'messages/{uuid.uuid4()}-{file_data.name}'
+
+                    # Initialize the S3 client
+                    s3_client = boto3.client(
+                        's3',
+                        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                        region_name=settings.AWS_S3_REGION_NAME
+                    )
+
+                    try:
+                        s3_client.upload_fileobj(
+                            file_data,
+                            settings.AWS_STORAGE_BUCKET_NAME,
+                            media_key,
+                            ExtraArgs={'ACL': 'public-read'}
+                        )
+                        media_url = (
+                            f'https://{settings.AWS_S3_CUSTOM_DOMAIN}/'
+                            f'{media_key}'
+                        )
+                    except Exception as e:
+                        return {"error": f"File upload failed: {str(e)}"}
 
                     saved_message.media_file.save(
-                        file_name, ContentFile(file_bytes), save=False
+                        media_url,
                     )
                 except Exception as e:
-                    logger.error(f"Error processing file data: {str(e)}", exc_info=True)
+                    logger.error(
+                        f"Error processing file data: {str(e)}", exc_info=True
+                    )
                     return {"error": f"File upload failed: {str(e)}"}
 
             saved_message.save()
-            logger.debug(f"Message saved: id={saved_message.id}")
 
             conversation.last_message = message or ""
             conversation.last_message_timestamp = datetime.now()
             conversation.save()
-            logger.debug(f"Conversation updated: id={conversation.id}")
 
             return MessageSerializer(saved_message).data
         except Exception as e:
@@ -219,18 +246,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             ).filter(users__username=self.username).first()
 
             if not conversation:
-                logger.info(f"Creating new conversation between {current_user.username} and {self.username}")
                 conversation = Conversation.objects.create()
                 conversation.users.add(
                     current_user,
                     PetSphereUser.objects.get(username=self.username)
                 )
-            else:
-                logger.info(f"Found existing conversation ID: {conversation.id}")
 
             return conversation
         except Exception as e:
-            logger.error(f"Error in get_or_create_conversation: {str(e)}", exc_info=True)
+            logger.error(
+                f"Error in get_or_create_conversation: {str(e)}", exc_info=True
+            )
             raise
 
     @database_sync_to_async
@@ -238,10 +264,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """Deletes the conversation while disconnecting if no message exists"""
         try:
             if not self.conversation.messages.exists():
-                logger.info(f"Deleting empty conversation: {self.conversation.id}")
                 self.conversation.delete()
         except Exception as e:
-            logger.error(f"Error deleting empty conversation: {str(e)}", exc_info=True)
+            logger.error(
+                f"Error deleting empty conversation: {str(e)}", exc_info=True
+            )
 
     def get_room_name(self, user1, user2):
         """Generate room name."""

@@ -50,11 +50,9 @@ class Message(models.Model):
     )
 
     content = models.TextField(null=True, blank=True)
-    media_file = models.FileField(
-        upload_to="messages/media/",
+    media_url = models.URLField(
         null=True,
         blank=True,
-        storage=S3Boto3Storage(),
     )
     message_type = models.CharField(
         max_length=10, choices=MESSAGE_TYPES, default=TEXT
@@ -69,10 +67,10 @@ class Message(models.Model):
 
     def save(self, *args, **kwargs):
         """Automatically determine message type based on content and media."""
-        if self.content and self.media_file:
+        if self.content and self.media_url:
             self.message_type = self.MIXED
-        elif self.media_file:
-            if self.media_file.name.lower().endswith(
+        elif self.media_url:
+            if self.media_url.name.lower().endswith(
                 (".mp4", ".mkv", ".avi", ".mov")
             ):
                 self.message_type = self.VIDEO
@@ -84,20 +82,20 @@ class Message(models.Model):
             old_instance = Message.objects.get(pk=self.pk)
 
             if (
-                old_instance.media_file and
-                old_instance.media_file.name != self.icon.name
+                old_instance.media_url and
+                old_instance.media_url.name != self.icon.name
             ):
-                old_instance.media_file.delete(save=False)
+                old_instance.media_url.delete(save=False)
         except Message.DoesNotExist:
             pass
 
         super().save(*args, **kwargs)
 
-    def delete(self, *args, **kwargs):
-        if self.media_file:
-            self.media_file.delete(save=False)
+    # def delete(self, *args, **kwargs):
+    #     if self.media_url:
+    #         self.media_url.delete(save=False)
 
-        super().delete(*args, **kwargs)
+    #     super().delete(*args, **kwargs)
 
     def delete_for_user(self, user):
         """Marks the message as deleted for a specific user."""

@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import Message, Conversation
-from django.conf import settings
 from user_profile.serializers import ProfileSerializer
 
 
@@ -38,7 +37,6 @@ class MessageSerializer(serializers.ModelSerializer):
     conversation_id = serializers.IntegerField(
         source="conversation.id", read_only=True
     )
-    media_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
@@ -53,9 +51,3 @@ class MessageSerializer(serializers.ModelSerializer):
             "message_type",
             "read",
         ]
-
-    def get_media_url(self, obj):
-        """Returns the full absolute media URL without needing request."""
-        if obj.media_file:
-            return f"{settings.BASE_URL}{obj.media_file.url}"
-        return None

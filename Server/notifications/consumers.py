@@ -6,10 +6,6 @@ from urllib.parse import parse_qs
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from channels.generic.websocket import AsyncWebsocketConsumer
-from asgiref.sync import sync_to_async
-from accounts.models import PetSphereUser
-from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 
 # Set up logger
 logger = logging.getLogger('websockets')
