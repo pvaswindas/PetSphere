@@ -69,32 +69,17 @@ class Message(models.Model):
         if self.content and self.media_url:
             self.message_type = self.MIXED
         elif self.media_url:
-            if self.media_url.name.lower().endswith(
-                (".mp4", ".mkv", ".avi", ".mov")
+            url_lower = self.media_url.lower()
+            if url_lower.endswith(
+                (".mp4", ".mkv", ".avi", ".mov", ".webm", ".ogg")
             ):
                 self.message_type = self.VIDEO
             else:
                 self.message_type = self.IMAGE
         else:
             self.message_type = self.TEXT
-        try:
-            old_instance = Message.objects.get(pk=self.pk)
-
-            if (
-                old_instance.media_url and
-                old_instance.media_url.name != self.icon.name
-            ):
-                old_instance.media_url.delete(save=False)
-        except Message.DoesNotExist:
-            pass
 
         super().save(*args, **kwargs)
-
-    # def delete(self, *args, **kwargs):
-    #     if self.media_url:
-    #         self.media_url.delete(save=False)
-
-    #     super().delete(*args, **kwargs)
 
     def delete_for_user(self, user):
         """Marks the message as deleted for a specific user."""
