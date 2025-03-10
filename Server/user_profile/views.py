@@ -74,11 +74,14 @@ class ProfileView(APIView):
             file_data = data['cover_image'].split(';base64,')[1]
 
             # Upload to S3 and get URL
+            print("BEFORE S3")
+            print(file_data)
             cover_image_url = upload_to_s3(
                 file_data,
                 s3_path="profiles/covers",
                 media_name="cover"
             )
+            print("AFTER S3")
 
             if not cover_image_url:
                 return Response(
