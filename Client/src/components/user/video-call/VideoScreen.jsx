@@ -16,7 +16,7 @@ const VideoScreen = ({ localVideoRef, remoteVideoRef, onStartCall, onEndCall, is
             </div>
             
             <div className="absolute bottom-20 lg:top-16 right-2 lg:right-16 w-40 h-52 lg:w-60 lg:h-40 rounded-lg bg-gray-900">
-                <video ref={localVideoRef} autoPlay playsInline className="w-full h-full object-cover rounded-lg" />
+                <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover rounded-lg" />
             </div>
             
             <div className="absolute bottom-6 lg:bottom-16 left-1/2 transform -translate-x-1/2 flex gap-4">
