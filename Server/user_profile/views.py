@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .models import Profile
+from common.storage import upload_to_s3
 from django.db.models import Count
 from django.db.models import Q
 from .serializers import ProfileSerializer
@@ -63,6 +64,52 @@ class ProfileView(APIView):
         except Profile.DoesNotExist:
             return Response({'error': 'Profile not found'},
                             status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data.copy()
+
+        if 'cover_image' in data and isinstance(
+            data['cover_image'], str
+        ) and ';base64,' in data['cover_image']:
+            # Extract the base64 data after the ';base64,' part
+            file_data = data['cover_image'].split(';base64,')[1]
+
+            # Upload to S3 and get URL
+            cover_image_url = upload_to_s3(
+                file_data,
+                s3_path="profiles/covers",
+                media_name="cover"
+            )
+
+            if not cover_image_url:
+                return Response(
+                    {'error': 'Cover image upload failed'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Replace base64 data with the S3 URL
+            data['cover_image'] = cover_image_url
+
+        if 'profile_picture' in data and isinstance(
+            data['profile_picture'], str
+        ) and ';base64,' in data['profile_picture']:
+            # Extract the base64 data after the ';base64,' part
+            file_data = data['profile_picture'].split(';base64,')[1]
+
+            # Upload to S3 and get URL
+            profile_picture_url = upload_to_s3(
+                file_data,
+                s3_path="profiles/pictures",
+                media_name="profile"
+            )
+
+            if not profile_picture_url:
+                return Response(
+                    {'error': 'Profile picture upload failed'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Replace base64 data with the S3 URL
+            data['profile_picture'] = profile_picture_url
 
         serializer = ProfileSerializer(
             profile, data=request.data, partial=True,
