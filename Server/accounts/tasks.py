@@ -1,5 +1,4 @@
 from celery import shared_task
-from environs import Env
 from twilio.rest import Client
 import logging
 from django.core.mail import EmailMessage
@@ -11,13 +10,10 @@ from rest_framework_simplejwt.token_blacklist.models import (
 )
 from django.utils.timezone import now
 
-env = Env()
-env.read_env()
-
-BASE_URL = env.str("BASE_URL")
-account_sid = env.str("TWILIO_ACCOUNT_SID")
-auth_token = env.str("TWILIO_AUTH_TOKEN")
-twilio_phone_number = env.str("TWILIO_PHONE_NUMBER")
+BASE_URL = settings.BASE_URL
+account_sid = settings.TWILIO_ACCOUNT_SID
+auth_token = settings.TWILIO_AUTH_TOKEN
+twilio_phone_number = settings.TWILIO_PHONE_NUMBER
 
 client = Client(account_sid, auth_token)
 

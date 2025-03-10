@@ -1,5 +1,4 @@
 import stripe
-from environs import Env
 from django.db.models import Sum
 from django.conf import settings
 from rest_framework import status
@@ -20,13 +19,9 @@ from .serializers import (
 )
 
 
-env = Env()
-env.read_env()
-
-
 stripe.api_key = settings.STRIPE_SECRET_KEY
-success_url = env.str('STRIPE_SUCCESS_URL')
-cancel_url = env.str("STRIPE_CANCEL_URL")
+success_url = settings.STRIPE_SUCCESS_URL
+cancel_url = settings.STRIPE_CANCEL_URL
 
 
 def sync_stripe_products():
@@ -136,7 +131,7 @@ class CreateCheckoutSession(APIView):
 def stripe_webhook(request):
     payload = request.body
     sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-    webhook_key = env.str("STRIPE_WEBHOOK_SECRET")
+    webhook_key = settings.STRIPE_WEBHOOK_SECRET
     webhook_secret = webhook_key
     event = None
 

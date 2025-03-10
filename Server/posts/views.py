@@ -1,9 +1,9 @@
 # Standard libraries
 import redis
 import json
-from environs import Env
 from datetime import datetime
 from django.db.models import Q
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
 
@@ -35,11 +35,7 @@ from petsphere.utils.common_utils import (
 )
 
 
-env = Env()
-
-env.read_env()
-
-encryption_key = env.str("ENCRYPTION_KEY")
+encryption_key = settings.ENCRYPTION_KEY
 
 cipher_suite = Fernet(encryption_key)
 

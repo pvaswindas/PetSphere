@@ -121,6 +121,8 @@ CASHES = {
     }
 }
 
+ENCRYPTION_KEY = env.str("ENCRYPTION_KEY")
+
 # INTERNATIONALIZATION
 # ------------------------------------------------------------------------------
 LANGUAGE_CODE = 'en-us'
@@ -154,16 +156,28 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'UserAttributeSimilarityValidator'
+        ),
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'MinimumLengthValidator'
+        ),
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'CommonPasswordValidator'
+        ),
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'NumericPasswordValidator'
+        ),
     },
 ]
 
@@ -230,6 +244,14 @@ AWS_S3_OBJECT_PARAMETERS = {
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 
+# TWILIO CONFIGURATION
+# ------------------------------------------------------------------------------
+TWILIO_ACCOUNT_SID = env.str("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = env.str("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE_NUMBER = env.str("TWILIO_PHONE_NUMBER")
+TWILIO_API_KEY = env.str("TWILIO_API_KEY")
+TWILIO_API_SECRET = env.str("TWILIO_API_SECRET")
+
 # EMAIL CONFIGURATION
 # ------------------------------------------------------------------------------
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -265,6 +287,9 @@ CHANNEL_LAYERS = {
 # ------------------------------------------------------------------------------
 STRIPE_SECRET_KEY = env.str("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = env.str("STRIPE_PUBLISHABLE_KEY")
+STRIPE_SUCCESS_URL = env.str("STRIPE_SUCCESS_URL")
+STRIPE_CANCEL_URL = env.str("STRIPE_CANCEL_URL")
+STRIPE_WEBHOOK_SECRET = env.str("STRIPE_WEBHOOK_SECRET")
 
 # LOGGING
 # ------------------------------------------------------------------------------
@@ -273,7 +298,10 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '[{levelname}] {asctime} {module} {process:d} {thread:d} {message}',
+            'format': (
+                '[{levelname}] {asctime} {module} {process:d} {thread:d}'
+                '{message}'
+            ),
             'style': '{',
         },
         'simple': {
