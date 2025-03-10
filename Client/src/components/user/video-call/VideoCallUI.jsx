@@ -117,7 +117,14 @@ const VideoCallUI = ({ isCaller = false }) => {
 
     const requestPermissionsAndStartCall = async () => {
         try {
-            const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            const localStream = await navigator.mediaDevices.getUserMedia({ 
+                video: true,
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression:true,
+                    autoGainControl:true
+                }
+            });
             localStreamRef.current = localStream;
             startCall(localStream);
         } catch (error) {
