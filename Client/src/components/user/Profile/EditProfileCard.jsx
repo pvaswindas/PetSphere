@@ -1,11 +1,10 @@
 import React, { useRef, useState } from "react";
-import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { FiEdit, FiTrash } from "react-icons/fi";
 import axiosInstance from "../../../axios/axiosinstance";
 import { setProfile } from "../../../redux/slices/ProfileSlice";
-import userAvatar from "../../../assets/icon/user-avatar.svg"
+import userAvatar from "../../../assets/icon/user-avatar.svg";
 import AlertSnackbar from "../../Snackbar/AlertSnackbar";
 
 const EditProfileCard = () => {
@@ -17,7 +16,7 @@ const EditProfileCard = () => {
 
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [alertType, setAlertType] = useState("error")
+    const [alertType, setAlertType] = useState("error");
 
     const formData = {
         username: user?.username,
@@ -30,7 +29,7 @@ const EditProfileCard = () => {
 
     const handleEditClick = (field) => {
         if (field === "mobile_no") {
-            navigate('/profile/mobile-number')
+            navigate('/profile/mobile-number');
         } else {
             navigate(`/profile/edit/${field}`, { state: { field, data: formData[field] } });
         }
@@ -40,44 +39,59 @@ const EditProfileCard = () => {
         navigate(`/profile/edit/username`, { state: { data: formData[field] } });
     };
 
+    const convertToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error);
+        });
+    };
 
     const handleFileUpload = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
 
-        const formData = new FormData();
-        formData.append("profile_picture", file);
-
         try {
-            const response = await axiosInstance.patch("user/profile/", formData);
+            // Convert file to base64
+            const base64Image = await convertToBase64(file);
+            
+            // Send base64 image to the API
+            const response = await axiosInstance.patch("user/profile/", {
+                profile_picture: base64Image
+            });
+            
             if (response.status === 200) {
                 dispatch(setProfile({ profile_data: response.data }));
-                setSnackbarMessage("Profile picture updated successfully!")
-                setAlertType("success")
-                setSnackbarOpen(true)
+                setSnackbarMessage("Profile picture updated successfully!");
+                setAlertType("success");
+                setSnackbarOpen(true);
             }
         } catch (error) {
-            return
+            setSnackbarMessage("Failed to update profile picture");
+            setAlertType("error");
+            setSnackbarOpen(true);
         }
     };
 
     const handleDeletePicture = async () => {
-        const formData = new FormData();
-        formData.append("profile_picture", "")
-    
         try {
-            const response = await axiosInstance.patch("user/profile/", formData);
+            const response = await axiosInstance.patch("user/profile/", {
+                profile_picture: ""
+            });
+            
             if (response.status === 200) {
                 dispatch(setProfile({ profile_data: response.data }));
-                setSnackbarMessage("Profile picture deleted successfully!")
-                setAlertType("success")
-                setSnackbarOpen(true)        
+                setSnackbarMessage("Profile picture deleted successfully!");
+                setAlertType("success");
+                setSnackbarOpen(true);
             }
         } catch (error) {
-            return
+            setSnackbarMessage("Failed to delete profile picture");
+            setAlertType("error");
+            setSnackbarOpen(true);
         }
     };
-    
 
     return (
         <div className="flex flex-col items-center justify-start w-full min-h-screen">

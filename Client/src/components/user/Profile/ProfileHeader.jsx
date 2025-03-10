@@ -1,18 +1,15 @@
-import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import editIcon from "../../../assets/icon/edit-icon.svg"
-import axiosInstance from '../../../axios/axiosinstance'
-import { setProfile } from '../../../redux/slices/ProfileSlice'
-import userAvatar from "../../../assets/icon/user-avatar.svg"
-import { FiEdit, FiTrash } from "react-icons/fi";
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import editIcon from "../../../assets/icon/edit-icon.svg";
+import axiosInstance from '../../../axios/axiosinstance';
+import { setProfile } from '../../../redux/slices/ProfileSlice';
+import userAvatar from "../../../assets/icon/user-avatar.svg";
 
 const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
     const [showConfirmCard, setShowConfirmCard] = useState(false);
     const dispatch = useDispatch();
-
-    const user = profile ? profile.user : null;
 
     const handleImageSelection = (event) => {
         const file = event.target.files[0];
@@ -23,22 +20,23 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
         }
     };
 
-    const formData = {
-        username: user?.username,
-        email: user?.email,
-        name: user?.name || "",
-        bio: profile?.bio || "",
-        mobile_no: user?.mobile_no || "",
-        profile_picture: profile?.profile_picture || null,
+    const convertToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error);
+        });
     };
 
     const handleSaveImage = async () => {
-        const formData = new FormData();
-        formData.append("cover_image", selectedImage);
-
         try {
-            const response = await axiosInstance.patch('/user/profile/', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
+            // Convert file to base64
+            const base64Image = await convertToBase64(selectedImage);
+            
+            // Send base64 image to the API
+            const response = await axiosInstance.patch('/user/profile/', {
+                cover_image: base64Image
             });
 
             if (response.status === 200) {
@@ -48,7 +46,7 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
                 dispatch(setProfile({ profile_data: response.data }));
             }
         } catch (error) {
-            return
+            console.error("Error updating cover image:", error);
         }
     };
 
@@ -106,5 +104,4 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
     );
 };
 
-
-export default ProfileHeader
+export default ProfileHeader;
