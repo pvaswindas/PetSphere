@@ -1,28 +1,12 @@
 import { jwtDecode } from 'jwt-decode';
-import axiosInstance from '../axios/axiosinstance';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoadingPage from '../pages/LoadingPage';
+import { refreshAccessToken } from '../api/authApi';
 
 function ProtectedRoute({ children }) {
     const [isAuthorized, setIsAuthorized] = useState(null);
     const navigate = useNavigate();
-
-    const refreshToken = useCallback(async () => {
-        const refreshToken = localStorage.getItem('REFRESH_TOKEN');
-        try {
-            const res = await axiosInstance.post('accounts/token/refresh/', {
-                refresh: refreshToken,
-            });
-            localStorage.setItem('ACCESS_TOKEN', res.data.access)
-            localStorage.setItem('REFRESH_TOKEN', res.data.refresh)
-            setIsAuthorized(true);
-        } catch (error) {
-            localStorage.removeItem('ACCESS_TOKEN')
-            localStorage.removeItem('REFRESH_TOKEN')
-            setIsAuthorized(false);
-        }
-    }, []);
 
     const auth = useCallback(async () => {
         const token = localStorage.getItem('ACCESS_TOKEN');
@@ -35,11 +19,12 @@ function ProtectedRoute({ children }) {
         const now = Date.now() / 1000;
 
         if (tokenExpiration < now) {
-            await refreshToken();
+            const refreshed = await refreshAccessToken();
+            setIsAuthorized(refreshed);
         } else {
             setIsAuthorized(true);
         }
-    }, [refreshToken]);
+    }, []);
 
     useEffect(() => {
         auth().catch(() => setIsAuthorized(false));
@@ -53,7 +38,7 @@ function ProtectedRoute({ children }) {
     }, [isAuthorized, navigate]);
 
     if (isAuthorized === null) {
-        return <LoadingPage />
+        return <LoadingPage />;
     }
 
     return isAuthorized ? children : null;
