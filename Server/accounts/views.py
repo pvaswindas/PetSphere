@@ -745,3 +745,12 @@ def active_users(request):
     }
 
     return Response(data)
+
+
+# ----------------------------- Account Insights -----------------------------
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_status(request):
+    user = request.user
+    status = 'suspended' if user.is_suspended else 'active'
+    return Response({'status': status})

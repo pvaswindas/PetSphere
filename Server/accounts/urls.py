@@ -6,7 +6,7 @@ from .views import (
      UserProfileView, DeactivateAccountView, ReactivateAccountView,
      LogoutView, GoogleLoginView,
      check_username, verify_phone_number, verify_mobile_otp, find_your_account,
-     suspend_account, reinstate_account, active_users,
+     suspend_account, reinstate_account, active_users, get_user_status
 )
 
 urlpatterns = [
@@ -53,4 +53,7 @@ urlpatterns = [
 
      # ---------------------------- Admin Insights ----------------------------
      path('active-users/', active_users, name='active-users'),
+
+     # --------------------------- Account Insights ---------------------------
+     path('user/status/', get_user_status, name='user-status'),
 ]
