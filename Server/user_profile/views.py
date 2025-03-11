@@ -1,7 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .models import Profile
 from common.storage import upload_to_s3
@@ -17,7 +16,6 @@ from rest_framework.decorators import api_view, permission_classes
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
         user = request.user
@@ -74,8 +72,6 @@ class ProfileView(APIView):
             file_data = data['cover_image'].split(';base64,')[1]
 
             # Upload to S3 and get URL
-            print("BEFORE S3")
-            print(file_data)
             cover_image_url = upload_to_s3(
                 file_data,
                 s3_path="profiles/covers",
@@ -115,7 +111,7 @@ class ProfileView(APIView):
             data['profile_picture'] = profile_picture_url
 
         serializer = ProfileSerializer(
-            profile, data=request.data, partial=True,
+            profile, data=data, partial=True,
             context={'request': request})
 
         if serializer.is_valid():
