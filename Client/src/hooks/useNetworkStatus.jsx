@@ -9,7 +9,7 @@ export const useNetworkStatus = () => {
     // Check if the server is up
     const checkServerStatus = async () => {
         try {
-        await axios.get(`${process.env.REACT_APP_API_BASE_URL}/health-check/`);
+        await axios.get(`${process.env.REACT_APP_API_BASE_URL}health-check/`);
         setIsServerUp(true);
         } catch (error) {
         setIsServerUp(false);
