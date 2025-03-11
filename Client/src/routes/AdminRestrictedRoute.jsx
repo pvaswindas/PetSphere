@@ -16,14 +16,14 @@ function AdminRestrictedRoute({ children }) {
 
         try {
             const res = await axiosInstance.post('accounts/token/refresh/', { refresh: refreshToken });
-            if (res.status === 200) {
-                localStorage.setItem('ACCESS_TOKEN', res.data.access);
-                return true;
-            }
+            localStorage.setItem('ACCESS_TOKEN', res.data.access)
+            localStorage.setItem('REFRESH_TOKEN', res.data.refresh)
+            setIsAuthorized(true);
         } catch (error) {
-            return false
+            localStorage.removeItem('ACCESS_TOKEN')
+            localStorage.removeItem('REFRESH_TOKEN')
+            setIsAuthorized(false);
         }
-        return false;
     }, []);
 
     const validateAccessToken = useCallback(async () => {

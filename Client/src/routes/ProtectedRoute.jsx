@@ -14,14 +14,12 @@ function ProtectedRoute({ children }) {
             const res = await axiosInstance.post('accounts/token/refresh/', {
                 refresh: refreshToken,
             });
-            if (res.status === 200) {
-                localStorage.setItem('ACCESS_TOKEN', res.data.access)
-                localStorage.setItem('REFRESH_TOKEN', res.data.refresh)
-                setIsAuthorized(true);
-            } else {
-                setIsAuthorized(false);
-            }
+            localStorage.setItem('ACCESS_TOKEN', res.data.access)
+            localStorage.setItem('REFRESH_TOKEN', res.data.refresh)
+            setIsAuthorized(true);
         } catch (error) {
+            localStorage.removeItem('ACCESS_TOKEN')
+            localStorage.removeItem('REFRESH_TOKEN')
             setIsAuthorized(false);
         }
     }, []);
