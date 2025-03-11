@@ -4,8 +4,6 @@ from .models import (
     PetListingImageTemp
 )
 from user_profile.serializers import ProfileSerializer
-from urllib.parse import urljoin
-from django.conf import settings
 
 
 class PostImageSerializer(serializers.ModelSerializer):
@@ -14,22 +12,6 @@ class PostImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostImage
         fields = ['id', 'post', 'image', 'created_at']
-
-    def get_absolute_url(self, url):
-        if not url:
-            return None
-        request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(url)
-        return urljoin(settings.BASE_URL, url)
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if instance.image:
-            representation['image'] = self.get_absolute_url(
-                instance.image.url
-            )
-        return representation
 
 
 class AddPostSerializer(serializers.ModelSerializer):
@@ -75,22 +57,6 @@ class PetListingImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PetListingImage
         fields = ['id', 'pet_listing', 'image', 'created_at']
-
-    def get_absolute_url(self, url):
-        if not url:
-            return None
-        request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(url)
-        return urljoin(settings.BASE_URL, url)
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if instance.image:
-            representation['image'] = self.get_absolute_url(
-                instance.image.url
-            )
-        return representation
 
 
 class PetListingImageTempSerializer(serializers.ModelSerializer):

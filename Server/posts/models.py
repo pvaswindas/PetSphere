@@ -3,7 +3,6 @@ from datetime import timedelta
 from accounts.models import PetSphereUser
 from sellers.models import Seller
 from pets.models import Pet, PetBreed
-from storages.backends.s3boto3 import S3Boto3Storage
 
 
 class Post(models.Model):
@@ -34,30 +33,11 @@ class Post(models.Model):
 class PostImage(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE,
                              related_name='images')
-    image = models.ImageField(
-        upload_to='post_images/',
-        storage=S3Boto3Storage(),
+    image = models.URLField(
+        null=True,
+        blank=True,
     )
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def save(self, *args, **kwargs):
-        try:
-            old_instance = PostImage.objects.get(pk=self.pk)
-
-            if (
-                old_instance.image and
-                old_instance.image.name != self.image.name
-            ):
-                old_instance.image.delete(save=False)
-        except PostImage.DoesNotExist:
-            pass
-        super().save(*args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        if self.image:
-            self.image.delete(save=False)
-
-        super().delete(*args, **kwargs)
 
 
 class SavedPost(models.Model):
@@ -94,30 +74,11 @@ class PetListing(models.Model):
 class PetListingImage(models.Model):
     pet_listing = models.ForeignKey(PetListing, on_delete=models.CASCADE,
                                     related_name='images')
-    image = models.ImageField(
-        upload_to='pet_listing_images/',
-        storage=S3Boto3Storage(),
+    image = models.URLField(
+        null=True,
+        blank=True,
     )
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def save(self, *args, **kwargs):
-        try:
-            old_instance = PetListingImage.objects.get(pk=self.pk)
-
-            if (
-                old_instance.image and
-                old_instance.image.name != self.image.name
-            ):
-                old_instance.image.delete(save=False)
-        except PostImage.DoesNotExist:
-            pass
-        super().save(*args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        if self.image:
-            self.image.delete(save=False)
-
-        super().delete(*args, **kwargs)
 
 
 class PetListingImageTemp(models.Model):

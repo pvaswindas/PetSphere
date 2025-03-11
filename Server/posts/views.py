@@ -33,6 +33,7 @@ from .serializers import (
 from petsphere.utils.common_utils import (
     validate_authenticated_user, validate_request_data,
 )
+from common.storage import upload_to_s3
 
 
 encryption_key = settings.ENCRYPTION_KEY
@@ -49,13 +50,9 @@ class UserPostListCreateView(APIView):
     Handles listing and creating user posts.
     Permissions:
         - Requires user to be authenticated.
-    Parsers:
-        - MultiPartParser
-        - FormParser
     """
 
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
         """
@@ -87,14 +84,16 @@ class UserPostListCreateView(APIView):
 
     def post(self, request):
         """
-        Creates a new post for the authenticated user.
+        Creates a new post for the authenticated user with base64 encoded
+        images.
 
         Parameters:
-            - request: The HTTP request object with post data and images.
+            - request: The HTTP request object with post data and base64
+            images.
 
         Required Fields:
             - content: Content/body of the post.
-            - images: List of image files (optional).
+            - images: List of base64 encoded image strings (optional).
 
         Returns:
             - Response: Created post data on success.
@@ -103,29 +102,71 @@ class UserPostListCreateView(APIView):
         user = validate_authenticated_user(request)
         if isinstance(user, Response):
             return user
-        data = request.data
+
+        data = request.data.copy()
         data['user'] = user.id
-        images = request.FILES.getlist('images')
-        serializer = AddPostSerializer(data=data,
-                                       context={'request': request})
+
+        # Get base64 images from request data
+        base64_images = request.data.getlist('images', [])
+
+        serializer = AddPostSerializer(data=data, context={'request': request})
         profile = user.profile
+
         if serializer.is_valid():
             post = serializer.save()
-            if images:
-                image_data = [{'post': post.id, 'image': image}
-                              for image in images]
-                image_serializer = PostImageSerializer(data=image_data,
-                                                       many=True,
-                                                       context={
-                                                           'request': request})
-                if image_serializer.is_valid():
-                    image_serializer.save()
-                else:
-                    return Response(image_serializer.errors,
-                                    status=status.HTTP_400_BAD_REQUEST)
+
+            if base64_images:
+                image_data = []
+
+                for base64_image in base64_images:
+                    if isinstance(
+                        base64_image, str
+                    ) and ';base64,' in base64_image:
+                        # Extract the base64 data after the ';base64,' part
+                        file_data = base64_image.split(';base64,')[1]
+
+                        # Upload to S3 and get URL
+                        image_url = upload_to_s3(
+                            file_data,
+                            s3_path="posts/images",
+                            media_name=f"post_{post.id}"
+                        )
+
+                        if image_url:
+                            image_data.append({
+                                'post': post.id,
+                                'image': image_url
+                            })
+                        else:
+                            # If any image upload fails, delete the post and
+                            # return error
+                            post.delete()
+                            return Response(
+                                {'error': 'Image upload failed'},
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
+
+                if image_data:
+                    image_serializer = PostImageSerializer(
+                        data=image_data,
+                        many=True,
+                        context={'request': request}
+                    )
+                    if image_serializer.is_valid():
+                        image_serializer.save()
+                    else:
+                        # If serializer validation fails, delete the post and
+                        # return error
+                        post.delete()
+                        return Response(
+                            image_serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+
             profile.pawstory_count += 1
             profile.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
