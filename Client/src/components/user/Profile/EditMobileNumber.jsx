@@ -45,7 +45,7 @@ function EditMobileNumber() {
     };
 
     return (
-        <div className="flex w-full min-h-[610px]">
+        <div className="flex w-full">
             <AlertSnackbar
                 open={snackbarOpen}
                 message={snackbarMessage}
@@ -53,7 +53,7 @@ function EditMobileNumber() {
                 onClose={() => setSnackbarOpen(false)}
             />
             <div className="flex flex-col md:flex-row w-full bg-white lg:shadow-lg lg:rounded-lg">
-                <div className="md:w-1/2 bg-ad-preview-gradient text-white p-6 flex flex-col justify-center">
+                <div className="md:w-1/2 bg-ad-preview-gradient text-white p-6 flex flex-col justify-center lg:rounded-s-lg">
                     <h2 className="text-3xl font-bold mb-4">Add New Mobile Number</h2>
                     <p className="text-lg mb-6">
                         Update your contact information easily. Enter your mobile number along with your country code to ensure you receive important updates.

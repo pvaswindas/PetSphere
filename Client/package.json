@@ -44,6 +44,7 @@
     "react-scripts": "^5.0.1",
     "react-shimmer": "^3.2.0",
     "react-shimmer-effects": "^1.0.3",
+    "react-spinners": "^0.15.0",
     "recharts": "^2.15.1",
     "redux": "^5.0.1",
     "redux-logger": "^3.0.6",

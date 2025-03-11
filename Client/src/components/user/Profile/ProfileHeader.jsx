@@ -11,6 +11,7 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
     const [showConfirmCard, setShowConfirmCard] = useState(false);
+    const [isLoading, setIsLoading] = useState(false)
     const dispatch = useDispatch();
 
     const handleImageSelection = (event) => {
@@ -24,6 +25,7 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
 
 
     const handleSaveImage = async () => {
+        setIsLoading(true)
         try {
             // Convert file to base64
             const base64Image = await convertToBase64(selectedImage);
@@ -41,8 +43,15 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
             }
         } catch (error) {
             console.error("Error updating cover image:", error);
+        } finally {
+            setIsLoading(false)
         }
     };
+
+    const handleCancel = () => {
+        setPreviewImage(null)
+        setShowConfirmCard(false)
+    }
 
     return (
         <div className="relative">
@@ -89,8 +98,24 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
                         <img src={previewImage} alt="Preview" className="w-full h-[100px] object-cover rounded-md" />
                     </div>
                     <div className="flex justify-end mt-4 space-x-4">
-                        <button onClick={() => setShowConfirmCard(false)} className="px-4 py-2 bg-gray-200 rounded-md">Cancel</button>
-                        <button onClick={handleSaveImage} className="px-4 py-2 bg-blue-500 text-white rounded-md">Save</button>
+                        <button 
+                            onClick={handleCancel} 
+                            className={`px-4 py-2 rounded-md ${isLoading ? "bg-gray-300 cursor-not-allowed opacity-50" : "bg-gray-200 hover:bg-gray-300"}`} 
+                            disabled={isLoading}
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={handleSaveImage} 
+                            className="px-4 py-2 bg-og-gradient text-white rounded-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed" 
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                                "Save"
+                            )}
+                        </button>
                     </div>
                 </div>
             )}

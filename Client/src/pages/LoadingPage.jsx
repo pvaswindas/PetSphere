@@ -5,7 +5,7 @@ const LoadingPage = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-whiteOpacity02">
             <div className="text-center">
                 <motion.h1
-                    className="text-3xl font-semibold bg-ad-preview-gradient bg-clip-text text-transparent flex"
+                    className="text-xl lg:text-3xl font-semibold bg-ad-preview-gradient bg-clip-text text-transparent flex"
                     animate={{ opacity: [1, 0.1, 1] }}
                     transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
                 >

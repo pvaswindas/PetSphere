@@ -4,6 +4,7 @@ import { ImageCropper } from "../../../utils/ImageCropper"
 import axiosInstance from "../../../axios/axiosinstance"
 import { useNavigate } from "react-router-dom"
 import AlertSnackbar from "../../Snackbar/AlertSnackbar"
+import { convertToBase64 } from "../../../utils/convertToBase64"
 
 const AddPetStoryCard = () => {
     const [content, setContent] = useState("")
@@ -13,6 +14,7 @@ const AddPetStoryCard = () => {
     const [isCropping, setIsCropping] = useState(false)
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false)
     const [cropSettings, setCropSettings] = useState({
         image: null,
         crop: { x: 0, y: 0 },
@@ -70,27 +72,38 @@ const AddPetStoryCard = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-
+        
         const formData = new FormData()
         formData.append("content", content)
-
-        images.forEach((image, index) => {
-            formData.append("images", image, image.name)
-        })
-
+        
+        // Convert all images to base64 before sending
+        setIsLoading(true)
         try {
-            await axiosInstance.post("posts/", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
+            // Create an array of promises for converting each image
+            const base64Promises = images.map(image => convertToBase64(image))
+            
+            // Wait for all conversions to complete
+            const base64Images = await Promise.all(base64Promises)
+            
+            // Append all base64 images to the form data
+            base64Images.forEach((base64Image, index) => {
+                formData.append("images", base64Image)
             })
+            
+            // Send the data
+            await axiosInstance.post("posts/", formData)
+            
+            // Reset form state on success
+            setContent("")
+            setImages([])
+            navigate('/feed')
         } catch (error) {
+            setSnackbarMessage("There was a problem processing your images. Please try different files.")
+            setSnackbarOpen(true)
             return
+        } finally {
+            setIsLoading(false)
         }
-
-        setContent("")
-        setImages([])
-        navigate('/feed')
     }
 
     const renderSelectedImages = () => {
@@ -225,10 +238,14 @@ const AddPetStoryCard = () => {
                 <div>
                     <button
                         type="submit"
-                        disabled={images.length < 1}
-                        className="w-full py-2 bg-og-gradient text-white rounded-lg hover:bg-og-gradient-dark transition"
+                        disabled={images.length < 1 || isLoading}
+                        className="w-full flex items-center justify-center py-2 bg-og-gradient text-white rounded-lg hover:bg-og-gradient-dark transition"
                     >
-                        Post Your Story
+                        {isLoading ? (
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                            "Post Your Story"
+                        )}
                     </button>
                 </div>
             </form>
