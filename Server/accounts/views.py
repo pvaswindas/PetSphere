@@ -245,7 +245,7 @@ class LoginView(APIView):
         try:
             serializer = LoginSerializer(data=request.data)
             if serializer.is_valid():
-                user = serializer.validated_data
+                user = serializer.validated_data["user"]
                 profile = Profile.objects.get(user__id=user.id)
                 account_settings = AccountSettings.objects.filter(
                     user=user
@@ -264,7 +264,10 @@ class LoginView(APIView):
                         status=status.HTTP_403_FORBIDDEN
                     )
 
-                if account_settings and account_settings.deleted_at is not None:
+                if (
+                    account_settings
+                    and account_settings.deleted_at is not None
+                ):
                     return Response(
                         {"error": "Your account has been deactivated."},
                         status=status.HTTP_403_FORBIDDEN
@@ -288,6 +291,7 @@ class LoginView(APIView):
             )
 
         except Exception as e:
+            print(str(e))
             return Response(
                 {"error": "Unexpected error", "details": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -579,6 +583,7 @@ def suspend_account(request, user_id):
     try:
         user = PetSphereUser.objects.get(pk=user_id)
         user.is_suspended = True
+        user.is_active = False
         user.save()
         return Response({'success': 'Account suspended successfully'})
     except PetSphereUser.DoesNotExist:
