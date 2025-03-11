@@ -29,7 +29,7 @@ const ProfileCard = memo(() => {
         if (username && !userProfile && profile?.user?.username) {
             dispatch(fetchProfile({ auth_username: profile.user.username, username }));
         }
-    }, [dispatch, username, profile?.user?.username, userProfile]);    
+    }, [dispatch, username, profile?.user?.username, userProfile]);
 
     const renderSelectedFeed = () => {
         switch (selectedFeed) {
