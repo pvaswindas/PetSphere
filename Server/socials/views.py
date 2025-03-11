@@ -41,7 +41,7 @@ def follow_user(request, user_id):
         if follower == following:
             return Response(
                 {"error": "Follower and Following can't be same"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQzUEST
             )
         Follower.objects.get_or_create(follower=follower, following=following)
         return Response(
