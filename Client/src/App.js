@@ -59,7 +59,6 @@ import LoadingPage from "./pages/LoadingPage";
 import WebSocketInitializer from "./utils/WebSocketInitializer";
 import { useNetworkStatus } from "./hooks/useNetworkStatus";
 
-
 function App() {
   const location = useLocation();
   const { isOnline, isServerUp, isLoading } = useNetworkStatus();

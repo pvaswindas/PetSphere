@@ -1,47 +1,26 @@
-import { jwtDecode } from 'jwt-decode';
-import { useEffect, useState, useCallback } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import LoadingPage from '../pages/LoadingPage';
-import { refreshAccessToken } from '../api/authApi';
 
 function ProtectedRoute({ children }) {
-    const [isAuthorized, setIsAuthorized] = useState(null);
+    const { isAuthorized, isLoading, userStatus } = useAuth();
     const navigate = useNavigate();
 
-    const auth = useCallback(async () => {
-        const token = localStorage.getItem('ACCESS_TOKEN');
-        if (!token) {
-            setIsAuthorized(false);
-            return;
+    // Redirect if not authorized
+    React.useEffect(() => {
+        if (!isLoading) {
+            if (!isAuthorized) {
+                navigate('/');
+            } else if (userStatus === 'suspended') {
+                navigate('/account-suspended');
+            }
         }
-        const decoded = jwtDecode(token);
-        const tokenExpiration = decoded.exp;
-        const now = Date.now() / 1000;
+    }, [isAuthorized, isLoading, navigate, userStatus]);
 
-        if (tokenExpiration < now) {
-            const refreshed = await refreshAccessToken();
-            setIsAuthorized(refreshed);
-        } else {
-            setIsAuthorized(true);
-        }
-    }, []);
+    if (isLoading) return <LoadingPage />;
 
-    useEffect(() => {
-        auth().catch(() => setIsAuthorized(false));
-    }, [auth]);
-
-    useEffect(() => {
-        if (isAuthorized === null) return;
-        if (!isAuthorized) {
-            navigate('/');
-        }
-    }, [isAuthorized, navigate]);
-
-    if (isAuthorized === null) {
-        return <LoadingPage />;
-    }
-
-    return isAuthorized ? children : null;
+    return isAuthorized && userStatus !== 'suspended' ? children : null;
 }
 
 export default ProtectedRoute;

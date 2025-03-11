@@ -31,10 +31,6 @@ const AdminDashboard = () => {
         getPostEngagementData();
     }, []);
 
-    const handleExport = async () => {
-
-    }
-
     return (
         <AdminLayout
             activeIcon={activeIcon}
