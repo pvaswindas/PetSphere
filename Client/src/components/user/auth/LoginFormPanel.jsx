@@ -57,27 +57,31 @@ function LoginFormPanel() {
                 navigate('/feed');
             }
         } catch (error) {
+            let message = "Login Failed, Please try again";
+
             if (error.response) {
                 const { status, data } = error.response;
-    
+
                 if (status === 400) {
-                    setSnackbarMessage("Invalid credentials");
+                    message = "Invalid credentials";
                 } else if (status === 403) {
                     if (data.error.includes("pending approval")) {
-                        setSnackbarMessage("Your account is pending approval.");
+                        message = "Your account is pending approval.";
                     } else if (data.error.includes("suspended")) {
-                        setSnackbarMessage("Your account has been suspended.");
+                        message = "Your account has been suspended.";
                     } else if (data.error.includes("deactivated")) {
-                        setSnackbarMessage("Your account has been deactivated.");
+                        message = "Your account has been deactivated.";
                     } else {
-                        setSnackbarMessage("Access denied.");
+                        message = "Access denied.";
                     }
                 } else {
-                    setSnackbarMessage("An unexpected error occurred. Please try again.");
+                    message = "An unexpected error occurred. Please try again.";
                 }
-            } else {
-                setSnackbarMessage("Network error. Please check your connection.");
+            } else if (error.message.includes("Network Error")) {
+                message = "Network error. Please check your connection.";
             }
+
+            setSnackbarMessage(message);
     
             setSnackbarOpen(true);
         } finally {

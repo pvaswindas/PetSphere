@@ -242,47 +242,54 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.validated_data
-            profile = Profile.objects.get(user__id=user.id)
-            settings = AccountSettings.objects.filter(user=user).first()
+        try:
+            serializer = LoginSerializer(data=request.data)
+            if serializer.is_valid():
+                user = serializer.validated_data
+                profile = Profile.objects.get(user__id=user.id)
+                account_settings = AccountSettings.objects.filter(
+                    user=user
+                ).first()
+                user = profile.user
 
-            # Check for pending, suspended, or deleted account status
-            if user.is_pending:
-                return Response(
-                    {"error": "Your account is pending approval."},
-                    status=status.HTTP_403_FORBIDDEN
-                )
+                # Check for pending, suspended, or deleted account status
+                if user.is_pending:
+                    return Response(
+                        {"error": "Your account is pending approval."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
 
-            if user.is_suspended:
-                return Response(
-                    {"error": "Your account has been suspended."},
-                    status=status.HTTP_403_FORBIDDEN
-                )
+                if user.is_suspended:
+                    return Response(
+                        {"error": "Your account has been suspended."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
 
-            if settings and settings.deleted_at is not None:
-                return Response(
-                    {"error": "Your account has been deactivated."},
-                    status=status.HTTP_403_FORBIDDEN
-                )
+                if account_settings and account_settings.deleted_at is not None:
+                    return Response(
+                        {"error": "Your account has been deactivated."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
 
-            profile_data = ProfileSerializer(
-                profile,
-                context={'request': request}).data
+                profile_data = ProfileSerializer(
+                    profile,
+                    context={'request': request}).data
 
-            # Generate authentication tokens
-            refresh = RefreshToken.for_user(user)
+                # Generate authentication tokens
+                refresh = RefreshToken.for_user(user)
 
-            # Update login time
-            update_last_login(None, user)
-            return Response({
-                "profile": profile_data,
-                "refresh": str(refresh),
-                "access": str(refresh.access_token)
-            }, status=status.HTTP_200_OK)
-        return Response({"error": "Invalid Credentials"},
-                        status=status.HTTP_400_BAD_REQUEST)
+                # Update login time
+                update_last_login(None, user)
+                return Response({
+                    "profile": profile_data,
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token)
+                }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": "Unexpected error", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class LogoutView(APIView):
