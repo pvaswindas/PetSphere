@@ -81,7 +81,7 @@ function App() {
     return <OfflinePage />;
   }
 
-  if (!isServerUp) {
+  if (!isServerUp && isOnline) {
     return <ServerDownPage />;
   }
 
