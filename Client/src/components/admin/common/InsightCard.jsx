@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import DashboardWelcome from "../../../assets/admin/dashboardcard.svg";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import AlertSnackbar from "../../Snackbar/AlertSnackbar";
-import defaultAvatar from "../../../assets/icon/user-avatar.svg";
+import adminAvatar from "../../../assets/admin/admin-avatar.svg";
 import { fetchActiveUsers, fetchLatestTeamMembers, fetchRevenue } from "../../../api/insights";
 import Shimmer from "../../Shimmer/Shimmer";
 import { formatNumber } from "../../../utils/formatTime";
@@ -126,7 +126,7 @@ const InsightCard = () => {
                                     className="w-10 h-10 rounded-full"
                                     style={{
                                         left: `${index * 30}px`,
-                                        backgroundImage: `url(${member?.profile_picture ? member?.profile_picture : defaultAvatar})`,
+                                        backgroundImage: `url(${member?.profile_picture ? member?.profile_picture : adminAvatar})`,
                                         backgroundSize: "cover",
                                         backgroundPosition: "center",
                                     }}
