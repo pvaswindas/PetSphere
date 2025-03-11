@@ -6,6 +6,7 @@ import axiosInstance from "../../../axios/axiosinstance";
 import { setProfile } from "../../../redux/slices/ProfileSlice";
 import userAvatar from "../../../assets/icon/user-avatar.svg";
 import AlertSnackbar from "../../Snackbar/AlertSnackbar";
+import { convertToBase64 } from "../../../utils/convertToBase64";
 
 const EditProfileCard = () => {
     const profile = useSelector((state) => state.profile.profile_data);
@@ -37,15 +38,6 @@ const EditProfileCard = () => {
 
     const handleEditUsername = (field) => {
         navigate(`/profile/edit/username`, { state: { data: formData[field] } });
-    };
-
-    const convertToBase64 = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = (error) => reject(error);
-        });
     };
 
     const handleFileUpload = async (event) => {

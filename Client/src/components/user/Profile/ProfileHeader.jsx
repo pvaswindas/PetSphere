@@ -5,6 +5,7 @@ import axiosInstance from '../../../axios/axiosinstance';
 import { setProfile } from '../../../redux/slices/ProfileSlice';
 import userAvatar from "../../../assets/icon/user-avatar.svg";
 import adminAvatar from "../../../assets/admin/admin-avatar.svg"
+import { convertToBase64 } from '../../../utils/convertToBase64';
 
 const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
     const [selectedImage, setSelectedImage] = useState(null);
@@ -21,14 +22,6 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
         }
     };
 
-    const convertToBase64 = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = (error) => reject(error);
-        });
-    };
 
     const handleSaveImage = async () => {
         try {
