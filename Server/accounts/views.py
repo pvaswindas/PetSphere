@@ -252,7 +252,6 @@ class LoginView(APIView):
                 ).first()
                 user = profile.user
 
-                # Check for pending, suspended, or deleted account status
                 if user.is_pending:
                     return Response(
                         {"error": "Your account is pending approval."},
@@ -272,19 +271,22 @@ class LoginView(APIView):
                     )
 
                 profile_data = ProfileSerializer(
-                    profile,
-                    context={'request': request}).data
-
-                # Generate authentication tokens
+                    profile, context={'request': request}
+                ).data
                 refresh = RefreshToken.for_user(user)
-
-                # Update login time
                 update_last_login(None, user)
+
                 return Response({
                     "profile": profile_data,
                     "refresh": str(refresh),
                     "access": str(refresh.access_token)
                 }, status=status.HTTP_200_OK)
+
+            # Handle invalid serializer case
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+
         except Exception as e:
             return Response(
                 {"error": "Unexpected error", "details": str(e)},
@@ -577,7 +579,6 @@ def suspend_account(request, user_id):
     try:
         user = PetSphereUser.objects.get(pk=user_id)
         user.is_suspended = True
-        user.is_active = False
         user.save()
         return Response({'success': 'Account suspended successfully'})
     except PetSphereUser.DoesNotExist:
