@@ -98,6 +98,7 @@ const AddPetStoryCard = () => {
             setImages([])
             navigate('/feed')
         } catch (error) {
+            console.log(error)
             setSnackbarMessage("There was a problem processing your images. Please try different files.")
             setSnackbarOpen(true)
             return
