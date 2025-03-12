@@ -79,19 +79,22 @@ const AddPetStoryCard = () => {
         // Convert all images to base64 before sending
         setIsLoading(true)
         try {
-            // Create an array of promises for converting each image
+            // Convert all images to base64 before sending
             const base64Promises = images.map(image => convertToBase64(image))
-            
-            // Wait for all conversions to complete
             const base64Images = await Promise.all(base64Promises)
             
-            // Append all base64 images to the form data
-            base64Images.forEach((base64Image, index) => {
-                formData.append("images", base64Image)
-            })
+            // Create the request data with images as an array
+            const requestData = {
+                content: content,
+                images: base64Images
+            }
             
-            // Send the data
-            await axiosInstance.post("posts/", formData)
+            // Send as JSON instead of FormData
+            await axiosInstance.post("posts/", requestData, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
             
             // Reset form state on success
             setContent("")
