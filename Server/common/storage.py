@@ -48,12 +48,16 @@ def upload_to_s3(file_base64, s3_path="common", media_name="common"):
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         )
 
+        print("BEFORE UPLOAD")
+
         # Upload to S3
         s3_client.upload_fileobj(
             file_obj,
             settings.AWS_STORAGE_BUCKET_NAME,
             media_key,
         )
+
+        print("AFTER UPLOAD")
 
         return f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{media_key}"
 

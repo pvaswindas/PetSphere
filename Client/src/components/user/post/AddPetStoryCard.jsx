@@ -28,18 +28,26 @@ const AddPetStoryCard = () => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            if (images.length >= 5) {
+                setSnackbarMessage("You can only upload up to 5 images.");
+                setSnackbarOpen(true);
+                return;
+            }
+    
             const validFormats = ["image/jpeg", "image/png"];
             if (!validFormats.includes(file.type)) {
                 setSnackbarMessage("Please select an image in JPEG or PNG format");
                 setSnackbarOpen(true);
                 return;
             }
+    
             const imageUrl = URL.createObjectURL(file);
             setCropSettings((prev) => ({ ...prev, image: imageUrl }));
             setOriginalFileType(file.type);
             setIsCropping(true);
         }
     };
+    
 
 
     const handleCropComplete = useCallback(async (croppedArea, croppedAreaPixels) => {
@@ -80,18 +88,10 @@ const AddPetStoryCard = () => {
         setIsLoading(true)
         try {
             // Create an array of promises for converting each image
-            const base64Promises = images.map(image => convertToBase64(image))
-            
-            // Wait for all conversions to complete
-            const base64Images = await Promise.all(base64Promises)
-
-            console.log(base64Images)
-            
-            // Append all base64 images to the form data
-            base64Images.forEach((base64Image, index) => {
-                console.log("BASE64 : ", base64Image)
+            for (let i = 0; i < images.length; i++) {
+                const base64Image = await convertToBase64(images[i])
                 formData.append("images", base64Image)
-            })
+            }
             
             // Send the data
             await axiosInstance.post("posts/", formData)
@@ -101,7 +101,6 @@ const AddPetStoryCard = () => {
             setImages([])
             navigate('/feed')
         } catch (error) {
-            console.log(error)
             setSnackbarMessage("There was a problem processing your images. Please try different files.")
             setSnackbarOpen(true)
             return
@@ -113,12 +112,6 @@ const AddPetStoryCard = () => {
     const renderSelectedImages = () => {
         return images.length > 0 && (
             <div className="mt-4">
-                <AlertSnackbar
-                    open={snackbarOpen}
-                    message={snackbarMessage}
-                    alert_type="error"
-                    onClose={() => setSnackbarOpen(false)}
-                />
                 <h3 className="text-sm font-medium text-gray-600">Selected Images</h3>
                 <div className="flex flex-wrap space-x-4 mt-2">
                     {images.map((image, index) => (
@@ -144,6 +137,12 @@ const AddPetStoryCard = () => {
 
     return (
         <div className="p-6 bg-white rounded-lg shadow-lg mx-auto">
+            <AlertSnackbar
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type="error"
+                onClose={() => setSnackbarOpen(false)}
+            />
             <h1 className="text-2xl font-semibold text-gray-800 mb-6">Add Pet Story</h1>
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>

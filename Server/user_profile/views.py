@@ -59,65 +59,76 @@ class ProfileView(APIView):
     def patch(self, request):
         try:
             profile = Profile.objects.get(user=request.user)
+
+            data = request.data.copy()
+
+            if 'cover_image' in data and isinstance(
+                data['cover_image'], str
+            ) and ';base64,' in data['cover_image']:
+                # Extract the base64 data after the ';base64,' part
+                file_data = data['cover_image'].split(';base64,')[1]
+
+                # Upload to S3 and get URL
+                cover_image_url = upload_to_s3(
+                    file_data,
+                    s3_path="profiles/covers",
+                    media_name="cover"
+                )
+                print("AFTER S3")
+
+                if not cover_image_url:
+                    return Response(
+                        {'error': 'Cover image upload failed'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                # Replace base64 data with the S3 URL
+                data['cover_image'] = cover_image_url
+
+            if 'profile_picture' in data and isinstance(
+                data['profile_picture'], str
+            ) and ';base64,' in data['profile_picture']:
+                # Extract the base64 data after the ';base64,' part
+                file_data = data['profile_picture'].split(';base64,')[1]
+
+                # Upload to S3 and get URL
+                profile_picture_url = upload_to_s3(
+                    file_data,
+                    s3_path="profiles/pictures",
+                    media_name="profile"
+                )
+
+                print("PROFILE PICTURE :", profile_picture_url)
+
+                if not profile_picture_url:
+                    return Response(
+                        {'error': 'Profile picture upload failed'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                # Replace base64 data with the S3 URL
+                data['profile_picture'] = profile_picture_url
+
+            serializer = ProfileSerializer(
+                profile, data=data, partial=True,
+                context={'request': request})
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            print(serializer.errors)
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
         except Profile.DoesNotExist:
             return Response({'error': 'Profile not found'},
                             status=status.HTTP_404_NOT_FOUND)
-
-        data = request.data.copy()
-
-        if 'cover_image' in data and isinstance(
-            data['cover_image'], str
-        ) and ';base64,' in data['cover_image']:
-            # Extract the base64 data after the ';base64,' part
-            file_data = data['cover_image'].split(';base64,')[1]
-
-            # Upload to S3 and get URL
-            cover_image_url = upload_to_s3(
-                file_data,
-                s3_path="profiles/covers",
-                media_name="cover"
+        except Exception as e:
+            print(str(e))
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-            print("AFTER S3")
-
-            if not cover_image_url:
-                return Response(
-                    {'error': 'Cover image upload failed'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Replace base64 data with the S3 URL
-            data['cover_image'] = cover_image_url
-
-        if 'profile_picture' in data and isinstance(
-            data['profile_picture'], str
-        ) and ';base64,' in data['profile_picture']:
-            # Extract the base64 data after the ';base64,' part
-            file_data = data['profile_picture'].split(';base64,')[1]
-
-            # Upload to S3 and get URL
-            profile_picture_url = upload_to_s3(
-                file_data,
-                s3_path="profiles/pictures",
-                media_name="profile"
-            )
-
-            if not profile_picture_url:
-                return Response(
-                    {'error': 'Profile picture upload failed'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Replace base64 data with the S3 URL
-            data['profile_picture'] = profile_picture_url
-
-        serializer = ProfileSerializer(
-            profile, data=data, partial=True,
-            context={'request': request})
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PeopleListView(APIView):
