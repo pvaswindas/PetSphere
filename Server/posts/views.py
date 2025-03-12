@@ -12,7 +12,6 @@ from rest_framework import status
 from cryptography.fernet import Fernet
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.decorators import api_view, permission_classes
 
@@ -383,13 +382,9 @@ class PetListingDataStoreView(APIView):
     Manages temporary storage of pet listing data and images using Redis.
     Permissions:
         - Requires user to be authenticated.
-    Parsers:
-        - MultiPartParser
-        - FormParser
     """
 
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
         """
@@ -530,7 +525,6 @@ class PetListingDataStoreView(APIView):
 
 class PetListingsView(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
         username = request.query_params.get("username")
