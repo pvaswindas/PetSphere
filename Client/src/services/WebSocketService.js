@@ -58,12 +58,11 @@ class WebSocketService {
         const data = JSON.parse(event.data);
         this.notifySubscribers(data.type, data);
       } catch (error) {
-        console.error('Error parsing WebSocket message:', error, event.data);
+
       }
     };
 
     this.socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
       this.isConnecting = false;
     };
 

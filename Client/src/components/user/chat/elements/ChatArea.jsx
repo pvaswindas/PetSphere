@@ -163,7 +163,6 @@ const ChatArea = ({ activeConversation = null, setIsNewMessage }) => {
                     setRecipient(activeConversation.other_user);
                 }
             } catch (error) {
-                console.error("Failed to fetch messages:", error);
                 setSnackbarMessage("Unable to fetch messages!");
                 setSnackbarOpen(true);
             }
@@ -175,7 +174,6 @@ const ChatArea = ({ activeConversation = null, setIsNewMessage }) => {
     }, [username, activeConversation]);
 
     const handleSend = async ({ text, file }) => {
-        console.log(text)
         if ((!text.trim() && !file) || !socketInstance) {
             setSnackbarMessage("Cannot send message");
             setSnackbarOpen(true);

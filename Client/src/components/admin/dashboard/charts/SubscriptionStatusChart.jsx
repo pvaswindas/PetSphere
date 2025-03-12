@@ -20,7 +20,6 @@ const SubscriptionStatusChart = () => {
         setStatusData(response);
       } catch (err) {
         setError("Failed to load subscription status data");
-        console.error(err);
       } finally {
         setIsLoading(false);
       }

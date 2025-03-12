@@ -50,10 +50,8 @@ const VideoCallUI = ({ isCaller = false }) => {
     const fetchTwilioCredentials = async () => {
         try {
             const response = await axiosInstance.get('video-call/get-turn-credentials/');
-            console.log("Fetched TURN credentials:", response.data.ice_servers);
             return response.data.ice_servers;
         } catch (error) {
-            console.error("Error fetching TURN credentials:", error);
             // Fallback to Google's STUN server only
             return [{ urls: "stun:stun.l.google.com:19302" }];
         }
@@ -146,25 +144,22 @@ const VideoCallUI = ({ isCaller = false }) => {
 
         // Add connection state monitoring
         peerConnection.current.oniceconnectionstatechange = () => {
-            console.log("ICE Connection State:", peerConnection.current.iceConnectionState);
-            
             if (peerConnection.current.iceConnectionState === "failed" || 
                 peerConnection.current.iceConnectionState === "disconnected") {
-                console.log("Connection failed - ICE gathering was not successful");
             }
         };
 
         // Debug ICE gathering process
-        peerConnection.current.onicegatheringstatechange = () => {
-            console.log("ICE Gathering State:", peerConnection.current.iceGatheringState);
-        };
+        // peerConnection.current.onicegatheringstatechange = () => {
+        //     console.log("ICE Gathering State:", peerConnection.current.iceGatheringState);
+        // };
 
-        peerConnection.current.onicecandidate = (event) => {
-            console.log("ICE candidate:", event.candidate);
-            if (event.candidate) {
-                sendMessage({ type: "candidate", candidate: event.candidate });
-            }
-        };
+        // peerConnection.current.onicecandidate = (event) => {
+        //     console.log("ICE candidate:", event.candidate);
+        //     if (event.candidate) {
+        //         sendMessage({ type: "candidate", candidate: event.candidate });
+        //     }
+        // };
 
         peerConnection.current.ontrack = (event) => {
             remoteVideoRef.current.srcObject = event.streams[0];

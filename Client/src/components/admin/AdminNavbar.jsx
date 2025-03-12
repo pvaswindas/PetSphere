@@ -15,8 +15,6 @@ const AdminNavbar = () => {
     const navigate = useNavigate();
     const logout = useLogout();
 
-    console.log(admin.profile_picture)
-
     const dispatch = useDispatch()
 
     const debouncedSetSearch = useDebounce((value) => {

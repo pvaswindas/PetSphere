@@ -20,7 +20,6 @@ const SubscriptionRevenueChart = () => {
         setRevenueData(response);
       } catch (err) {
         setError("Failed to load subscription revenue data");
-        console.error(err);
       } finally {
         setIsLoading(false);
       }

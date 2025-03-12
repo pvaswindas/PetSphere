@@ -42,7 +42,6 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
                 dispatch(setProfile({ profile_data: response.data }));
             }
         } catch (error) {
-            console.error("Error updating cover image:", error);
         } finally {
             setIsLoading(false)
         }

@@ -18,7 +18,6 @@ export const fetchSubscriptionRevenueData = async () => {
       const response = await axiosInstance.get('subscription/metrics/subscription-revenue');
       return response;
     } catch (error) {
-      console.error("Error fetching subscription revenue data:", error);
       throw error;
     }
 };
@@ -31,7 +30,6 @@ export const fetchSubscriptionStatusData = async () => {
         const response = await axiosInstance.get('subscription/metrics/subscription-status/');
         return response.data;
     } catch (error) {
-        console.error("Error fetching subscription status data:", error);
         throw error;
     }
 };
@@ -43,7 +41,6 @@ export const fetchGeographicListingData = async () => {
         const response = await axiosInstance.get('subscription/metrics/geographic-listings/');
         return response.data;
     } catch (error) {
-        console.error("Error fetching geographic listing data:", error);
         throw error;
     }
 };
