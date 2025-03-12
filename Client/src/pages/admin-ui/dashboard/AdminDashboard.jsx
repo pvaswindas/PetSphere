@@ -5,6 +5,8 @@ import { PieChart } from '@mui/x-charts/PieChart';
 import { fetchPostEngagementData } from "../../../api/metrics";
 import AlertSnackbar from "../../../components/Snackbar/AlertSnackbar";
 import Shimmer from "../../../components/Shimmer/Shimmer";
+import SubscriptionRevenueChart from "../../../components/admin/dashboard/charts/SubscriptionRevenueChart";
+import SubscriptionStatusChart from "../../../components/admin/dashboard/charts/SubscriptionStatusChart";
 
 const AdminDashboard = () => {
     const activeIcon = "dashboard";
@@ -45,11 +47,19 @@ const AdminDashboard = () => {
                 onClose={() => setSnackbarOpen(false)}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 lg:pb-16">
-                <MetricsCard title="Subscription Metrics">
-                    {isLoading ? <Shimmer className="h-32 w-full rounded-xl" /> : null}
+                <MetricsCard title="Subscription Revenue">
+                    {isLoading ? (
+                        <Shimmer className="h-32 w-full rounded-xl" />
+                    ) : (
+                        <SubscriptionRevenueChart />
+                    )}
                 </MetricsCard>
-                <MetricsCard title="User Engagement">
-                    {isLoading ? <Shimmer className="h-32 w-full rounded-xl" /> : null}
+                <MetricsCard title="Subscription Status">
+                    {isLoading ? (
+                        <Shimmer className="h-32 w-full rounded-xl" />
+                    ) : (
+                        <SubscriptionStatusChart />
+                    )}
                 </MetricsCard>
                 <MetricsCard title="Post Engagements">
                     {isLoading ? (

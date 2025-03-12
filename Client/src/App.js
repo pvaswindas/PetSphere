@@ -60,123 +60,123 @@ import WebSocketInitializer from "./utils/WebSocketInitializer";
 import { useNetworkStatus } from "./hooks/useNetworkStatus";
 
 function App() {
-  const location = useLocation();
-  const { isOnline, isServerUp, isLoading } = useNetworkStatus();
+    const location = useLocation();
+    const { isOnline, isServerUp, isLoading } = useNetworkStatus();
 
-  useEffect(() => {
-    if (location.pathname === "/") {
-      document.body.classList.remove("overflow-hidden");
-      document.body.classList.add("overflow-y-auto");
-    } else {
-      document.body.classList.add("overflow-hidden");
-      document.body.classList.remove("overflow-y-auto");
+    useEffect(() => {
+        if (location.pathname === "/") {
+          document.body.classList.remove("overflow-hidden");
+          document.body.classList.add("overflow-y-auto");
+        } else {
+          document.body.classList.add("overflow-hidden");
+          document.body.classList.remove("overflow-y-auto");
+        }
+    }, [location]);
+
+    if (isLoading) {
+        return <LoadingPage />;
     }
-  }, [location]);
 
-  if (isLoading) {
-    return <LoadingPage />;
-  }
+    if (!isOnline) {
+        return <OfflinePage />;
+    }
 
-  if (!isOnline) {
-    return <OfflinePage />;
-  }
+    if (!isServerUp && isOnline) {
+        return <ServerDownPage />;
+    }
 
-  if (!isServerUp && isOnline) {
-    return <ServerDownPage />;
-  }
+    return (
+        <div className="bg-gray-75 h-screen">
+            <WebSocketInitializer />
+            <Routes>
+                {/* Landing Route */}
+                <Route path="/" element={<RestrictedRoute><Landing /></RestrictedRoute>} />
 
-  return (
-    <div className="bg-gray-75 h-screen">
-      <WebSocketInitializer />
-      <Routes>
-        {/* Landing Route */}
-        <Route path="/" element={<RestrictedRoute><Landing /></RestrictedRoute>} />
+                {/* Public Routes */}
+                <Route path="/login" element={
+                  <RestrictedRoute>
+                    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+                      <LoginPage />
+                    </GoogleOAuthProvider>
+                  </RestrictedRoute>
+                } />
+                <Route path="/signup" element={
+                  <RestrictedRoute>
+                    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+                      <SignupPage />
+                    </GoogleOAuthProvider>
+                  </RestrictedRoute>
+                } />
+                <Route path="/signup/otp" element={<RestrictedRoute><VerifyOtp /></RestrictedRoute>} />
+                <Route path="/signup/username" element={<RestrictedRoute><CreateUsername /></RestrictedRoute>} />
 
-        {/* Public Routes */}
-        <Route path="/login" element={
-          <RestrictedRoute>
-            <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
-              <LoginPage />
-            </GoogleOAuthProvider>
-          </RestrictedRoute>
-        } />
-        <Route path="/signup" element={
-          <RestrictedRoute>
-            <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
-              <SignupPage />
-            </GoogleOAuthProvider>
-          </RestrictedRoute>
-        } />
-        <Route path="/signup/otp" element={<RestrictedRoute><VerifyOtp /></RestrictedRoute>} />
-        <Route path="/signup/username" element={<RestrictedRoute><CreateUsername /></RestrictedRoute>} />
+                <Route path="/reset-password" element={<RestrictedRoute><ForgotPassword /></RestrictedRoute>} />
+                <Route path="/find-your-account" element={<RestrictedRoute><FindYourAccount /></RestrictedRoute>} />
 
-        <Route path="/reset-password" element={<RestrictedRoute><ForgotPassword /></RestrictedRoute>} />
-        <Route path="/find-your-account" element={<RestrictedRoute><FindYourAccount /></RestrictedRoute>} />
+                {/* User Protected Routes */}
+                <Route 
+                  path="/profile/*"
+                  element={
+                    <ProtectedRoute>
+                      <Routes>
+                        <Route path=":username" element={<Profile />} />
+                        <Route path="edit" element={<EditProfile />} />
+                        <Route path="edit/:dynamicString" element={<EditFieldPage />} />
+                        <Route path="mobile-number" element={<MobileNumberPage />} />
+                        <Route path="verify-mobile-number" element={<MobileVerificationPage />} />
+                        <Route path="edit/username" element={<EditUsernamePage />} />
+                        <Route path="add-pet-story" element={<AddPetStory />} />
+                        <Route path="add-pet-listing" element={<AddPetListing />} />
+                        <Route path="mapexplore" element={<MapExplorer />} />
+                      </Routes>
+                    </ProtectedRoute>
+                  } 
+                />
 
-        {/* User Protected Routes */}
-        <Route 
-          path="/profile/*"
-          element={
-            <ProtectedRoute>
-              <Routes>
-                <Route path=":username" element={<Profile />} />
-                <Route path="edit" element={<EditProfile />} />
-                <Route path="edit/:dynamicString" element={<EditFieldPage />} />
-                <Route path="mobile-number" element={<MobileNumberPage />} />
-                <Route path="verify-mobile-number" element={<MobileVerificationPage />} />
-                <Route path="edit/username" element={<EditUsernamePage />} />
-                <Route path="add-pet-story" element={<AddPetStory />} />
-                <Route path="add-pet-listing" element={<AddPetListing />} />
-                <Route path="mapexplore" element={<MapExplorer />} />
-              </Routes>
-            </ProtectedRoute>
-          } 
-        />
+                <Route path="post/:slug" element={ <ProtectedRoute><PostDisplay /></ProtectedRoute> } />
 
-        <Route path="post/:slug" element={ <ProtectedRoute><PostDisplay /></ProtectedRoute> } />
+                <Route path="/feed" element={ <ProtectedRoute><Feed /></ProtectedRoute>} />
 
-        <Route path="/feed" element={ <ProtectedRoute><Feed /></ProtectedRoute>} />
+                <Route path="/messages" element={ <ProtectedRoute><Messaging /></ProtectedRoute>} />
+                <Route path="/messages/chat/:username" element={ <ProtectedRoute><Chat /></ProtectedRoute>} />
+                
+                <Route path="/video-call/:username" element={ <ProtectedRoute><CallPage /></ProtectedRoute>} />
 
-        <Route path="/messages" element={ <ProtectedRoute><Messaging /></ProtectedRoute>} />
-        <Route path="/messages/chat/:username" element={ <ProtectedRoute><Chat /></ProtectedRoute>} />
-        
-        <Route path="/video-call/:username" element={ <ProtectedRoute><CallPage /></ProtectedRoute>} />
-
-        <Route path="explore" element={ <ProtectedRoute><ExplorePage /></ProtectedRoute> } />
-        <Route path="subscriptions" element={ <ProtectedRoute><SubscriptionPage /></ProtectedRoute> } />
-        <Route path="subscriptions/success" element={ <ProtectedRoute><PaymentSuccessPage /></ProtectedRoute> } />
-        <Route path="subscriptions/cancel" element={ <ProtectedRoute><PaymentCancelPage /></ProtectedRoute> } />
+                <Route path="explore" element={ <ProtectedRoute><ExplorePage /></ProtectedRoute> } />
+                <Route path="subscriptions" element={ <ProtectedRoute><SubscriptionPage /></ProtectedRoute> } />
+                <Route path="subscriptions/success" element={ <ProtectedRoute><PaymentSuccessPage /></ProtectedRoute> } />
+                <Route path="subscriptions/cancel" element={ <ProtectedRoute><PaymentCancelPage /></ProtectedRoute> } />
 
 
-        {/* Admin Routes */}
-        <Route
-          path="/admin/*"
-          element={
-            <div className="overflow-y-auto h-screen">
-              <Routes>
-                <Route path="login" element={<AdminRestrictedRoute><AdminLoginPage /></AdminRestrictedRoute>} />
-                <Route path="" element={<AdminOnlyRoute><AdminDashboard /></AdminOnlyRoute>} />
+                {/* Admin Routes */}
+                <Route
+                  path="/admin/*"
+                  element={
+                    <div className="overflow-y-auto h-screen">
+                      <Routes>
+                        <Route path="login" element={<AdminRestrictedRoute><AdminLoginPage /></AdminRestrictedRoute>} />
+                        <Route path="" element={<AdminOnlyRoute><AdminDashboard /></AdminOnlyRoute>} />
 
-                <Route path="manage/pets" element={<AdminOnlyRoute><PetCatalogManager /></AdminOnlyRoute>} />
+                        <Route path="manage/pets" element={<AdminOnlyRoute><PetCatalogManager /></AdminOnlyRoute>} />
 
-                <Route path="manage/updates" element={<AdminOnlyRoute><AnnouncementsManager /></AdminOnlyRoute>} />
-                <Route path="manage/updates/list-view" element={<AdminOnlyRoute><AnnouncementsList /></AdminOnlyRoute>} />
+                        <Route path="manage/updates" element={<AdminOnlyRoute><AnnouncementsManager /></AdminOnlyRoute>} />
+                        <Route path="manage/updates/list-view" element={<AdminOnlyRoute><AnnouncementsList /></AdminOnlyRoute>} />
 
-                <Route path="manage/users" element={<AdminOnlyRoute><UserManagePage /></AdminOnlyRoute>} />
-                <Route path="manage/users/view/:userId" element={<AdminOnlyRoute><UserDetailedViewPage /></AdminOnlyRoute>} />
+                        <Route path="manage/users" element={<AdminOnlyRoute><UserManagePage /></AdminOnlyRoute>} />
+                        <Route path="manage/users/view/:userId" element={<AdminOnlyRoute><UserDetailedViewPage /></AdminOnlyRoute>} />
 
-                <Route path="manage/profile/" element={<AdminOnlyRoute><AdminProfile /></AdminOnlyRoute>} />
+                        <Route path="manage/profile/" element={<AdminOnlyRoute><AdminProfile /></AdminOnlyRoute>} />
 
-                <Route path="manage/reports/" element={<AdminOnlyRoute><ManageReports /></AdminOnlyRoute>} />
-              </Routes>
-            </div>
-          }
-        />
+                        <Route path="manage/reports/" element={<AdminOnlyRoute><ManageReports /></AdminOnlyRoute>} />
+                      </Routes>
+                    </div>
+                  }
+                />
 
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </div>
-  );
+                <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+        </div>
+    );
 }
 
 export default App;
