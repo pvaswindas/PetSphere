@@ -63,11 +63,9 @@ const VideoCallUI = ({ isCaller = false }) => {
     
         socket.current = new WebSocket(`wss://${process.env.REACT_APP_API_SITE_URL}/ws/video_call/${username}/?token=${token}`);
 
-        socket.current.onopen = () => {
-            if (isCaller) {
-                initiateCall(username);
-            }
-        };
+        // socket.current.onopen = () => {
+            
+        // };
 
         socket.current.onmessage = async (event) => {
             const data = JSON.parse(event.data);
@@ -115,6 +113,9 @@ const VideoCallUI = ({ isCaller = false }) => {
 
     const requestPermissionsAndStartCall = async () => {
         try {
+            if (isCaller) {
+                initiateCall(username);
+            }
             const localStream = await navigator.mediaDevices.getUserMedia({ 
                 video: true,
                 audio: {
@@ -155,7 +156,6 @@ const VideoCallUI = ({ isCaller = false }) => {
         // };
 
         peerConnection.current.onicecandidate = (event) => {
-            console.log("ICE candidate:", event.candidate);
             if (event.candidate) {
                 sendMessage({ type: "candidate", candidate: event.candidate });
             }

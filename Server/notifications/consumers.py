@@ -83,6 +83,19 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 f"Error sending notification: {str(e)}", exc_info=True
             )
 
+    async def send_call_notification(self, event):
+        """Handle call notifications"""
+        try:
+            # Pass the caller data to the client
+            await self.send(text_data=json.dumps({
+                "type": "call_notification",
+                "caller": event.get("caller", {})
+            }))
+        except Exception as e:
+            logger.error(
+                f"Error sending call notification: {str(e)}", exc_info=True
+            )
+
     async def authenticate_user(self):
         try:
             # Extract token from query string
