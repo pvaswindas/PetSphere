@@ -4,15 +4,15 @@ import storage from 'redux-persist/lib/storage';
 import profileReducer from './slices/ProfileSlice';
 import postReducer from './slices/PostSlice';
 import adminReducer from "./slices/AdminProfileSlice";
-import adminSearchReducer from "./slices/AdminSearchSlice"
+import adminSearchReducer from "./slices/AdminSearchSlice";
 import petReducer from "./slices/PetSlice";
 import locationReducer from "./slices/LocationSlice";
-import petListingReducer from "./slices/PetListingSlice"
-import globalSearchReducer from "./slices/GlobalSearchSlice"
-import subscriptionReducer from "./slices/SubscriptionSlice"
-import usersReducer from "./slices/UsersSlice"
+import petListingReducer, { checkNewListingExpiration } from "./slices/PetListingSlice";
+import globalSearchReducer from "./slices/GlobalSearchSlice";
+import subscriptionReducer from "./slices/SubscriptionSlice";
+import usersReducer from "./slices/UsersSlice";
 
-const EXPIRY_TIME = 60 * 60 * 25
+const EXPIRY_TIME = 60 * 60 * 25; // ~25 hours in milliseconds
 
 const expiryTransform = createTransform(
     (inboundState) => {
@@ -50,7 +50,7 @@ const persistConfig = {
     key: 'root',
     storage,
     transforms: [expiryTransform],
-    whitelist: ['profile', 'admin', 'adminSearch', 'globalSearch', 'subscriptions',],
+    whitelist: ['profile', 'admin', 'adminSearch', 'globalSearch', 'subscriptions', 'petListings'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -70,5 +70,8 @@ export function clearStore() {
     store.dispatch({ type: 'RESET' })
     persistor.purge()
 }
+
+// Initialize the app with this check
+store.dispatch(checkNewListingExpiration());
 
 export default store;

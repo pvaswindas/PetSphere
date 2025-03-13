@@ -81,11 +81,11 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
             )}
 
             {/* Profile Image */}
-            <div className={`absolute ${isAdmin ? "left-1/2 transform -translate-x-1/2 bottom-[-33px]" : "bottom-[-50px] left-4 lg:left-8"}`}>
+            <div className={`absolute ${isAdmin ? "left-1/2 transform -translate-x-1/2 bottom-[-33px]" : "bottom-[-45px] lg:bottom-[-55px] left-4 lg:left-8"}`}>
                 <img
                     src={profile?.profile_picture || (isAdmin ? adminAvatar : userAvatar)}
                     alt="Profile"
-                    className={`rounded-full object-cover ${isAdmin ?  "w-[65px] h-[65px]" : "w-[120px] h-[120px] lg:w-[150px] lg:h-[150px]"}`}
+                    className={`rounded-full object-cover ${isAdmin ?  "w-[65px] h-[65px]" : "w-[90px] h-[90px] lg:w-[120px] lg:h-[120px]"}`}
                 />
             </div>
 

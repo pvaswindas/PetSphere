@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux"
 import AlertSnackbar from "../../Snackbar/AlertSnackbar"
 import { retrieveAvailablePetTypes } from "../../../utils/retrieveAvailablePets"
 import { retrieveAvailablePetBreeds } from "../../../utils/retrieveAvailablePetBreeds"
-import axiosInstance from "../../../axios/axiosinstance"
+import { setNewListingWithTimeout } from "../../../redux/slices/PetListingSlice"
 
 
 const AddPetListingCard = () => {
@@ -113,37 +113,31 @@ const AddPetListingCard = () => {
         if (!validateForm()) return;
     
         try {
+            // Create a FormData object directly
             const formData = new FormData();
-            const petListing = {
-                post_type: petDetails.saleOrAdoption,
-                pet_name: petDetails.name,
-                pet_type: petDetails.type,
-                breed: petDetails.breed,
-                gender: petDetails.gender,
-                description: petDetails.description,
-                age: parseInt(petDetails.age),
-                price: petDetails.saleOrAdoption === "Selling" ? parseFloat(petDetails.price) : 0
-            };
             
-            Object.entries(petListing).forEach(([key, value]) => {
-                formData.append(key, value)
-            })
+            // Add all the basic fields
+            formData.append('post_type', petDetails.saleOrAdoption);
+            formData.append('pet_name', petDetails.name);
+            formData.append('pet_type', petDetails.type);
+            formData.append('breed', petDetails.breed);
+            formData.append('gender', petDetails.gender);
+            formData.append('description', petDetails.description);
+            formData.append('age', parseInt(petDetails.age));
+            formData.append('price', petDetails.saleOrAdoption === "Selling" ? parseFloat(petDetails.price) : 0);
+            
+            // Add each image as a separate file
             images.forEach((image) => {
                 formData.append('images', image);
             });
-            const response = await axiosInstance.post("posts/listingdatastore/", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                }
-            })
-            if (response.status === 201) {
-                handleSuccess(response.data.encrypted_redis_key);
-            }
+    
+            dispatch(setNewListingWithTimeout(formData));
+            navigate('/profile/mapexplore');
         } catch (error) {
             setSnackbarMessage("Failed to create pet listing");
             setSnackbarOpen(true);
         }
-    }    
+    }
     
     const validateForm = () => {
         if (petDetails.type === "" || petDetails.breed === "" || 
@@ -171,16 +165,6 @@ const AddPetListingCard = () => {
         }
 
         return true
-    }
-    
-    const handleSuccess = (key) => {
-        localStorage.setItem('petListingKey', key)
-        setImages([])
-        setPetDetails({
-            type: "", breed: "", gender: "", age: "",
-            description: "", saleOrAdoption: "adoption", price: "",
-        })
-        navigate('/profile/mapexplore')
     }
 
     const renderSelectedImages = () => {

@@ -26,10 +26,12 @@ const PetCatalogContent = ({ setButtonText, setHandleButton }) => {
     const petTypes = useSelector((state) => state.pets.petTypes)
     const petBreeds = useSelector((state) => state.pets.petBreeds)
 
+    console.log(petTypes)
+
     const toggleSection = () => {
         setCurrentSection((prev) => (prev === "pet-types" ? "pet-breeds" : "pet-types"))
         setTitle("")
-        setImage("")
+        setImage(null)
         setContent("")
         setSelectedPetType("")
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { useDropzone } from "react-dropzone"
 import AlertSnackbar from "../Snackbar/AlertSnackbar"
 
@@ -8,18 +8,42 @@ const ImageUpload = ({ onChange, image, reset }) => {
     const [snackbarOpen, setSnackbarOpen] = useState(false)
 
     useEffect(() => {
-        if (image === null) {
-            setUploadedFile(null)
-        }
-    }, [image])
+        // Clean up preview URL when component unmounts
+        return () => {
+            if (uploadedFile && uploadedFile.preview && typeof uploadedFile.preview === 'string' && uploadedFile.preview.startsWith('blob:')) {
+                URL.revokeObjectURL(uploadedFile.preview);
+            }
+        };
+    }, [uploadedFile]);
 
-    const resetUpload = () => {
+    const resetUpload = useCallback(() => {
+        if (uploadedFile && uploadedFile.preview && typeof uploadedFile.preview === 'string' && uploadedFile.preview.startsWith('blob:')) {
+            URL.revokeObjectURL(uploadedFile.preview);
+        }
         setUploadedFile(null);
-    };
+    }, [uploadedFile]);
 
     useEffect(() => {
         if (reset) reset(resetUpload);
-    }, [reset]);
+    }, [reset, resetUpload]);
+
+    // Handle image prop changes
+    useEffect(() => {
+        if (image === null || image === "") {
+            resetUpload();
+        } else if (image instanceof File) {
+            // If it's a File object, create a preview URL
+            setUploadedFile(Object.assign(image, { 
+                preview: URL.createObjectURL(image) 
+            }));
+        } else if (typeof image === 'string' && image.length > 0) {
+            // If it's a string URL (from existing image)
+            setUploadedFile({ 
+                preview: image, 
+                name: "Existing Image" 
+            });
+        }
+    }, [image, resetUpload]);
 
     const onDrop = (acceptedFiles, fileRejections) => {
         if (fileRejections.length > 0) {
@@ -30,26 +54,23 @@ const ImageUpload = ({ onChange, image, reset }) => {
     
         const file = acceptedFiles[0];
         if (file) {
-            setSnackbarMessage("");
-            setUploadedFile(Object.assign(file, { preview: URL.createObjectURL(file) }));
+            // Clean up previous preview URL if it exists
+            if (uploadedFile && uploadedFile.preview && typeof uploadedFile.preview === 'string' && uploadedFile.preview.startsWith('blob:')) {
+                URL.revokeObjectURL(uploadedFile.preview);
+            }
+            
+            const previewUrl = URL.createObjectURL(file);
+            setUploadedFile(Object.assign(file, { preview: previewUrl }));
             onChange(file);
+            setSnackbarMessage("");
         }
     };
-    
 
     const { getRootProps, getInputProps } = useDropzone({
         accept: { "image/*": [] },
         multiple: false,
         onDrop,
     })
-
-    useEffect(() => {
-        if (image) {
-            setUploadedFile({ preview: image, name: "Existing Image" });
-        } else {
-            setUploadedFile(null);
-        }
-    }, [image]);    
 
     return (
         <div className="flex flex-col space-y-2 my-3">
@@ -64,20 +85,22 @@ const ImageUpload = ({ onChange, image, reset }) => {
                 className="border-2 border-dashed border-gray-300 rounded-lg px-4 lg:py-4 flex flex-col items-center 
                             justify-center cursor-pointer bg-softSkyBlue hover:bg-blue-50 focus:outline-none"
             >
-                <input {...getInputProps()} id="pet-image" name="pet-image" /> {/* Add id here */}
+                <input {...getInputProps()} id="pet-image" name="pet-image" />
                 {!uploadedFile ? (
                     <p className="text-darkDenimBlue text-opacity-40 text-sm my-6">
                         Drag & drop an image here, or{" "}
                         <span className="text-denimBlue underline">click to upload</span>
                     </p>
                 ) : (
-                    <div>
+                    <div className="flex flex-col items-center py-2">
                         <img
                             src={uploadedFile.preview}
                             alt="Uploaded Preview"
-                            className="w-12 h-12 object-cover rounded-lg"
+                            className="w-10 h-10 object-cover rounded-lg"
                         />
-                        <p className="text-xs text-gray-500 mt-1 truncate">{uploadedFile.name}</p>
+                        <p className="text-xs text-gray-500 mt-1 truncate max-w-full">
+                            {uploadedFile.name || "Uploaded Image"}
+                        </p>
                     </div>
                 )}
             </div>

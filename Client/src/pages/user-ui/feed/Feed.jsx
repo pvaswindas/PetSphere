@@ -95,7 +95,7 @@ function Feed() {
     
                 {/* Content Section - Make this scrollable */}
                 <div className="flex-1 w-full lg:w-3/5 lg:px-3 overflow-y-auto h-full lg:rounded-lg pb-12">
-                    <div className='sticky -top-1 z-10'>
+                    <div className='sticky -top-1'>
                         <FeedSelection selectedFeed={selectedFeed} setSelectedFeed={setSelectedFeed} />
                     </div>
     

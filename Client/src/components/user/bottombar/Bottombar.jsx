@@ -1,13 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Home, Search, User, CirclePlus, Send } from 'lucide-react';
 import { useSelector } from "react-redux";
+import PostTypeModal from "../../../components/user/post/PostTypeModal";
 
 
 
 const Bottombar = () => {
     const location = useLocation()
     const navigate = useNavigate()
+
+    const [isModalOpen, setModalOpen] = useState(false)
 
     const profile = useSelector((state) => state.profile.profile_data)
 
@@ -35,6 +38,7 @@ const Bottombar = () => {
                 />
                 <CirclePlus 
                     className={`w-5 h-5 ${ isActive('/add-post') ? ifActive : ifNonActive }`}
+                    onClick={() => setModalOpen(true)}
                 />
                 <Send
                     onClick={() => handleNavigate('messages')}
@@ -45,6 +49,11 @@ const Bottombar = () => {
                     onClick={() => handleNavigate(`profile/${profile.user.username}`)}
                 />
             </div>
+            <PostTypeModal
+                isOpen={isModalOpen}
+                onClose={() => setModalOpen(false)}
+                isBottom={true}
+            />
         </div>
     );
 };

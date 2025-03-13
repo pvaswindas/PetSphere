@@ -1,22 +1,25 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const PostTypeModal = ({ isOpen, onClose }) => {
-    const navigate = useNavigate()
+const PostTypeModal = ({ isOpen, onClose, isBottom = false }) => {
+    const navigate = useNavigate();
 
     if (!isOpen) return null;
 
     const handleSelect = (type) => {
         if (type === "PetStories") {
-            navigate("/profile/add-pet-story")
+            navigate("/profile/add-pet-story");
         } else if (type === "PetListings") {
-            navigate("/profile/add-pet-listing")
+            navigate("/profile/add-pet-listing");
         }
-        onClose()
-    }
+        onClose();
+    };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-start pt-16">
+        <div 
+            className={`fixed inset-0 bg-black bg-opacity-50 z-50 flex 
+            ${isBottom ? "items-end pb-16" : "items-start pt-16"} justify-center`}
+        >
             <div className="bg-white rounded-lg shadow-xl p-6 w-96 mx-4 sm:mx-auto animate-fadeIn">
                 {/* Header Section */}
                 <div className="flex justify-between items-center border-b pb-3 mb-4">
