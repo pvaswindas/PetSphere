@@ -12,6 +12,7 @@ from rest_framework import status
 from cryptography.fernet import Fernet
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.decorators import api_view, permission_classes
 
@@ -32,7 +33,7 @@ from .serializers import (
 from petsphere.utils.common_utils import (
     validate_authenticated_user, validate_request_data,
 )
-from common.storage import upload_to_s3
+from common.storage import upload_to_s3_from_multipart
 
 
 encryption_key = settings.ENCRYPTION_KEY
@@ -52,6 +53,7 @@ class UserPostListCreateView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
         """
@@ -86,100 +88,97 @@ class UserPostListCreateView(APIView):
         Creates a new post for the authenticated user with base64 encoded
         images.
 
-        Parameters:
-            - request: The HTTP request object with post data and base64
-            images.
+        Parsers:
+            - MultiPartParser
+            - FormParser
 
         Required Fields:
             - content: Content/body of the post.
-            - images: List of base64 encoded image strings (optional).
+            - images: List of image.
 
         Returns:
             - Response: Created post data on success.
             - Response: Error details on failure.
         """
-        try:
-            user = validate_authenticated_user(request)
-            if isinstance(user, Response):
-                return user
+        user = validate_authenticated_user(request)
+        if isinstance(user, Response):
+            return user
 
-            data = request.data.copy()
-            data['user'] = user.id
+        data = request.data.copy()
+        data['user'] = user.id
 
-            # Get base64 images from request data
-            base64_images = request.data.getlist('images', [])
+        # Get base64 images from request data
+        post_images = request.data.getlist('images', [])
 
-            serializer = AddPostSerializer(
-                data=data, context={'request': request}
+        if any(not hasattr(img, 'read') for img in post_images):
+            return Response(
+                {'error': 'Invalid image files provided'},
+                status=status.HTTP_400_BAD_REQUEST
             )
-            profile = user.profile
 
-            if serializer.is_valid():
-                post = serializer.save()
+        MAX_FILE_SIZE = 5 * 1024 * 1024
 
-                if base64_images:
-                    image_data = []
-
-                    for base64_image in base64_images:
-                        if isinstance(
-                            base64_image, str
-                        ) and ';base64,' in base64_image:
-                            # Extract the base64 data after the ';base64,' part
-                            file_data = base64_image.split(';base64,')[1]
-
-                            # Upload to S3 and get URL
-                            image_url = upload_to_s3(
-                                file_data,
-                                s3_path="posts/images",
-                                media_name=f"post_{post.id}"
-                            )
-
-                            if image_url:
-                                image_data.append({
-                                    'post': post.id,
-                                    'image': image_url
-                                })
-                            else:
-                                # If any image upload fails, delete the post
-                                # and return error
-                                post.delete()
-                                return Response(
-                                    {'error': 'Image upload failed'},
-                                    status=status.HTTP_400_BAD_REQUEST
-                                )
-
-                    if image_data:
-                        image_serializer = PostImageSerializer(
-                            data=image_data,
-                            many=True,
-                            context={'request': request}
-                        )
-                        if image_serializer.is_valid():
-                            image_serializer.save()
-                        else:
-                            # If serializer validation fails, delete the post
-                            # and return error
-                            post.delete()
-                            return Response(
-                                image_serializer.errors,
-                                status=status.HTTP_400_BAD_REQUEST
-                            )
-
-                profile.pawstory_count += 1
-                profile.save()
+        for image in post_images:
+            if image.size > MAX_FILE_SIZE:
                 return Response(
-                    serializer.data, status=status.HTTP_201_CREATED
+                    {'error': 'Image exceeds maximum size of 5MB'},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
-            print(serializer.errors)
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
-        except Exception as e:
-            print(str(e))
-            return Response(
-                {"error": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+
+        serializer = AddPostSerializer(data=data, context={'request': request})
+        profile = user.profile
+
+        if serializer.is_valid():
+            post = serializer.save()
+
+            if post_images:
+                image_data = []
+
+                for image in post_images:
+
+                    # Upload to S3 and get URL
+                    image_url = upload_to_s3_from_multipart(
+                        image,
+                        s3_path="posts/images",
+                        media_name=f"post_{post.id}{post.slug}"
+                    )
+
+                    if image_url:
+                        image_data.append({
+                            'post': post.id,
+                            'image': image_url
+                        })
+                    else:
+                        # If any image upload fails, delete the post and
+                        # return error
+                        post.delete()
+                        return Response(
+                            {'error': 'Image upload failed'},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+
+                if image_data:
+                    image_serializer = PostImageSerializer(
+                        data=image_data,
+                        many=True,
+                        context={'request': request}
+                    )
+                    if image_serializer.is_valid():
+                        image_serializer.save()
+                    else:
+                        # If serializer validation fails, delete the post and
+                        # return error
+                        post.delete()
+                        return Response(
+                            image_serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+
+            profile.pawstory_count += 1
+            profile.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PostListView(APIView):
@@ -382,9 +381,13 @@ class PetListingDataStoreView(APIView):
     Manages temporary storage of pet listing data and images using Redis.
     Permissions:
         - Requires user to be authenticated.
+    Parsers:
+        - MultiPartParser
+        - FormParser
     """
 
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
         """
@@ -525,6 +528,7 @@ class PetListingDataStoreView(APIView):
 
 class PetListingsView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
         username = request.query_params.get("username")
