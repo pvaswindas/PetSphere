@@ -56,8 +56,11 @@ def initiate_call(request):
         async_to_sync(channel_layer.group_send)(
             f"user_{callee.id}",
             {
-                "type": "send_call_notification",
-                "caller": caller_data,
+                "type": "notify",
+                "message": {
+                    "type": "call_notification",
+                    "caller": caller_data
+                }
             }
         )
 
