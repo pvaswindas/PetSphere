@@ -12,6 +12,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # CORE SETTINGS
 # ------------------------------------------------------------------------------
 BASE_URL = env.str("BASE_URL")
+CLIENT_URL = env.str("CLIENT_URL")
 DEBUG = env.bool("DEBUG", default=True)
 SECRET_KEY = env.str("SECRET_KEY")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
@@ -240,6 +241,7 @@ AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 AWS_S3_OBJECT_PARAMETERS = {
     "CacheControl": "max-age=86400",
 }
+
 DATA_UPLOAD_MAX_MEMORY_SIZE = 15728640  # 15MB
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
