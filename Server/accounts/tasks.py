@@ -71,7 +71,7 @@ def send_reset_email(user):
     token = token_generator.make_token(user)
     uid = user.pk
     reset_password_url = f"?uid={uid}&token={token}"
-    reset_url = f"{CLIENT_URL}reset-password?uid={uid}&token={token}"
+    reset_url = f"{CLIENT_URL}/reset-password?uid={uid}&token={token}"
 
     subject = 'Reset Your Password'
     from_email = settings.EMAIL_HOST_USER
