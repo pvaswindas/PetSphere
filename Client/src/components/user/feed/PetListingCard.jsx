@@ -4,11 +4,13 @@ import MaleIcon from "@mui/icons-material/Male";
 import FemaleIcon from "@mui/icons-material/Female";
 
 function PetListingCard({ listing = [] }) {
+
+    console.log(listing)
     return (
         <div className='relative bg-white rounded-2xl h-[29rem] shadow-lg overflow-hidden'>
             <img
-                src={listing?.images[0].image}
-                alt=""
+                src={listing?.images?.length > 0 && listing.images[0].image}
+                alt={listing?.pet_name || "Pet Image"}
                 className='w-full h-full object-cover lg:rounded-2xl'
             />
             <div className='absolute bottom-2 left-2 right-2 bg-white/70 rounded-xl p-4'>

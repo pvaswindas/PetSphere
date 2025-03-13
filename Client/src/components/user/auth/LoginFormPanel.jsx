@@ -33,41 +33,61 @@ function LoginFormPanel() {
         formData.username.trim().length >= 3 && 
         formData.password.length >= 8;
 
-    const handleSubmit = async (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         setSnackbarMessage('');
         setIsLoading(true);
-
+    
         try {
             const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
             const response = await axios.post(`${apiBaseUrl}accounts/login/`, formData);
-
-            if (response.status === 200) {
-                const { access, refresh, profile } = response.data;
-
-                if (profile.user.is_staff) {
-                    setSnackbarMessage("Invalid credentials")
-                    setSnackbarOpen(true)
-                    return;
-                } else {
-                    localStorage.setItem('ACCESS_TOKEN', access);
-                    localStorage.setItem('REFRESH_TOKEN', refresh);
-                    dispatch(setProfile({ profile_data: profile }));
-                    dispatch(setEmail({ email: profile.user.email }));
-
-                    navigate('/feed');
-                }
+    
+            const { access, refresh, profile } = response.data;
+    
+            if (profile.user.is_staff) {
+                setSnackbarMessage("Invalid credentials");
+                setSnackbarOpen(true);
+                return;
             } else {
-                setSnackbarMessage("Invalid Credentials")
-                setSnackbarOpen(true)
+                localStorage.setItem('ACCESS_TOKEN', access);
+                localStorage.setItem('REFRESH_TOKEN', refresh);
+                dispatch(setProfile({ profile_data: profile }));
+                dispatch(setEmail({ email: profile.user.email }));
+    
+                navigate('/feed');
             }
         } catch (error) {
-            setSnackbarMessage('Invalid Credentials');
-            setSnackbarOpen(true)
+            let message = "Login Failed, Please try again";
+
+            if (error.response) {
+                const { status, data } = error.response;
+
+                if (status === 400) {
+                    message = "Invalid credentials";
+                } else if (status === 403) {
+                    if (data.error.includes("pending approval")) {
+                        message = "Your account is pending approval.";
+                    } else if (data.error.includes("suspended")) {
+                        message = "Your account has been suspended.";
+                    } else if (data.error.includes("deactivated")) {
+                        message = "Your account has been deactivated.";
+                    } else {
+                        message = "Access denied.";
+                    }
+                } else {
+                    message = "An unexpected error occurred. Please try again.";
+                }
+            } else if (error.message.includes("Network Error")) {
+                message = "Network error. Please check your connection.";
+            }
+
+            setSnackbarMessage(message);
+    
+            setSnackbarOpen(true);
         } finally {
             setIsLoading(false);
         }
-    };
+    };        
 
     return (
         <div className="w-full h-full p-6 flex flex-col justify-center items-center">
@@ -78,7 +98,7 @@ function LoginFormPanel() {
                 onClose={() => setSnackbarOpen(false)}
             />
 
-            <form onSubmit={handleSubmit} className="space-y-4 w-full lg:w-3/4">
+            <form onSubmit={handleLogin} className="space-y-4 w-full lg:w-3/4">
                 <div className="items-left">
                     <h1 className="text-2xl text-labelGreen lg:text-4xl font-bold mt-4 lg:mt-6">Welcome Back!</h1>
                     <h4 className="text-lightGreen mb-4 lg:mb-9">Sign in to your account</h4>

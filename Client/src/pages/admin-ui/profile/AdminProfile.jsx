@@ -56,12 +56,11 @@ function AdminProfile() {
     }
 
     const handleSave = async (data) => {
-        console.log("Form Data:", data);
         setEditMode(false)
     }
 
     const handlePasswordSave = async (data) => {
-        console.log("PASSWORD DATA:", data)
+        
     }
 
     return (

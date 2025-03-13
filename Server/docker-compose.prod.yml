@@ -1,14 +1,25 @@
-version: '3.8'
-
 services:
   backend:
     image: $DOCKERHUB_USERNAME/petsphere-backend:latest
+    command: >
+      sh -c "
+        python manage.py makemigrations &&
+        python manage.py migrate &&
+        python manage.py collectstatic --noinput &&
+        daphne -b 0.0.0.0 -p 8000 petsphere.asgi:application
+      "
     env_file:
       - .env
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/mediafiles
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     restart: always
 
   db:
@@ -23,6 +34,56 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=md5
     ports:
       - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6380:6379"
+
+  celery:
+    image: $DOCKERHUB_USERNAME/petsphere-backend:latest
+    command: celery -A petsphere worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+    restart: always
+
+  celery-beat:
+    image: $DOCKERHUB_USERNAME/petsphere-backend:latest
+    command: celery -A petsphere beat --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+    restart: always
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - static_volume:/app/staticfiles
+      - media_volume:/app/mediafiles
+      - ~/petsphere/certbot:/var/www/certbot
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
+  static_volume:
+  media_volume:
+  certbot_challenges:

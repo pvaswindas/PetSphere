@@ -4,8 +4,6 @@ from .models import (
     PetListingImageTemp
 )
 from user_profile.serializers import ProfileSerializer
-from urllib.parse import urljoin
-from django.conf import settings
 
 
 class PostImageSerializer(serializers.ModelSerializer):
@@ -15,32 +13,15 @@ class PostImageSerializer(serializers.ModelSerializer):
         model = PostImage
         fields = ['id', 'post', 'image', 'created_at']
 
-    def get_absolute_url(self, url):
-        if not url:
-            return None
-        request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(url)
-        return urljoin(settings.BASE_URL, url)
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if instance.image:
-            representation['image'] = self.get_absolute_url(
-                instance.image.url
-            )
-        return representation
-
 
 class AddPostSerializer(serializers.ModelSerializer):
-    images = PostImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
         fields = [
             'id', 'user', 'content', 'slug', 'created_at',
             'updated_at', 'like_count', 'comment_count', 'save_count',
-            'images', 'hide_likes', 'hide_comments', 'turn_off_comments'
+            'hide_likes', 'hide_comments', 'turn_off_comments'
         ]
         read_only_fields = ['slug']
 
@@ -75,22 +56,6 @@ class PetListingImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PetListingImage
         fields = ['id', 'pet_listing', 'image', 'created_at']
-
-    def get_absolute_url(self, url):
-        if not url:
-            return None
-        request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(url)
-        return urljoin(settings.BASE_URL, url)
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if instance.image:
-            representation['image'] = self.get_absolute_url(
-                instance.image.url
-            )
-        return representation
 
 
 class PetListingImageTempSerializer(serializers.ModelSerializer):

@@ -41,7 +41,7 @@ def follow_user(request, user_id):
         if follower == following:
             return Response(
                 {"error": "Follower and Following can't be same"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQzUEST
             )
         Follower.objects.get_or_create(follower=follower, following=following)
         return Response(
@@ -197,7 +197,6 @@ def like_post(request):
                             status=status.HTTP_201_CREATED)
 
     except Exception as e:
-        print(str(e))
         return Response({"error": str(e)},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -259,11 +258,9 @@ class CommentView(APIView):
                 return Response({"success": serializer.data},
                                 status=status.HTTP_201_CREATED)
             else:
-                print(f"SERIALIZER ERROR : {serializer.errors}")
                 return Response({"error": serializer.errors},
                                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(str)
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -295,7 +292,6 @@ class CommentView(APIView):
             return Response({"success": "Comment deleted successfully"},
                             status=status.HTTP_200_OK)
         except Exception as e:
-            print(str(e))
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -339,7 +335,6 @@ def like_comment(request, comment_id):
             status=status.HTTP_404_NOT_FOUND
         )
     except Exception as e:
-        print(str(e))
         return Response(
             {"error": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR

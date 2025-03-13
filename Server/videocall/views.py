@@ -1,7 +1,10 @@
+from twilio.rest import Client
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 from django.http import JsonResponse
-from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from accounts.models import PetSphereUser
+from channels.layers import get_channel_layer
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
@@ -65,3 +68,20 @@ def reject_call(request):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+def get_turn_credentials(request):
+    account_sid = settings.TWILIO_ACCOUNT_SID
+    auth_token = settings.TWILIO_AUTH_TOKEN
+
+    # Create Twilio client
+    client = Client(account_sid, auth_token)
+
+    # Get Network Traversal Service (NTS)
+    network_traversal = client.tokens.create()
+
+    # Return ICE servers information
+    return JsonResponse({
+        'ice_servers': network_traversal.ice_servers
+    })

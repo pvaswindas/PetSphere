@@ -10,6 +10,7 @@ function ActiveChatScreen() {
 
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [isNewMessage, setIsNewMessage] = useState(false)
 
     const [activeConversation, setActiveConversation] = useState(null)
 
@@ -26,7 +27,7 @@ function ActiveChatScreen() {
             }
         };
         fetchConversation();
-    }, []);
+    }, [isNewMessage]);
 
 
     useEffect(() => {
@@ -50,7 +51,7 @@ function ActiveChatScreen() {
                 <ChatSidebar conversations={conversations}/>
             </div>
             <div className="lg:w-full flex-grow">
-                <ChatArea activeConversation={activeConversation} />
+                <ChatArea activeConversation={activeConversation} setIsNewMessage={setIsNewMessage} />
             </div>
         </div>
     )

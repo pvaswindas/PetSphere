@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from django.contrib.auth import authenticate
 from .models import PetSphereUser, AccountSettings
 from .validators import validate_password
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import check_password
 
 
 class PetSphereUserSerializer(serializers.ModelSerializer):
@@ -123,8 +124,14 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        user = authenticate(username=data['username'],
-                            password=data['password'])
-        if not user:
+        User = get_user_model()
+        try:
+            user = User.objects.get(username=data["username"])
+        except User.DoesNotExist:
             raise serializers.ValidationError("Invalid username or password")
-        return user
+
+        # Check password manually
+        if not check_password(data["password"], user.password):
+            raise serializers.ValidationError("Invalid username or password")
+
+        return {"user": user}

@@ -1,11 +1,8 @@
 # Standard libraries
 import redis
-import json
-from environs import Env
-from datetime import datetime
 from django.db.models import Q
+from django.conf import settings
 from django.shortcuts import get_object_or_404
-from django.core.files.base import ContentFile
 
 # Third-party libraries
 from rest_framework import status
@@ -18,7 +15,7 @@ from rest_framework.decorators import api_view, permission_classes
 
 # Internal modules
 from .models import (
-    Post, PetListing, PetListingImageTemp, PetListingImage,
+    Post, PetListing, PetListingImage,
     SavedPost,
 )
 from accounts.models import PetSphereUser
@@ -28,23 +25,20 @@ from sellers.models import Seller
 from .serializers import (
     PostSerializer, PostImageSerializer, PetListingCreateSerializer,
     PetListingRetrieveSerializer, AddPostSerializer,
-    PetListingImageTempSerializer, PetListingLocationSerializer
+    PetListingLocationSerializer
 )
 from petsphere.utils.common_utils import (
     validate_authenticated_user, validate_request_data,
 )
+from common.storage import upload_to_s3_from_multipart
 
 
-env = Env()
-
-env.read_env()
-
-encryption_key = env.str("ENCRYPTION_KEY")
+encryption_key = settings.ENCRYPTION_KEY
 
 cipher_suite = Fernet(encryption_key)
 
 redis_client = redis.StrictRedis(
-    host='localhost', port=6379, db=0, decode_responses=True
+    host='redis', port=6379, db=0, decode_responses=True
 )
 
 
@@ -53,9 +47,6 @@ class UserPostListCreateView(APIView):
     Handles listing and creating user posts.
     Permissions:
         - Requires user to be authenticated.
-    Parsers:
-        - MultiPartParser
-        - FormParser
     """
 
     permission_classes = [IsAuthenticated]
@@ -91,46 +82,119 @@ class UserPostListCreateView(APIView):
 
     def post(self, request):
         """
-        Creates a new post for the authenticated user.
+        Creates a new post for the authenticated user with base64 encoded
+        images.
 
-        Parameters:
-            - request: The HTTP request object with post data and images.
+        Parsers:
+            - MultiPartParser
+            - FormParser
 
         Required Fields:
             - content: Content/body of the post.
-            - images: List of image files (optional).
+            - images: List of image.
 
         Returns:
             - Response: Created post data on success.
             - Response: Error details on failure.
         """
-        user = validate_authenticated_user(request)
-        if isinstance(user, Response):
-            return user
-        data = request.data
-        data['user'] = user.id
-        images = request.FILES.getlist('images')
-        serializer = AddPostSerializer(data=data,
-                                       context={'request': request})
-        profile = user.profile
-        if serializer.is_valid():
-            post = serializer.save()
-            if images:
-                image_data = [{'post': post.id, 'image': image}
-                              for image in images]
-                image_serializer = PostImageSerializer(data=image_data,
-                                                       many=True,
-                                                       context={
-                                                           'request': request})
-                if image_serializer.is_valid():
-                    image_serializer.save()
-                else:
-                    return Response(image_serializer.errors,
-                                    status=status.HTTP_400_BAD_REQUEST)
-            profile.pawstory_count += 1
-            profile.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = validate_authenticated_user(request)
+            if isinstance(user, Response):
+                return user
+
+            data = request.data.copy()
+            data['user'] = user.id
+
+            # Get base64 images from request data
+            post_images = request.data.getlist('images', [])
+
+            if any(not hasattr(img, 'read') for img in post_images):
+                return Response(
+                    {'error': 'Invalid image files provided'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            MAX_FILE_SIZE = 5 * 1024 * 1024
+
+            for image in post_images:
+                if image.size > MAX_FILE_SIZE:
+                    return Response(
+                        {'error': 'Image exceeds maximum size of 5MB'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            serializer = AddPostSerializer(
+                data=data, context={'request': request}
+            )
+            profile = user.profile
+
+            if serializer.is_valid():
+                post = serializer.save()
+
+                if post_images:
+                    image_data = []
+
+                    for image in post_images:
+
+                        # Upload to S3 and get URL
+                        image_url = upload_to_s3_from_multipart(
+                            image,
+                            s3_path="posts/images",
+                            media_name=f"post_{post.id}{post.slug}"
+                        )
+
+                        if image_url:
+                            image_data.append({
+                                'post': post.id,
+                                'image': image_url
+                            })
+                        else:
+                            # If any image upload fails, delete the post and
+                            # return error
+                            post.delete()
+                            return Response(
+                                {'error': 'Image upload failed'},
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
+
+                    if image_data:
+                        image_serializer = PostImageSerializer(
+                            data=image_data,
+                            many=True,
+                            context={'request': request}
+                        )
+                        if image_serializer.is_valid():
+                            image_serializer.save()
+                        else:
+                            # If serializer validation fails, delete the post
+                            # and return error
+                            post.delete()
+                            return Response(
+                                image_serializer.errors,
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
+
+                profile.pawstory_count += 1
+                profile.save()
+                return Response(
+                    serializer.data, status=status.HTTP_201_CREATED
+                )
+
+            print("SERIALIZER ERROR : ", serializer.errors)
+
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            print("SERVER ERROR :", str(e))
+            return Response(
+                {
+                    "success": False,
+                    "message": "Server Error",
+                    "error": str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class PostListView(APIView):
@@ -328,156 +392,6 @@ class UserPostDetailView(APIView):
                         status=status.HTTP_204_NO_CONTENT)
 
 
-class PetListingDataStoreView(APIView):
-    """
-    Manages temporary storage of pet listing data and images using Redis.
-    Permissions:
-        - Requires user to be authenticated.
-    Parsers:
-        - MultiPartParser
-        - FormParser
-    """
-
-    permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
-
-    def post(self, request):
-        """
-        Stores pet listing data temporarily in Redis.
-
-        Parameters:
-            - request: The HTTP request object with listing data and images.
-
-        Required Fields:
-            - post_type: Type of post (e.g., sale, adoption).
-            - pet_name: Name of the pet.
-            - pet_type: Type of the pet (e.g., Dog, Cat).
-            - breed: Breed of the pet (e.g., Labrador, Persian).
-            - description: Description of the pet listing.
-            - gender: Gender of the pet (e.g., Male, Female).
-            - age: Age of the pet.
-            - price: Price of the pet listing.
-            - images: List of image files (at least one is required).
-
-        Workflow:
-        1. Extract required data (e.g., `pet_name`, `pet_type`) from request.
-        2. Check if required fields are present, return error if missing.
-        3. Authenticate the user using `validate_authenticated_user` function.
-        4. Validate if images are provided in the request.
-        5. Generate unique Redis key by combining user, time, and pet details.
-        6. Encrypt the Redis key using the cipher suite.
-        7. Serialize and save each image to the temporary storage.
-        8. Store listing data in Redis with expiration time.
-        9. Return the encrypted Redis key as the response on success.
-
-        Returns:
-            - Response: Encrypted Redis key on success.
-            - Response: Error details on failure.
-
-        Exceptions:
-            - KeyError: Missing required key in request data.
-            - Exception: Any other unexpected error.
-        """
-        try:
-            data = {key: value for key, value in request.data.items()}
-            pet_name = request.data.get('pet_name')
-            pet_type = request.data.get('pet_type')
-            post_type = request.data.get('post_type')
-
-            if not pet_name or not pet_type or not post_type:
-                return Response({"error": "Data is missing"},
-                                status=status.HTTP_400_BAD_REQUEST)
-            user = validate_authenticated_user(request)
-            if isinstance(user, Response):
-                return user
-            images = request.FILES.getlist('images')
-            if not images:
-                return Response({"error": "Images are required"},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            data.pop('images')
-            time_now = datetime.now()
-            formatted_time = time_now.strftime("%H:%M:%S %d-%m-%Y")
-            redis_key = (
-                f"{user.username}:"
-                f"{formatted_time}"
-                f"{pet_name}"
-                f"{pet_type}"
-                f"{post_type}"
-            )
-            encrypted_redis_key = cipher_suite.encrypt(
-                redis_key.encode())
-            for image in images:
-                image_data = {
-                    'redis_key': redis_key,
-                    'image': image
-                }
-                image_serializer = PetListingImageTempSerializer(
-                    data=image_data
-                )
-                if image_serializer.is_valid():
-                    image_serializer.save()
-                else:
-                    return Response({"error": image_serializer.errors},
-                                    status=status.HTTP_400_BAD_REQUEST)
-            redis_client.set(redis_key, json.dumps(data))
-            redis_client.expire(redis_key, 3600)
-            return Response(
-                {"encrypted_redis_key": encrypted_redis_key.decode()},
-                status=status.HTTP_201_CREATED
-            )
-        except KeyError as e:
-            return Response({"error": f"Missing required key: {str(e)}"},
-                            status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({"error": str(e)},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def get(self, request):
-        """
-        Retrieves pet listing data temporarily stored in Redis.
-
-        Parameters:
-            - request: The HTTP request object with query parameters.
-
-        Query Parameters:
-            - petListingKey: Encrypted Redis key representing the pet listing
-            data.
-
-        Workflow:
-            1. Extracts the `petListingKey` from query parameters.
-            2. Decrypts the provided `petListingKey` using the cipher suite.
-            3. Fetches the decrypted key's associated data from Redis.
-            4. Returns the pet listing data if found.
-
-        Returns:
-            - Response: A dictionary containing the pet listing data if
-            successful.
-            - Response: A 404 status with an error message if the key is not
-            found.
-            - Response: A 500 status for unexpected errors.
-
-        Exceptions:
-            - KeyError: If the `petListingKey` is not provided in the query
-            parameters.
-            - Exception: For any unexpected error during the process.
-        """
-        try:
-            petlistingkey = request.query_params.get('petListingKey')
-
-            decrypted_redis_key = cipher_suite.decrypt(
-                petlistingkey.encode()).decode()
-            data = redis_client.get(decrypted_redis_key)
-            if not data:
-                return Response({"detail": "Data not found"},
-                                status=status.HTTP_404_NOT_FOUND)
-            data = json.loads(data)
-            return Response({"petListing": data}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 class PetListingsView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
@@ -510,6 +424,7 @@ class PetListingsView(APIView):
                 'address', 'city', 'state', 'zip_code', 'latitude',
                 'longitude'
             ]
+            print("BEFORE RF")
             data = validate_request_data(request, required_fields)
             if isinstance(data, Response):
                 return data
@@ -517,17 +432,13 @@ class PetListingsView(APIView):
             cleaned_data = {key: value[0] if isinstance(value, list) and len(
                 value) == 1 else value for key, value in data.items()}
             data.update(cleaned_data)
+
+            print("CD :", cleaned_data)
             seller, created = Seller.objects.get_or_create(user=user)
             data['seller'] = seller.id
-            petListingKey = data.pop('petListingKey')
-            decrypted_redis_key = cipher_suite.decrypt(
-                petListingKey.encode()).decode()
-            images = PetListingImageTemp.objects.filter(
-                redis_key=decrypted_redis_key
-            )
-            if not images.exists():
-                return Response({"detail": "Data not found"},
-                                status=status.HTTP_404_NOT_FOUND)
+            print("BEFORE IMG")
+            images = request.data.getlist('images', [])
+            print("AFTER IMG :", images)
             location_data = {
                 'address': data.pop('address'),
                 'city': data.pop('city'),
@@ -538,8 +449,10 @@ class PetListingsView(APIView):
             }
             data['pet_type'] = Pet.objects.get(name=data['pet_type']).id
             data['breed'] = PetBreed.objects.get(name=data['breed']).id
+            print("BEFORE SERIALIZER")
             petListingSerializer = PetListingCreateSerializer(data=data)
             if petListingSerializer.is_valid():
+                print("SERIALIZER VALID")
                 pet_listing = petListingSerializer.save()
 
                 location_data['pet_listing'] = pet_listing.id
@@ -552,17 +465,34 @@ class PetListingsView(APIView):
                                     status=status.HTTP_400_BAD_REQUEST)
                 for image in images:
                     try:
-                        image_file = image.image.read()
-                        file_name = f"{image.image.name.split('/')[-1]}"
-                        new_file = ContentFile(image_file, name=file_name)
+
+                        image_url = upload_to_s3_from_multipart(
+                            image,
+                            s3_path="listings/images",
+                            media_name=f"listing_{pet_listing.id}"
+                        )
+
+                        print("IMAGE_URL", image_url)
+
+                        if not image_url:
+                            print("NO IMAGE URL")
+                            return Response(
+                                {
+                                    "success": False,
+                                    "message": "Failed to upload icon",
+                                    "error": "Image upload failed"
+                                },
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
+
                         pet_listing_image = PetListingImage.objects.create(
                             pet_listing=pet_listing,
-                            image=new_file
+                            image=image_url
                         )
                         pet_listing_image.save()
 
-                        image.delete()
                     except Exception as e:
+                        print("ERROR JUST AFTER : ", str(e))
                         return Response({"error": str(e)},
                                         status=status.HTTP_400_BAD_REQUEST)
                 profile.petlisting_count += 1
@@ -572,9 +502,11 @@ class PetListingsView(APIView):
                 return Response({"detail": PetListingRetrieveSerializer(
                     pet_listing).data}, status=status.HTTP_201_CREATED)
             else:
+                print("SERIALIZER ERROR : ", petListingSerializer.errors)
                 return Response({"error": petListingSerializer.errors},
                                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            print("SERVER ERROR : ", str(e))
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

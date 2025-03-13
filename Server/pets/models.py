@@ -8,12 +8,26 @@ class Pet(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     slug = models.SlugField(max_length=255, unique=True)
-    icon = models.ImageField(upload_to='pet_type_icons/', blank=True,
-                             null=True)
+    icon = models.URLField(
+        blank=True,
+        null=True,
+    )
 
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
+
+        try:
+            old_instance = Pet.objects.get(pk=self.pk)
+
+            if (
+                old_instance.icon and
+                old_instance.icon.name != self.icon.name
+            ):
+                old_instance.icon.delete(save=False)
+        except Pet.DoesNotExist:
+            pass
+
         super().save(*args, **kwargs)
 
     def __str__(self):

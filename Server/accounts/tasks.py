@@ -1,5 +1,4 @@
 from celery import shared_task
-from environs import Env
 from twilio.rest import Client
 import logging
 from django.core.mail import EmailMessage
@@ -11,13 +10,11 @@ from rest_framework_simplejwt.token_blacklist.models import (
 )
 from django.utils.timezone import now
 
-env = Env()
-env.read_env()
-
-BASE_URL = env.str("BASE_URL")
-account_sid = env.str("TWILIO_ACCOUNT_SID")
-auth_token = env.str("TWILIO_AUTH_TOKEN")
-twilio_phone_number = env.str("TWILIO_PHONE_NUMBER")
+BASE_URL = settings.BASE_URL
+CLIENT_URL = settings.CLIENT_URL
+account_sid = settings.TWILIO_ACCOUNT_SID
+auth_token = settings.TWILIO_AUTH_TOKEN
+twilio_phone_number = settings.TWILIO_PHONE_NUMBER
 
 client = Client(account_sid, auth_token)
 
@@ -74,7 +71,7 @@ def send_reset_email(user):
     token = token_generator.make_token(user)
     uid = user.pk
     reset_password_url = f"?uid={uid}&token={token}"
-    reset_url = f"http://localhost:3000/reset-password?uid={uid}&token={token}"
+    reset_url = f"{CLIENT_URL}/reset-password?uid={uid}&token={token}"
 
     subject = 'Reset Your Password'
     from_email = settings.EMAIL_HOST_USER

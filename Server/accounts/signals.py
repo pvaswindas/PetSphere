@@ -30,7 +30,7 @@ def suspend_user(sender, instance, **kwargs):
             tokens = OutstandingToken.objects.filter(user=instance)
             tokens.delete()
         except Exception as e:
-            print(f"Error deleting JWT tokens: {e}")
+            return e
 
         sessions = Session.objects.filter(expire_date__gte=now())
         for session in sessions:

@@ -33,7 +33,10 @@ class Post(models.Model):
 class PostImage(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE,
                              related_name='images')
-    image = models.ImageField(upload_to='post_images/')
+    image = models.URLField(
+        null=True,
+        blank=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
 
@@ -71,7 +74,10 @@ class PetListing(models.Model):
 class PetListingImage(models.Model):
     pet_listing = models.ForeignKey(PetListing, on_delete=models.CASCADE,
                                     related_name='images')
-    image = models.ImageField(upload_to='pet_listing_images/')
+    image = models.URLField(
+        null=True,
+        blank=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
 

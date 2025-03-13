@@ -4,27 +4,29 @@ import axiosInstance from "../../../axios/axiosinstance";
 import { useDispatch } from "react-redux";
 import { setProfile } from "../../../redux/slices/ProfileSlice";
 import AlertSnackbar from "../../Snackbar/AlertSnackbar";
+import { ClipLoader } from "react-spinners";
 
 const EditFieldCard = () => {
-    const location = useLocation()
-    const navigate = useNavigate()
-    const dispatch = useDispatch()
+    const location = useLocation();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    const { field, data } = location.state || {}
+    const { field, data } = location.state || {};
+    const [value, setValue] = useState(data);
 
-    const [value, setValue] = useState(data)
-
-    let label = field.charAt(0).toUpperCase() + field.slice(1)
+    let label = field.charAt(0).toUpperCase() + field.slice(1);
     if (label === "Mobile_no") {
-        label = "Mobile Number"
+        label = "Mobile Number";
     }
 
     const handleSave = async () => {
+        setLoading(true);
         const formData = new FormData();
         formData.append(field, value);
-    
+
         try {
             let response;
             if (["name"].includes(field)) {
@@ -37,8 +39,10 @@ const EditFieldCard = () => {
                 navigate(-1);
             }
         } catch (error) {
-            setSnackbarMessage("Unable to edit field")
-            setSnackbarOpen(true)
+            setSnackbarMessage("Unable to edit field");
+            setSnackbarOpen(true);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -64,6 +68,7 @@ const EditFieldCard = () => {
                         onChange={(e) => setValue(e.target.value)}
                         className="block w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         placeholder={`Enter your ${field}`}
+                        disabled={loading}
                     />
                 </div>
 
@@ -72,14 +77,16 @@ const EditFieldCard = () => {
                     <button
                         onClick={() => navigate(-1)}
                         className="px-5 py-2 bg-gray-500 text-white rounded-lg shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all"
+                        disabled={loading}
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSave}
-                        className="px-5 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                        className="px-5 py-2 bg-og-gradient text-white rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all flex items-center justify-center gap-2"
+                        disabled={loading}
                     >
-                        Save
+                        {loading ? <ClipLoader size={20} color="#fff" /> : "Save"}
                     </button>
                 </div>
             </div>

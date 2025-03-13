@@ -9,8 +9,8 @@ const MessageInput = (
         const files = Array.from(e.target.files);
         const allowedTypes = ["image/jpeg", "image/png", "image/gif", "video/mp4", "video/webm", "video/ogg"];
         const maxSize = {
-            image: 15 * 1024 * 1024, // 15MB
-            video: 150 * 1024 * 1024  // 150MB
+            image: 10 * 1024 * 1024, // 10MB
+            video: 15 * 1024 * 1024  // 15MB
         };
     
         const newFiles = [];
@@ -26,7 +26,7 @@ const MessageInput = (
             
             // File size validation
             if (file.size > maxSize[fileType]) {
-                setSnackbarMessage(`File too large. Max size: ${fileType === "image" ? "15MB" : "150MB"}.`);
+                setSnackbarMessage(`File too large. Max size: ${fileType === "image" ? "10MB" : "15MB"}.`);
                 setSnackbarOpen(true);
                 continue;
             }

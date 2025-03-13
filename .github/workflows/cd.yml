@@ -7,10 +7,11 @@ on:
       - completed
     branches:
       - dev
+  workflow_dispatch:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +21,9 @@ jobs:
       - name: Create and verify deployment files
         run: |
           sed "s/\${DOCKERHUB_USERNAME}/${{ secrets.DOCKERHUB_USERNAME }}/g" Server/docker-compose.prod.yml > docker-compose.prod.yml
-          echo "${{ secrets.ENV_FILE }}" > .env
+          cat <<EOF > .env
+          ${{ secrets.ENV_FILE }}
+          EOF
 
       - name: Copy files to EC2
         uses: appleboy/scp-action@master

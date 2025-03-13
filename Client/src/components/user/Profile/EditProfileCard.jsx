@@ -1,12 +1,13 @@
 import React, { useRef, useState } from "react";
-import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { FiEdit, FiTrash } from "react-icons/fi";
 import axiosInstance from "../../../axios/axiosinstance";
 import { setProfile } from "../../../redux/slices/ProfileSlice";
-import userAvatar from "../../../assets/icon/user-avatar.svg"
+import userAvatar from "../../../assets/icon/user-avatar.svg";
 import AlertSnackbar from "../../Snackbar/AlertSnackbar";
+import { convertToBase64 } from "../../../utils/convertToBase64";
+import ClipLoader from "react-spinners/ClipLoader";
 
 const EditProfileCard = () => {
     const profile = useSelector((state) => state.profile.profile_data);
@@ -17,7 +18,9 @@ const EditProfileCard = () => {
 
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [alertType, setAlertType] = useState("error")
+    const [alertType, setAlertType] = useState("error");
+
+    const [isLoading, setIsLoading] = useState(false);
 
     const formData = {
         username: user?.username,
@@ -30,7 +33,7 @@ const EditProfileCard = () => {
 
     const handleEditClick = (field) => {
         if (field === "mobile_no") {
-            navigate('/profile/mobile-number')
+            navigate('/profile/mobile-number');
         } else {
             navigate(`/profile/edit/${field}`, { state: { field, data: formData[field] } });
         }
@@ -40,44 +43,53 @@ const EditProfileCard = () => {
         navigate(`/profile/edit/username`, { state: { data: formData[field] } });
     };
 
-
     const handleFileUpload = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
 
-        const formData = new FormData();
-        formData.append("profile_picture", file);
-
+        setIsLoading(true)
         try {
-            const response = await axiosInstance.patch("user/profile/", formData);
+            // Convert file to base64
+            const base64Image = await convertToBase64(file);
+            
+            // Send base64 image to the API
+            const response = await axiosInstance.patch("user/profile/", {
+                profile_picture: base64Image
+            });
+            
             if (response.status === 200) {
                 dispatch(setProfile({ profile_data: response.data }));
-                setSnackbarMessage("Profile picture updated successfully!")
-                setAlertType("success")
-                setSnackbarOpen(true)
+                setSnackbarMessage("Profile picture updated successfully!");
+                setAlertType("success");
+                setSnackbarOpen(true);
             }
         } catch (error) {
-            return
+            setSnackbarMessage("Failed to update profile picture");
+            setAlertType("error");
+            setSnackbarOpen(true);
+        } finally {
+            setIsLoading(false)
         }
     };
 
     const handleDeletePicture = async () => {
-        const formData = new FormData();
-        formData.append("profile_picture", "")
-    
         try {
-            const response = await axiosInstance.patch("user/profile/", formData);
+            const response = await axiosInstance.patch("user/profile/", {
+                profile_picture: ""
+            });
+            
             if (response.status === 200) {
                 dispatch(setProfile({ profile_data: response.data }));
-                setSnackbarMessage("Profile picture deleted successfully!")
-                setAlertType("success")
-                setSnackbarOpen(true)        
+                setSnackbarMessage("Profile picture deleted successfully!");
+                setAlertType("success");
+                setSnackbarOpen(true);
             }
         } catch (error) {
-            return
+            setSnackbarMessage("Failed to delete profile picture");
+            setAlertType("error");
+            setSnackbarOpen(true);
         }
     };
-    
 
     return (
         <div className="flex flex-col items-center justify-start w-full min-h-screen">
@@ -95,19 +107,28 @@ const EditProfileCard = () => {
                 {/* Profile Picture */}
                 <div className="flex flex-col items-center mb-8">
                     <div className="relative group">
-                        <img
-                            src={formData?.profile_picture || userAvatar}
-                            alt="Profile"
-                            className="w-36 h-36 lg:w-40 lg:h-40 rounded-full border-4 border-white object-cover hover:scale-105 transition-all duration-300"
-                        />
+                        {isLoading ? (
+                            <div className="absolute inset-0 w-28 h-28 flex items-center justify-center bg-white bg-opacity-50 rounded-full">
+                                <ClipLoader color="#4A90E2" size={50} />
+                            </div>
+                        ) : (
+                            <img
+                                src={formData?.profile_picture || userAvatar}
+                                alt="Profile"
+                                className="w-36 h-36 lg:w-40 lg:h-40 rounded-full border-4 border-white object-cover hover:scale-105 transition-all duration-300"
+                            />
+                        )}
 
                         {/* Edit Icon */}
-                        <FiEdit
-                            className="absolute bottom-0 right-12 mb-2 mr-1 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full p-2 w-8 h-8 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                            onClick={() => fileInputRef.current.click()}
-                        />
+                        {!isLoading && (
+                            <FiEdit
+                                className="absolute bottom-0 right-12 mb-2 mr-1 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full p-2 w-8 h-8 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                onClick={() => fileInputRef.current.click()}
+                            />
+                        )}
+
                         {/* Delete Icon */}
-                        {formData.profile_picture && (
+                        {!isLoading && formData.profile_picture && (
                             <FiTrash
                                 className="absolute bottom-0 right-0 mb-2 mr-1 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full p-2 w-8 h-8 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                 onClick={handleDeletePicture}

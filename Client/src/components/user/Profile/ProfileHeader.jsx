@@ -1,18 +1,18 @@
-import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import editIcon from "../../../assets/icon/edit-icon.svg"
-import axiosInstance from '../../../axios/axiosinstance'
-import { setProfile } from '../../../redux/slices/ProfileSlice'
-import userAvatar from "../../../assets/icon/user-avatar.svg"
-import { FiEdit, FiTrash } from "react-icons/fi";
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import editIcon from "../../../assets/icon/edit-icon.svg";
+import axiosInstance from '../../../axios/axiosinstance';
+import { setProfile } from '../../../redux/slices/ProfileSlice';
+import userAvatar from "../../../assets/icon/user-avatar.svg";
+import adminAvatar from "../../../assets/admin/admin-avatar.svg"
+import { convertToBase64 } from '../../../utils/convertToBase64';
 
 const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
     const [showConfirmCard, setShowConfirmCard] = useState(false);
+    const [isLoading, setIsLoading] = useState(false)
     const dispatch = useDispatch();
-
-    const user = profile ? profile.user : null;
 
     const handleImageSelection = (event) => {
         const file = event.target.files[0];
@@ -23,22 +23,16 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
         }
     };
 
-    const formData = {
-        username: user?.username,
-        email: user?.email,
-        name: user?.name || "",
-        bio: profile?.bio || "",
-        mobile_no: user?.mobile_no || "",
-        profile_picture: profile?.profile_picture || null,
-    };
 
     const handleSaveImage = async () => {
-        const formData = new FormData();
-        formData.append("cover_image", selectedImage);
-
+        setIsLoading(true)
         try {
-            const response = await axiosInstance.patch('/user/profile/', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
+            // Convert file to base64
+            const base64Image = await convertToBase64(selectedImage);
+            
+            // Send base64 image to the API
+            const response = await axiosInstance.patch('/user/profile/', {
+                cover_image: base64Image
             });
 
             if (response.status === 200) {
@@ -48,9 +42,15 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
                 dispatch(setProfile({ profile_data: response.data }));
             }
         } catch (error) {
-            return
+        } finally {
+            setIsLoading(false)
         }
     };
+
+    const handleCancel = () => {
+        setPreviewImage(null)
+        setShowConfirmCard(false)
+    }
 
     return (
         <div className="relative">
@@ -81,11 +81,11 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
             )}
 
             {/* Profile Image */}
-            <div className={`absolute ${isAdmin ? "left-1/2 transform -translate-x-1/2 bottom-[-33px]" : "bottom-[-50px] left-4 lg:left-8"}`}>
+            <div className={`absolute ${isAdmin ? "left-1/2 transform -translate-x-1/2 bottom-[-33px]" : "bottom-[-45px] lg:bottom-[-55px] left-4 lg:left-8"}`}>
                 <img
-                    src={profile?.profile_picture || userAvatar}
+                    src={profile?.profile_picture || (isAdmin ? adminAvatar : userAvatar)}
                     alt="Profile"
-                    className={`rounded-full object-cover ${isAdmin ?  "w-[65px] h-[65px]" : "w-[120px] h-[120px] lg:w-[150px] lg:h-[150px]"}`}
+                    className={`rounded-full object-cover ${isAdmin ?  "w-[65px] h-[65px]" : "w-[90px] h-[90px] lg:w-[120px] lg:h-[120px]"}`}
                 />
             </div>
 
@@ -97,8 +97,24 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
                         <img src={previewImage} alt="Preview" className="w-full h-[100px] object-cover rounded-md" />
                     </div>
                     <div className="flex justify-end mt-4 space-x-4">
-                        <button onClick={() => setShowConfirmCard(false)} className="px-4 py-2 bg-gray-200 rounded-md">Cancel</button>
-                        <button onClick={handleSaveImage} className="px-4 py-2 bg-blue-500 text-white rounded-md">Save</button>
+                        <button 
+                            onClick={handleCancel} 
+                            className={`px-4 py-2 rounded-md ${isLoading ? "bg-gray-300 cursor-not-allowed opacity-50" : "bg-gray-200 hover:bg-gray-300"}`} 
+                            disabled={isLoading}
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={handleSaveImage} 
+                            className="px-4 py-2 bg-og-gradient text-white rounded-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed" 
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                                "Save"
+                            )}
+                        </button>
                     </div>
                 </div>
             )}
@@ -106,5 +122,4 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
     );
 };
 
-
-export default ProfileHeader
+export default ProfileHeader;

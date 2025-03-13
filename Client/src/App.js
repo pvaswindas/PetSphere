@@ -1,7 +1,6 @@
 import React, { useEffect } from "react"
 import { Routes, Route, useLocation } from "react-router-dom"
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { Detector } from "react-detect-offline";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RestrictedRoute from "./routes/RestrictedRoute";
@@ -55,32 +54,44 @@ import CallPage from "./pages/user-ui/video-call/CallPage";
 import AdminProfile from "./pages/admin-ui/profile/AdminProfile";
 import ManageReports from "./pages/admin-ui/reports/ManageReports";
 import NotFoundPage from "./pages/NotFoundPage";
-
+import ServerDownPage from "./pages/ServerDownPage";
+import LoadingPage from "./pages/LoadingPage";
+import WebSocketInitializer from "./utils/WebSocketInitializer";
+import { useNetworkStatus } from "./hooks/useNetworkStatus";
 
 function App() {
-  const location = useLocation();
+    const location = useLocation();
+    const { isOnline, isServerUp, isLoading } = useNetworkStatus();
 
-  useEffect(() => {
-      if (location.pathname === "/") {
+    useEffect(() => {
+        if (location.pathname === "/") {
           document.body.classList.remove("overflow-hidden");
           document.body.classList.add("overflow-y-auto");
-      } else {
+        } else {
           document.body.classList.add("overflow-hidden");
           document.body.classList.remove("overflow-y-auto");
-      }
-  }, [location]);
+        }
+    }, [location]);
 
-  return (
-      <Detector
-        render={({ online }) => (
-          !online ? (
-            <OfflinePage />
-          ) : (
-            <div className="bg-gray-75 h-screen">
-              <Routes>
+    if (isLoading) {
+        return <LoadingPage />;
+    }
+
+    if (!isOnline) {
+        return <OfflinePage />;
+    }
+
+    if (!isServerUp && isOnline) {
+        return <ServerDownPage />;
+    }
+
+    return (
+        <div className="bg-gray-75 h-screen">
+            <WebSocketInitializer />
+            <Routes>
                 {/* Landing Route */}
                 <Route path="/" element={<RestrictedRoute><Landing /></RestrictedRoute>} />
-        
+
                 {/* Public Routes */}
                 <Route path="/login" element={
                   <RestrictedRoute>
@@ -98,10 +109,10 @@ function App() {
                 } />
                 <Route path="/signup/otp" element={<RestrictedRoute><VerifyOtp /></RestrictedRoute>} />
                 <Route path="/signup/username" element={<RestrictedRoute><CreateUsername /></RestrictedRoute>} />
-        
+
                 <Route path="/reset-password" element={<RestrictedRoute><ForgotPassword /></RestrictedRoute>} />
                 <Route path="/find-your-account" element={<RestrictedRoute><FindYourAccount /></RestrictedRoute>} />
-        
+
                 {/* User Protected Routes */}
                 <Route 
                   path="/profile/*"
@@ -121,22 +132,22 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
-        
+
                 <Route path="post/:slug" element={ <ProtectedRoute><PostDisplay /></ProtectedRoute> } />
-        
+
                 <Route path="/feed" element={ <ProtectedRoute><Feed /></ProtectedRoute>} />
-        
+
                 <Route path="/messages" element={ <ProtectedRoute><Messaging /></ProtectedRoute>} />
                 <Route path="/messages/chat/:username" element={ <ProtectedRoute><Chat /></ProtectedRoute>} />
                 
                 <Route path="/video-call/:username" element={ <ProtectedRoute><CallPage /></ProtectedRoute>} />
-        
+
                 <Route path="explore" element={ <ProtectedRoute><ExplorePage /></ProtectedRoute> } />
                 <Route path="subscriptions" element={ <ProtectedRoute><SubscriptionPage /></ProtectedRoute> } />
                 <Route path="subscriptions/success" element={ <ProtectedRoute><PaymentSuccessPage /></ProtectedRoute> } />
                 <Route path="subscriptions/cancel" element={ <ProtectedRoute><PaymentCancelPage /></ProtectedRoute> } />
-        
-        
+
+
                 {/* Admin Routes */}
                 <Route
                   path="/admin/*"
@@ -163,13 +174,9 @@ function App() {
                 />
 
                 <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </div>
-          )
-        )}
-      />
-    
-  );
+            </Routes>
+        </div>
+    );
 }
 
 export default App;

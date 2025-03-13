@@ -16,7 +16,7 @@ from .serializers import RegisterSerializer, LoginSerializer
 from .serializers import PetSphereUserSerializer, UserDataStoreSerializer
 from .serializers import ChangePasswordSerializer, ResetPasswordSerializer
 from user_profile.serializers import ProfileSerializer
-from .models import PetSphereUser
+from .models import PetSphereUser, AccountSettings
 from user_profile.models import Profile
 from .utils.otp_utils import generate_otp, resend_otp, verify_otp
 from .tasks import send_otp_email, send_reset_email
@@ -24,8 +24,9 @@ from petsphere.utils.common_utils import (
     validate_authenticated_user, generate_random_otp
 )
 from .tasks import twilio_send_otp
+from google.auth.exceptions import GoogleAuthError
 
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0,
+redis_client = redis.StrictRedis(host='redis', port=6379, db=0,
                                  decode_responses=True)
 
 
@@ -241,22 +242,60 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.validated_data
-            refresh = RefreshToken.for_user(user)
-            update_last_login(None, user)
-            profile = Profile.objects.get(user__id=user.id)
-            profile_data = ProfileSerializer(
-                profile,
-                context={'request': request}).data
-            return Response({
-                "profile": profile_data,
-                "refresh": str(refresh),
-                "access": str(refresh.access_token)
-            }, status=status.HTTP_200_OK)
-        return Response({"error": "Invalid Credentials"},
-                        status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer = LoginSerializer(data=request.data)
+            if serializer.is_valid():
+                user = serializer.validated_data["user"]
+                profile = Profile.objects.get(user__id=user.id)
+                account_settings = AccountSettings.objects.filter(
+                    user=user
+                ).first()
+                user = profile.user
+
+                if user.is_pending:
+                    return Response(
+                        {"error": "Your account is pending approval."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+
+                if user.is_suspended:
+                    return Response(
+                        {"error": "Your account has been suspended."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+
+                if (
+                    account_settings
+                    and account_settings.deleted_at is not None
+                ):
+                    return Response(
+                        {"error": "Your account has been deactivated."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+
+                profile_data = ProfileSerializer(
+                    profile, context={'request': request}
+                ).data
+                refresh = RefreshToken.for_user(user)
+                update_last_login(None, user)
+
+                return Response({
+                    "profile": profile_data,
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token)
+                }, status=status.HTTP_200_OK)
+
+            # Handle invalid serializer case
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        except Exception as e:
+            print(str(e))
+            return Response(
+                {"error": "Unexpected error", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class LogoutView(APIView):
@@ -587,45 +626,91 @@ class GoogleLoginView(APIView):
 
         try:
             google_client_id = settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
-            idinfo = id_token.verify_oauth2_token(token, requests.Request(),
-                                                  google_client_id)
-            email = idinfo['email']
-            name = idinfo.get('name', '')
 
-            user = PetSphereUser.objects.filter(email=email).first()
-
-            if not user:
-                email_prefix = email.split('@')[0]
-                base_username = email_prefix
-                username = base_username
-                counter = 0
-                while PetSphereUser.objects.filter(username=username).exists():
-                    username = f"{base_username}_{counter}"
-                    counter += 1
-
-                user, created = PetSphereUser.objects.get_or_create(
-                    username=username,
-                    email=email,
-                    defaults={'name': name}
+            try:
+                idinfo = id_token.verify_oauth2_token(
+                    token, requests.Request(), google_client_id
+                )
+            except GoogleAuthError as e:
+                return Response(
+                    {
+                        'error': 'Google authentication failed',
+                        'details': str(e)
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
                 )
 
-            profile, created_profile = Profile.objects.get_or_create(user=user)
+            email = idinfo.get('email')
+            name = idinfo.get('name', '')
+
+            if not email:
+                return Response(
+                    {"error": "Invalid token, email not found"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Generate a unique username before creating the user
+            base_username = email.split("@")[0]
+            username = base_username
+            counter = 1
+            while PetSphereUser.objects.filter(username=username).exists():
+                username = f"{base_username}_{counter}"
+                counter += 1
+
+            user, created = PetSphereUser.objects.get_or_create(
+                email=email,
+                defaults={"name": name, "username": username},
+            )
+
+            profile, _ = Profile.objects.get_or_create(user=user)
+            account_settings = AccountSettings.objects.filter(
+                user=user
+            ).first()
+
+            # Check for pending, suspended, or deleted account status
+            if user.is_pending:
+                return Response(
+                    {"error": "Your account is pending approval."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            if user.is_suspended:
+                return Response(
+                    {"error": "Your account has been suspended."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            if account_settings and account_settings.deleted_at is not None:
+                return Response(
+                    {"error": "Your account has been deactivated."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
 
             profile_data = ProfileSerializer(
-                profile,
-                context={'request': request}).data
+                profile, context={'request': request}
+            ).data
 
             refresh = RefreshToken.for_user(user)
             update_last_login(None, user)
-            return Response({
-                'profile': profile_data,
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-                'email': str(email),
-            }, status=status.HTTP_201_CREATED)
-        except ValueError as e:
-            return Response({'error': 'Invalid token', 'details': str(e)},
-                            status=status.HTTP_400_BAD_REQUEST)
+
+            status_code = (
+                status.HTTP_201_CREATED if created else status.HTTP_200_OK
+            )
+            return Response(
+                {
+                    'profile': profile_data,
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                    'email': str(email),
+                },
+                status=status_code
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": "Unexpected error", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 # ------------------------------ Admin Insights ------------------------------
@@ -660,3 +745,12 @@ def active_users(request):
     }
 
     return Response(data)
+
+
+# ----------------------------- Account Insights -----------------------------
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_status(request):
+    user = request.user
+    status = 'suspended' if user.is_suspended else 'active'
+    return Response({'status': status})

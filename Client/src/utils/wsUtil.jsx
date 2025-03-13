@@ -1,7 +1,8 @@
 export const chatWebSocket = (username, token, onMessage, onOpen, onClose, onError) => {
     if (!username || !token) return null;
 
-    const ws = new WebSocket(`ws://localhost:8000/ws/chat/${username}/?token=${token}`);
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const ws = new WebSocket(`${wsProtocol}://${process.env.REACT_APP_API_SITE_URL}/ws/chat/${username}/?token=${token}`);
 
     ws.onopen = () => {
         if (onOpen) onOpen(ws);
@@ -12,17 +13,41 @@ export const chatWebSocket = (username, token, onMessage, onOpen, onClose, onErr
     };
 
     ws.onmessage = (event) => {
+        if (!event.data) {
+            return;
+        }
+        
         try {
             const data = JSON.parse(event.data);
-            if (onMessage) onMessage(data);
+            
+            // Add validation to ensure the message has content before forwarding
+            if (data && (data.message || data.type !== "ping")) {
+                if (onMessage) onMessage(data);
+            }
         } catch (error) {
             if (onError) onError(error);
         }
     };
 
-    ws.onclose = () => {
-        if (onClose) onClose();
+    ws.onclose = (event) => {
+        if (onClose) onClose(event);
     };
 
-    return ws;
+    // Keep connection alive with ping (optional)
+    const pingInterval = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: "ping" }));
+        }
+    }, 30000);
+
+    // Return an object with the WebSocket and a cleanup method
+    return {
+        socket: ws,
+        close: () => {
+            clearInterval(pingInterval);
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+        }
+    };
 };

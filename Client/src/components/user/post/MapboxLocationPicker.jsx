@@ -4,10 +4,13 @@ import GeoMap from '../../map/GeoMap';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../axios/axiosinstance';
 import AlertSnackbar from '../../Snackbar/AlertSnackbar';
+import { useSelector } from 'react-redux';
+import { clearNewListing } from '../../../redux/slices/PetListingSlice';
 
 const MapboxLocationPicker = () => {
     const navigate = useNavigate();
-    const petListingKey = localStorage.getItem('petListingKey');
+    const newListing = useSelector((state) => state.petListings.newListing)
+
     const [viewState, setViewState] = useState({
         longitude: 77.209,
         latitude: 28.613,
@@ -58,7 +61,7 @@ const MapboxLocationPicker = () => {
     };
 
     useEffect(() => {
-        if (!petListingKey) {
+        if (!newListing) {
             navigate('/profile/add-pet-listing');
         }
 
@@ -75,7 +78,7 @@ const MapboxLocationPicker = () => {
                 setLoading(false);
             }
         );
-    }, [navigate, petListingKey]);
+    }, [navigate, newListing]);
 
     const handleMapClick = async (event) => {
         const { lng, lat } = event.lngLat;
@@ -86,24 +89,15 @@ const MapboxLocationPicker = () => {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const response = await axiosInstance.get(`posts/listingdatastore/`, {
-                params: { petListingKey },
-            });
-
-            if (response.status === 200) {
-                const petListing = response.data.petListing;
-                const formData = new FormData();
-                const updatedPetListing = {
-                    longitude: location.longitude,
-                    latitude: location.latitude,
-                    address: location.address,
-                    city: location.city,
-                    state: location.state,
-                    country: location.country,
-                    zip_code: location.pincode,
-                };
-                Object.entries(petListing).forEach(([key, value]) => {
-                    if (Array.isArray(value)) {
+            const formData = new FormData();
+        
+            if (newListing instanceof FormData) {
+                for (let [key, value] of newListing.entries()) {
+                    formData.append(key, value);
+                }
+            } else {
+                Object.entries(newListing).forEach(([key, value]) => {
+                    if (key === 'images' && Array.isArray(value)) {
                         value.forEach((image) => {
                             formData.append('images', image);
                         });
@@ -111,31 +105,34 @@ const MapboxLocationPicker = () => {
                         formData.append(key, value);
                     }
                 });
-                Object.entries(updatedPetListing).forEach(([key, value]) => {
-                    formData.append(key, value);
-                });
-                formData.append('petListingKey', petListingKey);
-                const petListingData = await axiosInstance.post('posts/petlisting/', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
-                if (petListingData.status === 201) {
-                    setSnackbarMessage('Pet listing successfully created!');
-                    setAlertType('success');
-                    setSnackbarOpen(true);
-                    setTimeout(() => navigate('/feed'), 1000);
-                    setTimeout(() => localStorage.removeItem('petListingKey'), 1000);
-                } else {
-                    setSnackbarMessage('Failed to create post');
-                    setSnackbarOpen(true);
-                    localStorage.removeItem('petListingKey');
-                }
+            }
+
+            formData.append('longitude', location.longitude);
+            formData.append('latitude', location.latitude);
+            formData.append('address', location.address);
+            formData.append('city', location.city);
+            formData.append('state', location.state);
+            formData.append('country', location.country);
+            formData.append('zip_code', location.pincode);
+            
+            const petListingData = await axiosInstance.post('posts/petlisting/', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            if (petListingData.status === 201) {
+                setSnackbarMessage('Pet listing successfully created!');
+                setAlertType('success');
+                setSnackbarOpen(true);
+                setTimeout(() => navigate('/feed'), 1000);
+                setTimeout(() => clearNewListing());
+            } else {
+                setSnackbarMessage('Failed to create post');
+                setSnackbarOpen(true);
             }
         } catch (error) {
             setSnackbarMessage('Failed to create pet listing');
             setSnackbarOpen(true);
-            localStorage.removeItem('petListingKey');
         }
         setLoading(false);
     };

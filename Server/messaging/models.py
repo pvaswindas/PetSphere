@@ -49,8 +49,9 @@ class Message(models.Model):
     )
 
     content = models.TextField(null=True, blank=True)
-    media_file = models.FileField(
-        upload_to="messages/media/", null=True, blank=True
+    media_url = models.URLField(
+        null=True,
+        blank=True,
     )
     message_type = models.CharField(
         max_length=10, choices=MESSAGE_TYPES, default=TEXT
@@ -65,17 +66,19 @@ class Message(models.Model):
 
     def save(self, *args, **kwargs):
         """Automatically determine message type based on content and media."""
-        if self.content and self.media_file:
+        if self.content and self.media_url:
             self.message_type = self.MIXED
-        elif self.media_file:
-            if self.media_file.name.lower().endswith(
-                (".mp4", ".mkv", ".avi", ".mov")
+        elif self.media_url:
+            url_lower = self.media_url.lower()
+            if url_lower.endswith(
+                (".mp4", ".mkv", ".avi", ".mov", ".webm", ".ogg")
             ):
                 self.message_type = self.VIDEO
             else:
                 self.message_type = self.IMAGE
         else:
             self.message_type = self.TEXT
+
         super().save(*args, **kwargs)
 
     def delete_for_user(self, user):

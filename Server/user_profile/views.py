@@ -1,9 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .models import Profile
+from common.storage import upload_to_s3
 from django.db.models import Count
 from django.db.models import Q
 from .serializers import ProfileSerializer
@@ -16,7 +16,6 @@ from rest_framework.decorators import api_view, permission_classes
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
         user = request.user
@@ -60,18 +59,76 @@ class ProfileView(APIView):
     def patch(self, request):
         try:
             profile = Profile.objects.get(user=request.user)
+
+            data = request.data.copy()
+
+            if 'cover_image' in data and isinstance(
+                data['cover_image'], str
+            ) and ';base64,' in data['cover_image']:
+                # Extract the base64 data after the ';base64,' part
+                file_data = data['cover_image'].split(';base64,')[1]
+
+                # Upload to S3 and get URL
+                cover_image_url = upload_to_s3(
+                    file_data,
+                    s3_path="profiles/covers",
+                    media_name="cover"
+                )
+                print("AFTER S3")
+
+                if not cover_image_url:
+                    return Response(
+                        {'error': 'Cover image upload failed'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                # Replace base64 data with the S3 URL
+                data['cover_image'] = cover_image_url
+
+            if 'profile_picture' in data and isinstance(
+                data['profile_picture'], str
+            ) and ';base64,' in data['profile_picture']:
+                # Extract the base64 data after the ';base64,' part
+                file_data = data['profile_picture'].split(';base64,')[1]
+
+                # Upload to S3 and get URL
+                profile_picture_url = upload_to_s3(
+                    file_data,
+                    s3_path="profiles/pictures",
+                    media_name="profile"
+                )
+
+                print("PROFILE PICTURE :", profile_picture_url)
+
+                if not profile_picture_url:
+                    return Response(
+                        {'error': 'Profile picture upload failed'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                # Replace base64 data with the S3 URL
+                data['profile_picture'] = profile_picture_url
+
+            serializer = ProfileSerializer(
+                profile, data=data, partial=True,
+                context={'request': request})
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            print(serializer.errors)
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
         except Profile.DoesNotExist:
             return Response({'error': 'Profile not found'},
                             status=status.HTTP_404_NOT_FOUND)
-
-        serializer = ProfileSerializer(
-            profile, data=request.data, partial=True,
-            context={'request': request})
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(str(e))
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class PeopleListView(APIView):
@@ -195,7 +252,6 @@ class AccountDetailView(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         user_id = self.kwargs.get(self.lookup_field)
         try:
-            print(request.data)
             profile = Profile.objects.get(user__id=user_id)
             pet_sphere_user = profile.user
 
@@ -267,7 +323,6 @@ def getLatestTeamMembers(request):
             status=status.HTTP_200_OK
         )
     except Exception as e:
-        print(str(e))
         return Response(
             {
                 "status": "failure",

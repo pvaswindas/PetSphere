@@ -23,7 +23,7 @@ const VideoCallUI = ({ isCaller = false }) => {
                 callee: calleeUsername
             });
         } catch (error) {
-            return
+            return;
         }
     };
 
@@ -46,12 +46,22 @@ const VideoCallUI = ({ isCaller = false }) => {
         }, 1000);
     }, [navigate, username]);
 
+    // Function to fetch Twilio TURN credentials
+    const fetchTwilioCredentials = async () => {
+        try {
+            const response = await axiosInstance.get('video-call/get-turn-credentials/');
+            return response.data.ice_servers;
+        } catch (error) {
+            // Fallback to Google's STUN server only
+            return [{ urls: "stun:stun.l.google.com:19302" }];
+        }
+    };
 
     useEffect(() => {
         const token = localStorage.getItem("ACCESS_TOKEN");
         if (!token) return;
     
-        socket.current = new WebSocket(`ws://localhost:8000/ws/video_call/${username}/?token=${token}`);
+        socket.current = new WebSocket(`wss://${process.env.REACT_APP_API_SITE_URL}/ws/video_call/${username}/?token=${token}`);
 
         socket.current.onopen = () => {
             if (isCaller) {
@@ -91,12 +101,12 @@ const VideoCallUI = ({ isCaller = false }) => {
         };
     
         return () => {
-            socket.current.close();
+            if (socket.current) {
+                socket.current.close();
+            }
         };
     }, [username, handleRemoteEndCall, isCaller]);
     
-    
-
     const sendMessage = (message) => {
         if (socket.current && socket.current.readyState === WebSocket.OPEN) {
             socket.current.send(JSON.stringify(message));
@@ -105,7 +115,14 @@ const VideoCallUI = ({ isCaller = false }) => {
 
     const requestPermissionsAndStartCall = async () => {
         try {
-            const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            const localStream = await navigator.mediaDevices.getUserMedia({ 
+                video: true,
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression:true,
+                    autoGainControl:true
+                }
+            });
             localStreamRef.current = localStream;
             startCall(localStream);
         } catch (error) {
@@ -115,9 +132,30 @@ const VideoCallUI = ({ isCaller = false }) => {
 
     const startCall = async (localStream) => {
         setIsCalling(true);
-        peerConnection.current = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+        
+        // Fetch TURN server credentials
+        const iceServers = await fetchTwilioCredentials();
+        
+        // Create RTCPeerConnection with Twilio credentials
+        peerConnection.current = new RTCPeerConnection({ 
+            iceServers: iceServers,
+            iceCandidatePoolSize: 10
+        });
+
+        // Add connection state monitoring
+        peerConnection.current.oniceconnectionstatechange = () => {
+            if (peerConnection.current.iceConnectionState === "failed" || 
+                peerConnection.current.iceConnectionState === "disconnected") {
+            }
+        };
+
+        // Debug ICE gathering process
+        // peerConnection.current.onicegatheringstatechange = () => {
+        //     console.log("ICE Gathering State:", peerConnection.current.iceGatheringState);
+        // };
 
         peerConnection.current.onicecandidate = (event) => {
+            console.log("ICE candidate:", event.candidate);
             if (event.candidate) {
                 sendMessage({ type: "candidate", candidate: event.candidate });
             }
@@ -171,8 +209,6 @@ const VideoCallUI = ({ isCaller = false }) => {
             navigate(`/messages/chat/${username}`);
         }, 2000);
     };    
-
-
 
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-gray-900 p-4">

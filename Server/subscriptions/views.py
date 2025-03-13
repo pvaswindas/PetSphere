@@ -1,10 +1,12 @@
 import stripe
-from environs import Env
-from django.db.models import Sum
 from django.conf import settings
 from rest_framework import status
+from posts.models import PetListingLocation
+from django.db.models import Count, Sum
+from django.utils import timezone
+import datetime
 from django.http import JsonResponse
-from datetime import datetime, timedelta
+from datetime import timedelta
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
@@ -20,13 +22,9 @@ from .serializers import (
 )
 
 
-env = Env()
-env.read_env()
-
-
 stripe.api_key = settings.STRIPE_SECRET_KEY
-success_url = env.str('STRIPE_SUCCESS_URL')
-cancel_url = env.str("STRIPE_CANCEL_URL")
+success_url = settings.STRIPE_SUCCESS_URL
+cancel_url = settings.STRIPE_CANCEL_URL
 
 
 def sync_stripe_products():
@@ -128,7 +126,6 @@ class CreateCheckoutSession(APIView):
                 status=status.HTTP_201_CREATED
             )
         except Exception as e:
-            print(str(e))
             return Response({'error': str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -137,7 +134,7 @@ class CreateCheckoutSession(APIView):
 def stripe_webhook(request):
     payload = request.body
     sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-    webhook_key = env.str("STRIPE_WEBHOOK_SECRET")
+    webhook_key = settings.STRIPE_WEBHOOK_SECRET
     webhook_secret = webhook_key
     event = None
 
@@ -194,7 +191,7 @@ class PlanListView(APIView):
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def get_revenue(request):
-    today = datetime.now()
+    today = datetime.datetime.now()
     first_day_of_this_month = today.replace(day=1)
     first_day_of_last_month = (
         first_day_of_this_month - timedelta(days=1)
@@ -246,3 +243,165 @@ def get_revenue(request):
     }
 
     return Response(data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def get_subscription_revenue_data(request):
+    """
+    Returns revenue data for subscriptions by plan type over the last 6 months
+    """
+    # Get the last 6 months
+    end_date = timezone.now()
+    start_date = end_date - datetime.timedelta(days=180)
+
+    # Generate month labels
+    months = []
+    current = start_date
+    while current <= end_date:
+        months.append(current.strftime('%b %Y'))
+        # Move to next month
+        next_month = current.month + 1
+        next_year = current.year
+        if next_month > 12:
+            next_month = 1
+            next_year += 1
+        current = current.replace(year=next_year, month=next_month, day=1)
+
+    revenue_data = {
+        'months': months,
+        'recharge': [0] * len(months),
+        'monthly': [0] * len(months),
+        'yearly': [0] * len(months)
+    }
+
+    # Get all payments within the date range
+    payments = Payment.objects.filter(
+        created_at__gte=start_date,
+        created_at__lte=end_date,
+        status='completed'
+    ).select_related('plan')
+
+    # Aggregate payment data by month and plan type
+    for payment in payments:
+        payment_date = payment.created_at
+        month_idx = (
+            payment_date.year - start_date.year
+        ) * 12 + payment_date.month - start_date.month
+
+        if 0 <= month_idx < len(months):
+            plan_type = payment.plan.plan_type
+            if plan_type in revenue_data:
+                revenue_data[plan_type][month_idx] += float(payment.plan.price)
+
+    return Response(revenue_data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def get_subscription_status_data(request):
+    """
+    Returns data on subscription status breakdown
+    (active/inactive/canceled by plan type)
+    """
+    today = timezone.now()
+
+    active_subscriptions = Subscription.objects.filter(
+        end_date__gt=today,
+        status='active'
+    ).values('plan__plan_type').annotate(count=Count('id'))
+
+    active_recharges = Recharge.objects.filter(
+        end_date__gt=today,
+        balance__gt=0,
+        status='active'
+    ).count()
+
+    inactive_subscriptions = Subscription.objects.filter(
+        end_date__lte=today,
+        status='active'
+    ).values('plan__plan_type').annotate(count=Count('id'))
+
+    inactive_recharges = Recharge.objects.filter(
+        end_date__lte=today,
+        status='active'
+    ).count()
+
+    canceled_subscriptions = Subscription.objects.filter(
+        status='canceled'
+    ).values('plan__plan_type').annotate(count=Count('id'))
+
+    canceled_recharges = Recharge.objects.filter(
+        status='canceled'
+    ).count()
+
+    result = {
+        'categories': ['Active', 'Inactive', 'Canceled'],
+        'recharge': [
+            active_recharges,
+            inactive_recharges,
+            canceled_recharges
+        ],
+        'monthly': [
+            next(
+                (item['count'] for item in active_subscriptions
+                 if item['plan__plan_type'] == 'monthly'),
+                0
+            ),
+            next(
+                (item['count'] for item in inactive_subscriptions
+                 if item['plan__plan_type'] == 'monthly'),
+                0
+            ),
+            next(
+                (item['count'] for item in canceled_subscriptions
+                 if item['plan__plan_type'] == 'monthly'),
+                0
+            ),
+        ],
+        'yearly': [
+            next(
+                (item['count'] for item in active_subscriptions
+                 if item['plan__plan_type'] == 'yearly'),
+                0
+            ),
+            next(
+                (item['count'] for item in inactive_subscriptions
+                 if item['plan__plan_type'] == 'yearly'),
+                0
+            ),
+            next(
+                (item['count'] for item in canceled_subscriptions
+                 if item['plan__plan_type'] == 'yearly'),
+                0
+            ),
+        ]
+    }
+
+    return Response(result)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def get_geographic_listing_data(request):
+    """
+    Returns data on pet listings by geographic region
+    """
+
+    listing_by_region = PetListingLocation.objects.values('state')\
+        .annotate(count=Count('id'))\
+        .order_by('-count')
+
+    state = []
+    counts = []
+
+    for item in listing_by_region:
+        state.append(item['state'])
+        counts.append(item['count'])
+
+    result = {
+        'state': state,
+        'counts': counts
+    }
+
+    return Response(result)

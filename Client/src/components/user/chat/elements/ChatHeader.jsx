@@ -3,7 +3,7 @@ import { Video, MoreVertical } from 'lucide-react';
 import userAvatar from "../../../../assets/icon/user-avatar.svg"
 import { useNavigate } from 'react-router-dom';
 
-const ChatHeader = ({ recipient = [] }) => {
+const ChatHeader = ({ recipient = null }) => {
     const navigate = useNavigate()
 
     const initiateCall = async (calleeUsername) => {
@@ -25,7 +25,8 @@ const ChatHeader = ({ recipient = [] }) => {
                     </div>
                     <div
                         className='cursor-pointer'
-                        onClick={() => navigate(`/profile/${recipient?.user.username}`)}
+                        onClick={() => recipient && navigate(`/profile/${recipient?.user.username}`)}
+                        disabled={!recipient}
                     >
                         <h2 className="text-lg font-medium text-blackOpacity85">
                             {recipient && recipient?.user.name ? recipient?.user.name : "Anonymous User"}
@@ -35,8 +36,8 @@ const ChatHeader = ({ recipient = [] }) => {
                 <div className="flex items-center space-x-4">
                     <button
                         className="p-2 rounded-lg hover:bg-teal-50 transition-colors"
-                        onClick={() => initiateCall(recipient.user.username)}
-                        
+                        onClick={() => recipient && initiateCall(recipient.user.username)}
+                        disabled={!recipient}
                     >
                         <Video className="w-5 h-5 text-teal-600" />
                     </button>

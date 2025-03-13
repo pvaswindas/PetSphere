@@ -1,61 +1,22 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
-import axiosInstance from '../axios/axiosinstance';
+import { useAuth } from '../hooks/useAuth';
 import { useSelector } from 'react-redux';
 import LoadingPage from '../pages/LoadingPage';
 
 function AdminRestrictedRoute({ children }) {
-    const [isAuthorized, setIsAuthorized] = useState(null);
+    const { isAuthorized, isLoading } = useAuth();
     const navigate = useNavigate();
     const admin = useSelector((state) => state.profile.profile_data);
 
-    const refreshAccessToken = useCallback(async () => {
-        const refreshToken = localStorage.getItem('REFRESH_TOKEN');
-        if (!refreshToken) return false;
+    if (isLoading) return <LoadingPage />;
 
-        try {
-            const res = await axiosInstance.post('accounts/token/refresh/', { refresh: refreshToken });
-            if (res.status === 200) {
-                localStorage.setItem('ACCESS_TOKEN', res.data.access);
-                return true;
-            }
-        } catch (error) {
-            return false
-        }
-        return false;
-    }, []);
+    if (isAuthorized && admin?.user?.is_staff) {
+        navigate('/admin');
+        return null;
+    }
 
-    const validateAccessToken = useCallback(async () => {
-        const token = localStorage.getItem('ACCESS_TOKEN');
-        if (!token) return false;
-
-        try {
-            const decoded = jwtDecode(token);
-            const now = Math.floor(Date.now() / 1000);
-            if (decoded.exp < now) {
-                return await refreshAccessToken();
-            }
-            return true;
-        } catch (error) {
-            return false
-        }
-    }, [refreshAccessToken]);
-
-    useEffect(() => {
-        (async () => {
-            const isValid = await validateAccessToken();
-            if (isValid && admin?.user?.is_staff) {
-                navigate('/admin');
-            } else {
-                setIsAuthorized(false);
-            }
-        })();
-    }, [validateAccessToken, admin, navigate]);
-
-    if (isAuthorized === null) return <LoadingPage />
-
-    return !isAuthorized ? children : null;
+    return children;
 }
 
 export default AdminRestrictedRoute;

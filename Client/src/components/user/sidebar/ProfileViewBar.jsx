@@ -1,19 +1,29 @@
-import React from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import userAvatar from "../../../assets/icon/user-avatar.svg"
+import { fetchProfile } from "../../../redux/thunks/ProfileThunk";
 
 const ProfileViewBar = () => {
     const profile = useSelector((state) => state.profile.profile_data)
     const user = profile ? profile.user : null
+    const username = user.username
 
     const navigate = useNavigate()
+    const dispatch = useDispatch()
 
     const handleOnClick = () => {
         navigate('/profile/edit');
     };
 
     const countsTextStyle = "text-[12px] font-medium text-blackOpacity70"
+
+
+    useEffect(() => {
+        if (username) {
+            dispatch(fetchProfile({ auth_username: username, username }));
+        }
+    }, [dispatch, username]);
 
     return (
         <aside 

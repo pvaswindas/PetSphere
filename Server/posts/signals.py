@@ -39,13 +39,9 @@ def generate_slug(sender, instance, created, **kwargs):
 @receiver(post_save, sender=PetListing)
 def set_is_seller_on_first_listing(sender, instance, created, **kwargs):
     if created:
-        print("Signal triggered")
         user = instance.seller.user
         profile = Profile.objects.get(user=user)
         profile.refresh_from_db()
-        print(profile.IsSeller)
         if not profile.IsSeller:
-            print("ENTERED")
             profile.IsSeller = True
             profile.save()
-        print(profile.IsSeller)

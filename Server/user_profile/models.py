@@ -3,20 +3,17 @@ from accounts.models import PetSphereUser
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(PetSphereUser, on_delete=models.CASCADE,
-                                related_name='profile')
-    bio = models.CharField(max_length=255, null=True, blank=True)
-    cover_image = models.ImageField(
-        upload_to="cover_pics/",
-        null=True,
-        blank=True,
-        default='default_images/profile_cover.svg'
+    user = models.OneToOneField(
+        PetSphereUser, on_delete=models.CASCADE, related_name="profile"
     )
-    profile_picture = models.ImageField(
-        upload_to="profile_pics/",
+    bio = models.CharField(max_length=255, null=True, blank=True)
+    cover_image = models.URLField(
         null=True,
         blank=True,
-        default='default_images/user_avatar.svg'
+    )
+    profile_picture = models.URLField(
+        null=True,
+        blank=True,
     )
     push_notification = models.BooleanField(default=True)
     pawstory_count = models.PositiveBigIntegerField(default=0)
