@@ -49,8 +49,6 @@ def upload_to_s3(file_base64, s3_path="common", media_name="common"):
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         )
 
-        print("BEFORE UPLOAD")
-
         # Upload to S3
         s3_client.upload_fileobj(
             file_obj,
@@ -58,15 +56,11 @@ def upload_to_s3(file_base64, s3_path="common", media_name="common"):
             media_key,
         )
 
-        print("AFTER UPLOAD")
-
         return f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{media_key}"
 
     except NoCredentialsError:
-        print("AWS credentials not found")
         return None
-    except Exception as e:
-        print(f"Error uploading file: {e}")
+    except Exception:
         return None
 
 
@@ -115,8 +109,6 @@ def upload_to_s3_from_multipart(file, s3_path="common", media_name="common"):
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         )
 
-        print("BEFORE UPLOAD")
-
         s3_client.upload_fileobj(
             file_obj,
             settings.AWS_STORAGE_BUCKET_NAME,
@@ -124,13 +116,11 @@ def upload_to_s3_from_multipart(file, s3_path="common", media_name="common"):
             ExtraArgs={'ContentType': detected_mime}
         )
 
-        print("AFTER UPLOAD")
-
         return f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{media_key}"
 
     except NoCredentialsError:
-        print("AWS credentials not found")
+        print("NO CREDENTIAL ERROR")
         return None
     except Exception as e:
-        print(f"Error uploading file: {e}")
+        print("EXCEPTION : ", str(e))
         return None
