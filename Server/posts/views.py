@@ -30,7 +30,7 @@ from .serializers import (
 from petsphere.utils.common_utils import (
     validate_authenticated_user, validate_request_data,
 )
-from common.storage import upload_to_s3_from_multipart, upload_to_s3
+from common.storage import upload_to_s3_from_multipart
 
 
 encryption_key = settings.ENCRYPTION_KEY

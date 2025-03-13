@@ -154,12 +154,12 @@ const VideoCallUI = ({ isCaller = false }) => {
         //     console.log("ICE Gathering State:", peerConnection.current.iceGatheringState);
         // };
 
-        // peerConnection.current.onicecandidate = (event) => {
-        //     console.log("ICE candidate:", event.candidate);
-        //     if (event.candidate) {
-        //         sendMessage({ type: "candidate", candidate: event.candidate });
-        //     }
-        // };
+        peerConnection.current.onicecandidate = (event) => {
+            console.log("ICE candidate:", event.candidate);
+            if (event.candidate) {
+                sendMessage({ type: "candidate", candidate: event.candidate });
+            }
+        };
 
         peerConnection.current.ontrack = (event) => {
             remoteVideoRef.current.srcObject = event.streams[0];
