@@ -1,34 +1,34 @@
 import React, { useState } from 'react'
 import AdminLayout from '../../../components/admin/AdminLayout'
-import { Flag, ShieldAlert, Users, ShoppingBag, MessageCircle, BarChart3, List, Grid } from 'lucide-react';
+import { Flag, Users, ShoppingBag, MessageCircle, BarChart3 } from 'lucide-react';
 import ReportDetails from './ReportsDetails';
 
 const mockReports = [
   {
     id: 1,
     type: 'user',
-    reportedUser: 'john_doe',
+    reported_content: 'john_doe',
     reason: 'Inappropriate behavior',
     description: 'User was spamming in comments',
-    date: '2024-03-15',
+    created_at: '2024-03-15',
     status: 'pending'
   },
   {
     id: 2,
     type: 'listing',
-    reportedListing: 'Golden Retriever Puppies',
+    reported_content: 'Golden Retriever Puppies',
     reason: 'Suspicious listing',
     description: 'Price seems too low, might be a scam',
-    date: '2024-03-14',
+    created_at: '2024-03-14',
     status: 'investigating'
   },
   {
     id: 3,
     type: 'comment',
-    reportedContent: 'Inappropriate comment content',
+    reported_content: 'Inappropriate comment content',
     reason: 'Harassment',
     description: 'User making threatening comments',
-    date: '2024-03-13',
+    created_at: '2024-03-13',
     status: 'resolved'
   }
 ];
@@ -130,21 +130,19 @@ function ManageReports() {
                                 report.status === 'investigating' ? 'bg-blue-100 text-blue-800' :
                                 'bg-green-100 text-green-800'
                             }`}>
-                                {report.status}
+                                {report.type.charAt(0).toUpperCase() + report.type.slice(1)}
                             </span>
                             </div>
                             
                             <div className="mt-3">
                             <h3 className="text-lg font-medium text-gray-900">
-                                {report.type === 'user' ? report.reportedUser :
-                                report.type === 'listing' ? report.reportedListing :
-                                'Reported Content'}
+                                {report.reported_content}
                             </h3>
                             <p className="mt-1 text-sm text-gray-500">{report.description}</p>
                             </div>
                             
                             <div className="mt-4 flex items-center justify-between">
-                            <span className="text-sm text-gray-500">{report.date}</span>
+                            <span className="text-sm text-gray-500">{report.created_at}</span>
                             <button 
                                 className="text-sm text-blue-600 hover:text-blue-800"
                                 onClick={() => setSelectedReport(report)}

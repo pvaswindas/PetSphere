@@ -1,6 +1,6 @@
 import React from 'react';
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { ArrowLeftToLine, Flag, User, Calendar, AlertTriangle, Ban, MessageSquareWarning, CheckCircle, XCircle } from 'lucide-react';
+import { Flag, User, Calendar, AlertTriangle, Ban, MessageSquareWarning, CheckCircle, XCircle } from 'lucide-react';
 
 
 function ReportDetails({ report, onBack, onAction }) {
@@ -58,7 +58,7 @@ function ReportDetails({ report, onBack, onAction }) {
                         <div className="flex items-center justify-between">
                         <h1 className="text-2xl font-bold text-gray-900">Report Details</h1>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(report.status)}`}>
-                            {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                            {report.type.charAt(0).toUpperCase() + report.type.slice(1)}
                         </span>
                         </div>
                     </div>
@@ -78,9 +78,7 @@ function ReportDetails({ report, onBack, onAction }) {
                             <h3 className="text-sm font-medium text-gray-500">Reported Content</h3>
                             <p className="mt-1 flex items-center text-lg font-medium text-gray-900">
                                 <User className="h-5 w-5 mr-2 text-gray-400" />
-                                {report.type === 'user' ? report.reportedUser :
-                                report.type === 'listing' ? report.reportedListing :
-                                report.reportedContent}
+                                {report.reported_content}
                             </p>
                             </div>
 
@@ -88,7 +86,7 @@ function ReportDetails({ report, onBack, onAction }) {
                             <h3 className="text-sm font-medium text-gray-500">Report Date</h3>
                             <p className="mt-1 flex items-center text-lg font-medium text-gray-900">
                                 <Calendar className="h-5 w-5 mr-2 text-gray-400" />
-                                {report.date}
+                                {report.created_at}
                             </p>
                             </div>
                         </div>
