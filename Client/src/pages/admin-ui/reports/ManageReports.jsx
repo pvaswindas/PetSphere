@@ -136,9 +136,7 @@ function ManageReports() {
                             
                             <div className="mt-3">
                             <h3 className="text-lg font-medium text-gray-900">
-                                {report.type === 'user' ? report.reported_content :
-                                report.type === 'listing' ? report.reported_content :
-                                'Reported Content'}
+                                {report.reported_content}
                             </h3>
                             <p className="mt-1 text-sm text-gray-500">{report.description}</p>
                             </div>
