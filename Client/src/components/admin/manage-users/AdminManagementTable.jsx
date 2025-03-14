@@ -1,6 +1,6 @@
 import React from "react";
 import { formatDate } from "../../../utils/admin-utils/formatDate";
-import { MoreVertical } from "lucide-react";
+// import { MoreVertical } from "lucide-react";
 
 const AdminManagementTable = ({ superusers }) => {
 
