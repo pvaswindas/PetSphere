@@ -1,14 +1,62 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback, memo } from "react";
 import { PhoneCall, PhoneOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import userAvatar from "../../../assets/icon/user-avatar.svg"
 import axiosInstance from "../../../axios/axiosinstance";
-import websocketServiceInstance from "../../../services/WebSocketService";
 
 function IncomingCallPanel() {
     const [isCallIncoming, setIsCallIncoming] = useState(false);
     const [caller, setCaller] = useState(null);
+    const socketRef = useRef(null);
+    const reconnectTimeoutRef = useRef(null);
+    const pingIntervalRef = useRef(null);
     const navigate = useNavigate();
+
+    const connectWebSocket = useCallback(() => {
+        const token = localStorage.getItem("ACCESS_TOKEN");
+        if (!token) return;
+
+        if (socketRef.current) {
+            socketRef.current.close();
+        }
+
+        const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+        socketRef.current = new WebSocket(`${wsProtocol}://${process.env.REACT_APP_API_SITE_URL}/ws/notifications/?token=${token}`);
+        
+        socketRef.current.onopen = function() {
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+                reconnectTimeoutRef.current = null;
+            }
+        };
+
+        socketRef.current.onmessage = function(event) {
+            try {
+                
+                if (event.data === "ping") {
+                    socketRef.current.send("pong");
+                    return;
+                }
+                
+                const data = JSON.parse(event.data);
+
+                if (data.type === "call_notification") {
+                    setCaller(data.caller);
+                    setIsCallIncoming(true);
+                } else if (data.type === "pong") {
+                    console.log('Pong received from server');
+                }
+            } catch (error) {
+                console.error('Error parsing WebSocket message:', error, event.data);
+            }
+        };
+
+        socketRef.current.onerror = function(error) {
+            console.error('WebSocket error:', error);
+        };
+
+    }, []);
 
     const handleAcceptCall = async () => {
         try {
@@ -16,12 +64,14 @@ function IncomingCallPanel() {
                 caller_username: caller.username
             });
     
-            websocketServiceInstance.sendMessage({
-                type: "call_accepted",
-                caller: caller.username
-            });
-            
+            if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+                socketRef.current.send(JSON.stringify({
+                    type: "call_accepted",
+                    caller: caller.username
+                }));
+            }
             navigate(`/video-call/${caller.username}`, { state: { isCaller: false } });
+    
             setIsCallIncoming(false);
         } catch (error) {
             setIsCallIncoming(false);
@@ -34,11 +84,13 @@ function IncomingCallPanel() {
                 caller_username: caller.username
             });
     
-            websocketServiceInstance.sendMessage({
-                type: "call_rejected",
-                caller: caller.username
-            });
-
+            if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+                socketRef.current.send(JSON.stringify({
+                    type: "call_rejected",
+                    caller: caller.username
+                }));
+            }
+    
             setIsCallIncoming(false);
         } catch (error) {
             setIsCallIncoming(false);
@@ -46,16 +98,25 @@ function IncomingCallPanel() {
     };    
 
     useEffect(() => {
-        // Subscribe to call notifications
-        const unsubscribe = websocketServiceInstance.subscribe('call_notification', (data) => {
-            setCaller(data.caller);
-            setIsCallIncoming(true);
-        });
+        connectWebSocket();
 
         return () => {
-            unsubscribe();
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+                reconnectTimeoutRef.current = null;
+            }
+            
+            if (pingIntervalRef.current) {
+                clearInterval(pingIntervalRef.current);
+                pingIntervalRef.current = null;
+            }
+            
+            if (socketRef.current) {
+                socketRef.current.close();
+                socketRef.current = null;
+            }
         };
-    }, []);
+    }, [connectWebSocket]);
 
     return (
         <AnimatePresence>
@@ -69,16 +130,16 @@ function IncomingCallPanel() {
                 >
                     <span className="w-9 h-9 bg-black rounded-full overflow-hidden">
                         <img
-                            src={caller.profile_picture || "/default-avatar.png"} 
+                            src={caller.profile_picture || userAvatar} 
                             alt={caller.username}
                             className="rounded-full object-cover w-full h-full"
                             onError={(e) => {
-                                e.target.src = "/default-avatar.png";
+                                e.target.src = userAvatar;
                             }}
                         />
                     </span>
                     
-                    <span className="flex flex-col font-medium items-center text-gray-600">
+                    <span className="flex flex-col font-medium text-xs lg:text-sm items-center text-gray-600">
                         {caller.username} is calling...
                     </span>
 
@@ -107,4 +168,4 @@ function IncomingCallPanel() {
     );
 }
 
-export default IncomingCallPanel;
+export default memo(IncomingCallPanel);

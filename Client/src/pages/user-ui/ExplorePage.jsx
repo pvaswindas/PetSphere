@@ -8,7 +8,7 @@ import ProfileViewBar from "../../components/user/sidebar/ProfileViewBar"
 
 function ExplorePage() {
     return (
-        <div className="bg-white lg:bg-whiteOpacity02 h-screen flex flex-col overflow-hidden">
+        <div className="bg-white lg:bg-whiteOpacity02 min-h-screen flex flex-col overflow-hidden">
             {/* Navbar */}
             <Navbar />
 

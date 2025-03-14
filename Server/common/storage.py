@@ -119,8 +119,6 @@ def upload_to_s3_from_multipart(file, s3_path="common", media_name="common"):
         return f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{media_key}"
 
     except NoCredentialsError:
-        print("NO CREDENTIAL ERROR")
         return None
-    except Exception as e:
-        print("EXCEPTION : ", str(e))
+    except Exception:
         return None

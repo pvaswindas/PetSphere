@@ -6,7 +6,7 @@ import AddPetStoryCard from "../../../components/user/post/AddPetStoryCard"
 
 function AddPetStory() {
     return (
-        <div className="bg-white lg:bg-whiteOpacity02 h-screen flex flex-col overflow-hidden">
+        <div className="bg-white lg:bg-whiteOpacity02 min-h-screen flex flex-col overflow-hidden">
             {/* Navbar */}
             <Navbar />
 

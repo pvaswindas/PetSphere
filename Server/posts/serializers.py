@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    Post, PostImage, PetListing, PetListingImage, PetListingLocation,
-    PetListingImageTemp
+    Post, PostImage, PetListing, PetListingImage, PetListingLocation
 )
 from user_profile.serializers import ProfileSerializer
 
@@ -56,12 +55,6 @@ class PetListingImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PetListingImage
         fields = ['id', 'pet_listing', 'image', 'created_at']
-
-
-class PetListingImageTempSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PetListingImageTemp
-        fields = '__all__'
 
 
 class PetListingLocationSerializer(serializers.ModelSerializer):

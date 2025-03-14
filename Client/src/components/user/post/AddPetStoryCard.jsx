@@ -4,7 +4,6 @@ import { ImageCropper } from "../../../utils/ImageCropper"
 import axiosInstance from "../../../axios/axiosinstance"
 import { useNavigate } from "react-router-dom"
 import AlertSnackbar from "../../Snackbar/AlertSnackbar"
-import { convertToBase64 } from "../../../utils/convertToBase64"
 
 const AddPetStoryCard = () => {
     const [content, setContent] = useState("")
@@ -131,7 +130,7 @@ const AddPetStoryCard = () => {
     }
 
     return (
-        <div className="p-6 bg-white rounded-lg shadow-lg mx-auto">
+        <div className="p-6 bg-white rounded-lg lg:shadow-lg mx-auto">
             <h1 className="text-2xl font-semibold text-gray-800 mb-6">Add Pet Story</h1>
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>

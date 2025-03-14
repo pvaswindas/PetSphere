@@ -1,12 +1,10 @@
 import { useSelector } from "react-redux"
 import axiosInstance from "../axios/axiosinstance"
 import { clearStore } from "../redux/store"
-import websocketServiceInstance from "../services/WebSocketService"
 
 export const useLogout = () => {
     const email = useSelector((state) => state.profile.email)
     const refresh_token = localStorage.getItem("REFRESH_TOKEN")
-    websocketServiceInstance.disconnect();
 
     const logout = async () => {
         try {

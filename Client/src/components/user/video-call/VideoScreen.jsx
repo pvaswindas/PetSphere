@@ -20,16 +20,16 @@ const VideoScreen = ({ localVideoRef, remoteVideoRef, onStartCall, onEndCall, is
             </div>
             
             <div className="absolute bottom-6 lg:bottom-16 left-1/2 transform -translate-x-1/2 flex gap-4">
-                <button onClick={toggleCamera} className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-lg transition ${isCameraOn ? "bg-gray-700 text-white" : "bg-red-500 text-white"}`}>
+                <button onClick={toggleCamera} className={`flex items-center gap-2 px-4 text-xs lg:text-sm py-2 rounded-full shadow-lg transition ${isCameraOn ? "bg-gray-700 text-white" : "bg-red-500 text-white"}`}>
                     {isCameraOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
                 </button>
-                <button onClick={toggleMic} className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-lg transition ${isMicOn ? "bg-gray-700 text-white" : "bg-red-500 text-white"}`}>
+                <button onClick={toggleMic} className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs lg:text-sm shadow-lg transition ${isMicOn ? "bg-gray-700 text-white" : "bg-red-500 text-white"}`}>
                     {isMicOn ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
                 </button>
                 {!isCalling ? (
                     <button 
                         onClick={onStartCall} 
-                        className="flex items-center gap-2 bg-green-500 text-white px-6 py-2 rounded-full shadow-lg hover:bg-green-600 transition"
+                        className="flex items-center gap-2 bg-green-500 text-white px-6 py-2 text-xs lg:text-sm rounded-full shadow-lg hover:bg-green-600 transition"
                     >
                         <Video className="w-5 h-5" />
                         {callStatus === "ongoing" ? "Join Call" : "Start Call"}
@@ -37,7 +37,7 @@ const VideoScreen = ({ localVideoRef, remoteVideoRef, onStartCall, onEndCall, is
                 ) : (
                     <button 
                         onClick={onEndCall} 
-                        className="flex items-center gap-2 bg-red-500 text-white px-6 py-2 rounded-full shadow-lg hover:bg-red-600 transition"
+                        className="flex items-center gap-2 bg-red-500 text-white px-6 py-2 rounded-full text-xs lg:text-sm shadow-lg hover:bg-red-600 transition"
                     >
                         <PhoneOff className="w-5 h-5" />
                         End Call

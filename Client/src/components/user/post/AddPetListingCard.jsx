@@ -196,7 +196,7 @@ const AddPetListingCard = () => {
 
 
     return (
-        <div className="p-6 bg-white rounded-lg shadow-lg mx-auto w-full">
+        <div className="p-6 bg-white rounded-lg lg:shadow-lg mx-auto">
             <AlertSnackbar
                 open={snackbarOpen}
                 message={snackbarMessage}
@@ -402,18 +402,18 @@ const AddPetListingCard = () => {
                                 onZoomChange={(zoom) => setCropSettings((prev) => ({ ...prev, zoom }))}
                                 onCropComplete={handleCropComplete}
                             />
-                            <div className="absolute bottom-4 left-4 space-x-4">
+                            <div className="absolute bottom-1 left-1 lg:bottom-4 lg:left-4 space-x-4">
                                 <button
                                     type="button"
                                     onClick={handleCancelCrop}
-                                    className="bg-gray-500 text-white py-2 px-4 rounded-md"
+                                    className="bg-gray-500 text-white py-2 px-2 lg:px-4 rounded-md"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="button"
                                     onClick={handleSaveCroppedImage}
-                                    className="bg-blue-500 text-white py-2 px-4 rounded-md"
+                                    className="bg-og-gradient text-white py-2 px-2 lg:px-4 rounded-md"
                                 >
                                     Save Crop
                                 </button>
@@ -430,7 +430,7 @@ const AddPetListingCard = () => {
                 <div className="mt-6">
                     <button
                         type="submit"
-                        className="w-full bg-blue-500 text-white py-2 rounded-lg font-semibold transition hover:bg-blue-600"
+                        className="w-full bg-og-gradient text-white py-2 rounded-lg font-semibold transition hover:bg-og-gradient-opp"
                     >
                         Next
                     </button>

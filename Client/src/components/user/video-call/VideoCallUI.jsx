@@ -60,14 +60,14 @@ const VideoCallUI = ({ isCaller = false }) => {
     useEffect(() => {
         const token = localStorage.getItem("ACCESS_TOKEN");
         if (!token) return;
-    
-        socket.current = new WebSocket(`wss://${process.env.REACT_APP_API_SITE_URL}/ws/video_call/${username}/?token=${token}`);
 
-        socket.current.onopen = () => {
-            if (isCaller) {
-                initiateCall(username);
-            }
-        };
+        const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    
+        socket.current = new WebSocket(`${wsProtocol}://${process.env.REACT_APP_API_SITE_URL}/ws/video_call/${username}/?token=${token}`);
+
+        // socket.current.onopen = () => {
+            
+        // };
 
         socket.current.onmessage = async (event) => {
             const data = JSON.parse(event.data);
@@ -115,6 +115,9 @@ const VideoCallUI = ({ isCaller = false }) => {
 
     const requestPermissionsAndStartCall = async () => {
         try {
+            if (isCaller) {
+                initiateCall(username);
+            }
             const localStream = await navigator.mediaDevices.getUserMedia({ 
                 video: true,
                 audio: {
@@ -149,13 +152,7 @@ const VideoCallUI = ({ isCaller = false }) => {
             }
         };
 
-        // Debug ICE gathering process
-        // peerConnection.current.onicegatheringstatechange = () => {
-        //     console.log("ICE Gathering State:", peerConnection.current.iceGatheringState);
-        // };
-
         peerConnection.current.onicecandidate = (event) => {
-            console.log("ICE candidate:", event.candidate);
             if (event.candidate) {
                 sendMessage({ type: "candidate", candidate: event.candidate });
             }

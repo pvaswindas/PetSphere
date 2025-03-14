@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Chart from "react-apexcharts";
-import { fetchSubscriptionStatusData } from "../../../../api/metrics";
 import Shimmer from "../../../Shimmer/Shimmer";
+import { fetchUserStatusData } from "../../../../api/metrics";
 
-const SubscriptionStatusChart = () => {
+const UserStatusChart = () => {
   const [statusData, setStatusData] = useState({
     categories: [],
-    recharge: [],
-    monthly: [],
-    yearly: []
+    active: [],
+    inactive: [],
+    suspended: []
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,29 +17,29 @@ const SubscriptionStatusChart = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-          const response = await fetchSubscriptionStatusData();
-
-          console.log(response)
-          
-          // Validate response data
-          if (response && 
+        const response = await fetchUserStatusData();
+        
+        console.log(response);
+        
+        // Validate response data
+        if (response && 
             Array.isArray(response.categories) && 
-            Array.isArray(response.recharge) && 
-            Array.isArray(response.monthly) && 
-            Array.isArray(response.yearly)) {
+            Array.isArray(response.active) && 
+            Array.isArray(response.inactive) && 
+            Array.isArray(response.suspended)) {
 
           // Check if all values are zeros
-          const allZeros = response.recharge.every(val => val === 0) && 
-                          response.monthly.every(val => val === 0) && 
-                          response.yearly.every(val => val === 0);
+          const allZeros = response.active.every(val => val === 0) && 
+                          response.inactive.every(val => val === 0) && 
+                          response.suspended.every(val => val === 0);
 
           if (!allZeros) {
             setStatusData(response);
           }
         }
       } catch (err) {
-        console.error("Error fetching subscription status data:", err);
-        setError("Failed to load subscription status data");
+        console.error("Error fetching user status data:", err);
+        setError("Failed to load user status data");
       } finally {
         setIsLoading(false);
       }
@@ -73,7 +73,7 @@ const SubscriptionStatusChart = () => {
       width: 1,
       colors: ['transparent']
     },
-    colors: ['#ff9800', '#2959a1', '#6a8abb'],
+    colors: ['#2959a1', '#9e9e9e', '#f44336'],
     xaxis: {
       categories: statusData.categories,
       labels: {
@@ -115,7 +115,7 @@ const SubscriptionStatusChart = () => {
       opacity: 1
     },
     noData: {
-      text: 'No subscription data available',
+      text: 'No user status data available',
       align: 'center',
       verticalAlign: 'middle',
       style: {
@@ -127,24 +127,24 @@ const SubscriptionStatusChart = () => {
 
   const series = [
     {
-      name: 'Recharge',
-      data: statusData.recharge
+      name: 'Active',
+      data: statusData.active
     },
     {
-      name: 'Monthly',
-      data: statusData.monthly
+      name: 'Inactive',
+      data: statusData.inactive
     },
     {
-      name: 'Yearly',
-      data: statusData.yearly
+      name: 'Suspended',
+      data: statusData.suspended
     }
   ];
 
   // Check if we have data to display
   const hasData = statusData.categories.length > 0 && 
-                  statusData.recharge.length > 0 && 
-                  statusData.monthly.length > 0 && 
-                  statusData.yearly.length > 0;
+                  statusData.active.length > 0 && 
+                  statusData.inactive.length > 0 && 
+                  statusData.suspended.length > 0;
 
   if (isLoading) {
     return <Shimmer className="h-full w-full rounded-xl" />;
@@ -161,7 +161,7 @@ const SubscriptionStatusChart = () => {
   if (!hasData) {
     return (
       <div className="flex items-center justify-center w-full">
-        <p className="text-sm text-gray-500">No subscription data available</p>
+        <p className="text-sm text-gray-500">No user status data available</p>
       </div>
     );
   }
@@ -178,4 +178,4 @@ const SubscriptionStatusChart = () => {
   );
 };
 
-export default SubscriptionStatusChart;
+export default UserStatusChart;

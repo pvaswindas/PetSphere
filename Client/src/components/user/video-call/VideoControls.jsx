@@ -7,7 +7,7 @@ const CallControls = ({ onStartCall, onEndCall, isCalling }) => {
             {!isCalling ? (
                 <button
                     onClick={onStartCall}
-                    className="flex items-center gap-2 bg-green-500 text-white px-6 py-2 rounded-full shadow-lg hover:bg-green-600 transition"
+                    className="flex items-center gap-2 bg-green-500 text-xs lg:text-sm text-white px-6 py-2 rounded-full shadow-lg hover:bg-green-600 transition"
                 >
                     <Video className="w-5 h-5" />
                     Start Call
@@ -15,7 +15,7 @@ const CallControls = ({ onStartCall, onEndCall, isCalling }) => {
             ) : (
                 <button
                     onClick={onEndCall}
-                    className="flex items-center gap-2 bg-red-500 text-white px-6 py-2 rounded-full shadow-lg hover:bg-red-600 transition"
+                    className="flex items-center gap-2 bg-red-500 text-xs lg:text-sm text-white px-6 py-2 rounded-full shadow-lg hover:bg-red-600 transition"
                 >
                     <PhoneOff className="w-5 h-5" />
                     End Call

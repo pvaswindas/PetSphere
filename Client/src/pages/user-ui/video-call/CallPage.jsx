@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import VideoCallUI from '../../../components/user/video-call/VideoCallUI'
 import { useLocation } from 'react-router-dom';
 

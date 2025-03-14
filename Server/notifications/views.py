@@ -1,7 +1,6 @@
 from django.http import JsonResponse
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from django.conf import settings
 from user_profile.models import Profile
 from accounts.models import PetSphereUser
 from django.shortcuts import get_object_or_404
@@ -24,13 +23,6 @@ def send_notification(request):
     return JsonResponse({"status": "Notification sent"})
 
 
-def get_profile_picture_url(profile):
-    """Helper function to get absolute profile picture URL"""
-    if profile.profile_picture:
-        return f"{settings.BASE_URL}{profile.profile_picture.url}"
-    return ""
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def initiate_call(request):
@@ -47,7 +39,7 @@ def initiate_call(request):
 
         caller_data = {
             "username": caller.username,
-            "profile_picture": get_profile_picture_url(profile),
+            "profile_picture": profile.profile_picture,
         }
 
         callee = get_object_or_404(PetSphereUser, username=callee_username)
@@ -56,8 +48,11 @@ def initiate_call(request):
         async_to_sync(channel_layer.group_send)(
             f"user_{callee.id}",
             {
-                "type": "send_call_notification",
-                "caller": caller_data,
+                "type": "notify",
+                "message": {
+                    "type": "call_notification",
+                    "caller": caller_data
+                }
             }
         )
 

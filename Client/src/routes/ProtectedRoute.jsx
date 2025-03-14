@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import LoadingPage from '../pages/LoadingPage';
 
 function ProtectedRoute({ children }) {
+    
     const { isAuthorized, isLoading, userStatus } = useAuth();
     const navigate = useNavigate();
 

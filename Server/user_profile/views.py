@@ -74,7 +74,6 @@ class ProfileView(APIView):
                     s3_path="profiles/covers",
                     media_name="cover"
                 )
-                print("AFTER S3")
 
                 if not cover_image_url:
                     return Response(
@@ -98,8 +97,6 @@ class ProfileView(APIView):
                     media_name="profile"
                 )
 
-                print("PROFILE PICTURE :", profile_picture_url)
-
                 if not profile_picture_url:
                     return Response(
                         {'error': 'Profile picture upload failed'},
@@ -116,7 +113,6 @@ class ProfileView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            print(serializer.errors)
             return Response(
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
@@ -124,7 +120,6 @@ class ProfileView(APIView):
             return Response({'error': 'Profile not found'},
                             status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            print(str(e))
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
