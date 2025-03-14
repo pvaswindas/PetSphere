@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { motion } from "framer-motion"
 import WelcomeCard from "./dashboard/WelcomeCard"
 import AdminSidebar from "./AdminSidebar"
@@ -6,7 +6,7 @@ import AdminNavbar from "./AdminNavbar"
 import InsightCard from "./common/InsightCard"
 import CalendarViewCard from "./common/CalendarViewCard"
 import AdminBottombar from "./AdminBottombar"
-import { FileUp } from "lucide-react"
+import { FileUp, List, Grid, ArrowLeftToLine } from "lucide-react"
 
 const AdminLayout = ({
     activeIcon,
@@ -18,6 +18,11 @@ const AdminLayout = ({
     buttonAction=null,
     secondButton=null,
     secondButtonAction=null,
+    setViewMode=null,
+    viewMode="grid",
+    isReports=false,
+    isReportDetails=false,
+    onBack=null,
 }) => {
     // Animation variants
     const sidebarAnimation = {
@@ -28,7 +33,7 @@ const AdminLayout = ({
             transition: { duration: 0.5, ease: "easeOut" }
         }
     }
-    
+
     const mainContentAnimation = {
         hidden: { opacity: 0 },
         visible: { 
@@ -120,6 +125,33 @@ const AdminLayout = ({
                             }
                         </span>
                         <div className="flex gap-3">
+                            {isReports &&
+                                <div className="flex items-center space-x-4">
+                                    <button
+                                        onClick={() => setViewMode('grid')}
+                                        className={`p-2 rounded ${viewMode === 'grid' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
+                                    >
+                                        <Grid size={20} />
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('list')}
+                                        className={`p-2 rounded ${viewMode === 'list' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
+                                    >
+                                        <List size={20} />
+                                    </button>
+                                </div>
+                            }
+                            
+                            {isReportDetails && onBack &&
+                                <button 
+                                    onClick={onBack}
+                                    className="flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6"
+                                >
+                                    <ArrowLeftToLine className="h-5 w-5 mr-2" />
+                                    Back to Reports
+                                </button>
+                            }
+
                             {secondButton && secondButtonAction &&
                                 <motion.button
                                     className="flex items-center gap-1 bg-deepCrimsonRed hover:bg-deep-crimson-red-gradient-end text-white
