@@ -1,5 +1,6 @@
 import redis
 import json
+from django.http import JsonResponse
 from datetime import datetime, timedelta
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -744,6 +745,61 @@ def active_users(request):
     }
 
     return Response(data)
+
+
+def get_user_status_data(request):
+    """
+    Endpoint to fetch user status data for the chart.
+    Returns counts of active, inactive, and suspended users by month.
+    """
+    # Get the last 6 months
+    today = datetime.now()
+    months = []
+    month_names = []
+
+    for i in range(5, -1, -1):
+        month = today - timedelta(days=30*i)
+        months.append(month.replace(day=1))
+        month_names.append(month.strftime('%b'))
+
+    result = {
+        "categories": month_names,
+        "active": [],
+        "inactive": [],
+        "suspended": []
+    }
+
+    for month_start in months:
+        month_end = (
+            month_start.replace(day=28) + timedelta(days=4)
+        ).replace(day=1)
+
+        active_count = PetSphereUser.objects.filter(
+            is_pending=False,
+            is_suspended=False,
+            is_active=True,
+            is_staff=False,
+            date_joined__lt=month_end
+        ).count()
+
+        inactive_count = PetSphereUser.objects.filter(
+            is_active=False,
+            is_suspended=False,
+            is_staff=False,
+            date_joined__lt=month_end
+        ).count()
+
+        suspended_count = PetSphereUser.objects.filter(
+            is_suspended=True,
+            is_staff=False,
+            date_joined__lt=month_end
+        ).count()
+
+        result["active"].append(active_count)
+        result["inactive"].append(inactive_count)
+        result["suspended"].append(suspended_count)
+
+    return JsonResponse(result)
 
 
 # ----------------------------- Account Insights -----------------------------

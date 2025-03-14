@@ -47,3 +47,15 @@ export const fetchPetListingLocationData = async () => {
       throw error;
     }
   };
+
+// User Status
+export const fetchUserStatusData = async () => {
+  try {
+    const response = await axiosInstance.get('accounts/admin/metrics/users-status');
+    console.log(response.data)
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching users status:', error);
+    throw error;
+  }
+}

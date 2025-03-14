@@ -1,10 +1,9 @@
 import React from "react";
 import MetricsCard from "../../../components/admin/dashboard/MetricsCard";
 import AdminLayout from "../../../components/admin/AdminLayout";
-import SubscriptionRevenueChart from "../../../components/admin/dashboard/charts/SubscriptionRevenueChart";
-import SubscriptionStatusChart from "../../../components/admin/dashboard/charts/SubscriptionStatusChart";
 import PetListingLocationTreemap from "../../../components/admin/dashboard/charts/PetListingLocationTreemap";
 import PostEngagementPieChart from "../../../components/admin/dashboard/charts/PostEngagementPieChart";
+import UserStatusChart from "../../../components/admin/dashboard/charts/UserStatusChart";
 
 const AdminDashboard = () => {
     const activeIcon = "dashboard";
@@ -19,8 +18,8 @@ const AdminDashboard = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 lg:pb-16">
 
-                <MetricsCard title="Revenue Overview ">
-                    <SubscriptionRevenueChart />
+                <MetricsCard title="Users Status Overview ">
+                    <UserStatusChart />
                 </MetricsCard>
                 
                 <MetricsCard title="Listing Locations">
@@ -31,8 +30,8 @@ const AdminDashboard = () => {
                     <PostEngagementPieChart />
                 </MetricsCard>
                 
-                <MetricsCard title="Subscription Status">
-                    <SubscriptionStatusChart />
+                <MetricsCard title="Reports & Flags">
+
                 </MetricsCard>
             </div>
         </AdminLayout>
