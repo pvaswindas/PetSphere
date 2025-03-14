@@ -38,6 +38,9 @@ def initiate_call(request):
         callee_username = request.data.get("callee")
         caller = request.user
 
+        print("CALLER : ", caller)
+        print("CALLEE : ", callee_username)
+
         try:
             profile = Profile.objects.get(user=caller)
         except Profile.DoesNotExist:
@@ -75,4 +78,5 @@ def initiate_call(request):
         })
 
     except Exception as e:
+        print("ERROR : ", str(e))
         return JsonResponse({"error": str(e)}, status=500)

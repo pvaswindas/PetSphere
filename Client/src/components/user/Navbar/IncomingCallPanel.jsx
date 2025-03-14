@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, memo } from "react";
 import { PhoneCall, PhoneOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import userAvatar from "../../../assets/icon/user-avatar.svg"
 import axiosInstance from "../../../axios/axiosinstance";
 
 function IncomingCallPanel() {
@@ -130,16 +131,16 @@ function IncomingCallPanel() {
                 >
                     <span className="w-9 h-9 bg-black rounded-full overflow-hidden">
                         <img
-                            src={caller.profile_picture || "/default-avatar.png"} 
+                            src={caller.profile_picture || userAvatar} 
                             alt={caller.username}
                             className="rounded-full object-cover w-full h-full"
                             onError={(e) => {
-                                e.target.src = "/default-avatar.png";
+                                e.target.src = userAvatar;
                             }}
                         />
                     </span>
                     
-                    <span className="flex flex-col font-medium items-center text-gray-600">
+                    <span className="flex flex-col font-medium text-xs lg:text-sm items-center text-gray-600">
                         {caller.username} is calling...
                     </span>
 
