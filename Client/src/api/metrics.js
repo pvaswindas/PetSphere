@@ -14,12 +14,13 @@ export const fetchPostEngagementData = async () => {
 
 // Subscription Revenue
 export const fetchSubscriptionRevenueData = async () => {
-    try {
-      const response = await axiosInstance.get('subscription/metrics/subscription-revenue');
-      return response;
-    } catch (error) {
-      throw error;
-    }
+  try {
+    const response = await axiosInstance.get('subscription/metrics/subscription-revenue');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching subscription revenue data:', error);
+    throw error;
+  }
 };
 
 
@@ -36,11 +37,13 @@ export const fetchSubscriptionStatusData = async () => {
 
 
 // Geographic Listing
-export const fetchGeographicListingData = async () => {
+export const fetchPetListingLocationData = async () => {
     try {
-        const response = await axiosInstance.get('subscription/metrics/geographic-listings/');
-        return response.data;
+      const response = await axiosInstance.get('posts/admin/metrics/pet-listings-location');
+      console.log(response.data)
+      return response.data;
     } catch (error) {
-        throw error;
+      console.error('Error fetching pet listing location data:', error);
+      throw error;
     }
-};
+  };

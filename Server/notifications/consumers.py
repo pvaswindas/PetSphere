@@ -77,10 +77,8 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         """
         try:
             message = event.get('message', {})
-            print("MESSAGE :", message)
             await self.send(text_data=json.dumps(message))
         except Exception as e:
-            print("CHANNEL EXCEPTION :", str(e))
             logger.error(
                 f"Error sending notification: {str(e)}", exc_info=True
             )

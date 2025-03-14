@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Chart from "react-apexcharts";
 import { fetchSubscriptionStatusData } from "../../../../api/metrics";
+import Shimmer from "../../../Shimmer/Shimmer";
 
 const SubscriptionStatusChart = () => {
   const [statusData, setStatusData] = useState({
@@ -16,9 +17,28 @@ const SubscriptionStatusChart = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetchSubscriptionStatusData();
-        setStatusData(response);
+          const response = await fetchSubscriptionStatusData();
+
+          console.log(response)
+          
+          // Validate response data
+          if (response && 
+            Array.isArray(response.categories) && 
+            Array.isArray(response.recharge) && 
+            Array.isArray(response.monthly) && 
+            Array.isArray(response.yearly)) {
+
+          // Check if all values are zeros
+          const allZeros = response.recharge.every(val => val === 0) && 
+                          response.monthly.every(val => val === 0) && 
+                          response.yearly.every(val => val === 0);
+
+          if (!allZeros) {
+            setStatusData(response);
+          }
+        }
       } catch (err) {
+        console.error("Error fetching subscription status data:", err);
         setError("Failed to load subscription status data");
       } finally {
         setIsLoading(false);
@@ -31,7 +51,7 @@ const SubscriptionStatusChart = () => {
   const chartOptions = {
     chart: {
       type: 'bar',
-      height: 250,
+      height: 190,
       stacked: true,
       toolbar: {
         show: false
@@ -93,6 +113,15 @@ const SubscriptionStatusChart = () => {
     },
     fill: {
       opacity: 1
+    },
+    noData: {
+      text: 'No subscription data available',
+      align: 'center',
+      verticalAlign: 'middle',
+      style: {
+        fontSize: '14px',
+        fontFamily: 'Poppins, Arial, sans-serif',
+      }
     }
   };
 
@@ -111,8 +140,31 @@ const SubscriptionStatusChart = () => {
     }
   ];
 
-  if (isLoading) return null;
-  if (error) return <div className="text-sm text-red-500">{error}</div>;
+  // Check if we have data to display
+  const hasData = statusData.categories.length > 0 && 
+                  statusData.recharge.length > 0 && 
+                  statusData.monthly.length > 0 && 
+                  statusData.yearly.length > 0;
+
+  if (isLoading) {
+    return <Shimmer className="h-full w-full rounded-xl" />;
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center w-full">
+        <p className="text-sm text-red-500">{error}</p>
+      </div>
+    );
+  }
+
+  if (!hasData) {
+    return (
+      <div className="flex items-center justify-center w-full">
+        <p className="text-sm text-gray-500">No subscription data available</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full">
@@ -120,7 +172,7 @@ const SubscriptionStatusChart = () => {
         options={chartOptions} 
         series={series} 
         type="bar" 
-        height="100%" 
+        height="190" 
       />
     </div>
   );

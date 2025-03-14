@@ -8,6 +8,7 @@ import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { setEmail, setProfile } from '../../../redux/slices/ProfileSlice'
 import AlertSnackbar from '../../Snackbar/AlertSnackbar'
+import { motion } from 'framer-motion'
 
 const LoginForm = () => {
     const [formData, setFormData] = useState({
@@ -70,9 +71,55 @@ const LoginForm = () => {
         }));
     };
 
+    // Animation variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: { 
+            opacity: 1,
+            transition: { 
+                duration: 0.5,
+                when: "beforeChildren",
+                staggerChildren: 0.2
+            }
+        }
+    };
+    
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: { 
+            y: 0, 
+            opacity: 1,
+            transition: { duration: 0.4 }
+        }
+    };
+    
+    const logoVariants = {
+        hidden: { scale: 0.8, opacity: 0 },
+        visible: { 
+            scale: 1, 
+            opacity: 1,
+            transition: { 
+                type: "spring",
+                stiffness: 260,
+                damping: 20,
+                duration: 0.6 
+            }
+        }
+    };
+
+    const buttonVariants = {
+        idle: { scale: 1 },
+        hover: { scale: 1.03 },
+        tap: { scale: 0.97 }
+    };
 
     return (
-        <div className="flex items-center w-full py-10 justify-center">
+        <motion.div 
+            className="flex items-center w-full py-10 justify-center"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+        >
             <AlertSnackbar 
                 open={snackbarOpen}
                 message={snackbarMessage}
@@ -80,59 +127,94 @@ const LoginForm = () => {
                 onClose={() => setSnackbarOpen(false)}
             />
 
-            <div className="bg-blackOpacity30 p-6 rounded-2xl shadow-lg w-full max-w-sm sm:py-6 md:w-2/3">
+            <motion.div 
+                className="bg-blackOpacity30 p-6 rounded-2xl shadow-lg w-full max-w-sm sm:py-6 md:w-2/3"
+                variants={itemVariants}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+            >
                 <div className="flex flex-col items-center">
-                    <img src={symbolLogo} alt="Symbol Logo" className="w-24"/>
-                    <h2 className="text-lg font-semibold text-white text-center">PetSphere Admin Login</h2>
-                    <p className="font-light text-sm text-whiteOpacity05">Connect and manage platform responsibilities</p>
+                    <motion.img 
+                        src={symbolLogo} 
+                        alt="Symbol Logo" 
+                        className="w-24"
+                        variants={logoVariants}
+                    />
+                    <motion.h2 
+                        className="text-lg font-semibold text-white text-center"
+                        variants={itemVariants}
+                    >
+                        PetSphere Admin Login
+                    </motion.h2>
+                    <motion.p 
+                        className="font-light text-sm text-whiteOpacity05"
+                        variants={itemVariants}
+                    >
+                        Connect and manage platform responsibilities
+                    </motion.p>
                 </div>
                 <form onSubmit={handleSubmit}>
-                    <TextFieldInput 
-                        borderRadius="rounded-md"
-                        labelColor="text-white"
-                        borderColor="focus:ring-borderGreen"
-                        mainBackground="bg-blackOpacity30"
-                        focusBorderColor="focus:ring-borderGreen"
-                        validationPattern={/.+/}
-                        errorNull={true}
-                        errorMessage="This field is required"
-                        textColor="text-whiteOpacity05"
-                        value={formData.username}
-                        margin="my-5"
-                        onChange={(value) => handleChange('username', value)}
-                    />
+                    <motion.div variants={itemVariants}>
+                        <TextFieldInput 
+                            borderRadius="rounded-md"
+                            labelColor="text-white"
+                            borderColor="focus:ring-borderGreen"
+                            mainBackground="bg-blackOpacity30"
+                            focusBorderColor="focus:ring-borderGreen"
+                            validationPattern={/.+/}
+                            errorNull={true}
+                            errorMessage="This field is required"
+                            textColor="text-whiteOpacity05"
+                            value={formData.username}
+                            margin="my-5"
+                            onChange={(value) => handleChange('username', value)}
+                        />
+                    </motion.div>
 
-                    <PasswordInput 
-                        borderRadius="rounded-md"
-                        mainBackground="bg-blackOpacity30"
-                        labelColor="text-white"
-                        borderColor="border-gray-300"
-                        textColor="text-whiteOpacity05"
-                        focusBorderColor="focus:ring-borderGreen"
-                        validationPattern={/.{8,}/}
-                        errorMessage="Password must be at least 8 characters"
-                        value={formData.password}
-                        margin="my-5"
-                        onChange={(value) => handleChange("password", value)}
-                    />
+                    <motion.div variants={itemVariants}>
+                        <PasswordInput 
+                            borderRadius="rounded-md"
+                            mainBackground="bg-blackOpacity30"
+                            labelColor="text-white"
+                            borderColor="border-gray-300"
+                            textColor="text-whiteOpacity05"
+                            focusBorderColor="focus:ring-borderGreen"
+                            validationPattern={/.{8,}/}
+                            errorMessage="Password must be at least 8 characters"
+                            value={formData.password}
+                            margin="my-5"
+                            onChange={(value) => handleChange("password", value)}
+                        />
+                    </motion.div>
 
-
-                    <Button 
-                        type="submit"
-                        text={isLoading ? "Logging in..." : "Login"}
-                        isLoading={isLoading}
-                        textColor="text-white"
-                        rounded="rounded-md"
-                        paddingx="px-4"
-                        paddingy="py-2"
-                        className="w-full my-8"
-                        backgroundColor="bg-blackOpacity40"
-                        isLoadingBackground="bg-blackOpacity30"
-                        hoverBackgroundColor="hover:bg-blackOpacity30"
-                    />
+                    <motion.div
+                        variants={itemVariants}
+                    >
+                        <motion.div
+                            variants={buttonVariants}
+                            initial="idle"
+                            whileHover="hover"
+                            whileTap="tap"
+                        >
+                            <Button 
+                                type="submit"
+                                text={isLoading ? "Logging in..." : "Login"}
+                                isLoading={isLoading}
+                                textColor="text-white"
+                                rounded="rounded-md"
+                                paddingx="px-4"
+                                paddingy="py-2"
+                                className="w-full my-8"
+                                backgroundColor="bg-blackOpacity40"
+                                isLoadingBackground="bg-blackOpacity30"
+                                hoverBackgroundColor="hover:bg-blackOpacity30"
+                            />
+                        </motion.div>
+                    </motion.div>
                 </form>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     )
 }
 

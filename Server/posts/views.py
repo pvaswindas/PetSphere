@@ -1,7 +1,7 @@
 # Standard libraries
 import redis
-from django.db.models import Q
 from django.conf import settings
+from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
 
 # Third-party libraries
@@ -16,7 +16,7 @@ from rest_framework.decorators import api_view, permission_classes
 # Internal modules
 from .models import (
     Post, PetListing, PetListingImage,
-    SavedPost,
+    SavedPost, PetListingLocation
 )
 from accounts.models import PetSphereUser
 from socials.models import Like
@@ -180,13 +180,10 @@ class UserPostListCreateView(APIView):
                     serializer.data, status=status.HTTP_201_CREATED
                 )
 
-            print("SERIALIZER ERROR : ", serializer.errors)
-
             return Response(
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
-            print("SERVER ERROR :", str(e))
             return Response(
                 {
                     "success": False,
@@ -424,7 +421,6 @@ class PetListingsView(APIView):
                 'address', 'city', 'state', 'zip_code', 'latitude',
                 'longitude'
             ]
-            print("BEFORE RF")
             data = validate_request_data(request, required_fields)
             if isinstance(data, Response):
                 return data
@@ -433,12 +429,9 @@ class PetListingsView(APIView):
                 value) == 1 else value for key, value in data.items()}
             data.update(cleaned_data)
 
-            print("CD :", cleaned_data)
             seller, created = Seller.objects.get_or_create(user=user)
             data['seller'] = seller.id
-            print("BEFORE IMG")
             images = request.data.getlist('images', [])
-            print("AFTER IMG :", images)
             location_data = {
                 'address': data.pop('address'),
                 'city': data.pop('city'),
@@ -449,10 +442,8 @@ class PetListingsView(APIView):
             }
             data['pet_type'] = Pet.objects.get(name=data['pet_type']).id
             data['breed'] = PetBreed.objects.get(name=data['breed']).id
-            print("BEFORE SERIALIZER")
             petListingSerializer = PetListingCreateSerializer(data=data)
             if petListingSerializer.is_valid():
-                print("SERIALIZER VALID")
                 pet_listing = petListingSerializer.save()
 
                 location_data['pet_listing'] = pet_listing.id
@@ -472,10 +463,7 @@ class PetListingsView(APIView):
                             media_name=f"listing_{pet_listing.id}"
                         )
 
-                        print("IMAGE_URL", image_url)
-
                         if not image_url:
-                            print("NO IMAGE URL")
                             return Response(
                                 {
                                     "success": False,
@@ -492,7 +480,6 @@ class PetListingsView(APIView):
                         pet_listing_image.save()
 
                     except Exception as e:
-                        print("ERROR JUST AFTER : ", str(e))
                         return Response({"error": str(e)},
                                         status=status.HTTP_400_BAD_REQUEST)
                 profile.petlisting_count += 1
@@ -502,11 +489,9 @@ class PetListingsView(APIView):
                 return Response({"detail": PetListingRetrieveSerializer(
                     pet_listing).data}, status=status.HTTP_201_CREATED)
             else:
-                print("SERIALIZER ERROR : ", petListingSerializer.errors)
                 return Response({"error": petListingSerializer.errors},
                                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print("SERVER ERROR : ", str(e))
             return Response({"error": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -605,4 +590,27 @@ def post_engagement_metrics(request):
         {"name": "Stories", "value": pawstories_count},
     ]
 
-    return Response(data)
+    return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def pet_listings_location(request):
+    """
+    Retrieve pet listing location data for the admin dashboard treemap.
+    Counts listings by city and state.
+    """
+    # Get location data grouped by state and city
+    location_data = PetListingLocation.objects.values(
+        'state', 'city'
+    ).annotate(count=Count('id')).order_by('-count')
+
+    result = []
+    for item in location_data:
+        result.append({
+            'state': item['state'],
+            'city': item['city'],
+            'count': item['count']
+        })
+
+    return Response(result, status=status.HTTP_200_OK)

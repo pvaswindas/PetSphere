@@ -1,5 +1,4 @@
 from django.db import models
-from datetime import timedelta
 from accounts.models import PetSphereUser
 from sellers.models import Seller
 from pets.models import Pet, PetBreed
@@ -79,24 +78,6 @@ class PetListingImage(models.Model):
         blank=True,
     )
     created_at = models.DateTimeField(auto_now_add=True)
-
-
-class PetListingImageTemp(models.Model):
-    redis_key = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='pet_listing_images_temp/')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-        from .tasks import delete_old_images
-
-        delete_old_images.apply_async(
-            eta=self.created_at + timedelta(minutes=20)
-        )
-
-    def __str__(self):
-        return self.redis_key
 
 
 class PetListingLocation(models.Model):

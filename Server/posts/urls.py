@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
      UserPostListCreateView, UserPostDetailView, PetListingsView,
      PostListView, PetListingListView, UserFeedView, PetMarketplaceView,
-     save_post, fetch_saved_by, post_engagement_metrics
+     save_post, fetch_saved_by, post_engagement_metrics, pet_listings_location,
 )
 
 urlpatterns = [
@@ -26,6 +26,11 @@ urlpatterns = [
           'admin/metrics/engagement',
           post_engagement_metrics,
           name='post-engagement-metrics'
+     ),
+     path(
+         'admin/metrics/pet-listings-location',
+         pet_listings_location,
+         name='pet-listings-location'
      ),
 
      # User-related URLs
