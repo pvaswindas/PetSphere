@@ -152,11 +152,6 @@ const VideoCallUI = ({ isCaller = false }) => {
             }
         };
 
-        // Debug ICE gathering process
-        // peerConnection.current.onicegatheringstatechange = () => {
-        //     console.log("ICE Gathering State:", peerConnection.current.iceGatheringState);
-        // };
-
         peerConnection.current.onicecandidate = (event) => {
             if (event.candidate) {
                 sendMessage({ type: "candidate", candidate: event.candidate });

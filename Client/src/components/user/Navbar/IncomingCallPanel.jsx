@@ -33,7 +33,6 @@ function IncomingCallPanel() {
 
         socketRef.current.onmessage = function(event) {
             try {
-                console.log('WebSocket message received:', event.data);
                 
                 if (event.data === "ping") {
                     socketRef.current.send("pong");
