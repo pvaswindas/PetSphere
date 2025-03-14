@@ -7,7 +7,7 @@ import ProfileViewBar from '../../../components/user/sidebar/ProfileViewBar'
 
 function Chat() {
     return (
-        <div className="bg-white lg:bg-whiteOpacity02 min-h-screen flex flex-col overflow-hidden">
+        <div className="bg-white lg:bg-whiteOpacity02 h-screen flex flex-col overflow-hidden">
             {/* Navbar (Only visible on lg and above) */}
             <div className="hidden lg:block">
                 <Navbar />

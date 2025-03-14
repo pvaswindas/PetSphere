@@ -1,17 +1,18 @@
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import dotMenuIcon from "../../../assets/icon/post/dot-menu-icon.svg";
 import { deletePawstory, fetchPawstory, updatePawstory } from "../../../redux/thunks/PostThunk";
 import Swal from "sweetalert2";
 import axiosInstance from "../../../axios/axiosinstance";
 import AlertSnackbar from "../../Snackbar/AlertSnackbar";
 import { fetchLikedUsers } from "../../../redux/thunks/FetchLikedUsers";
 import { CommentArea } from "../CommentArea/CommentArea";
-import { fetchPostSavedUsers } from "../../../redux/thunks/FetchPostSavedUsers";
-import { Bookmark, BookmarkCheck, Send, Heart, MessageSquareText } from "lucide-react";
+import { Send, Heart, MessageSquareText } from "lucide-react";
 import OptionsModal from "../../common/OptionsModal";
 import Shimmer from "../../Shimmer/Shimmer";
+import { ContentArea } from "./ContentArea";
+import { PostHeader } from "./PostHeader";
+import EditContentArea from "./EditContentArea";
 
 const   PostDisplayCard = memo(() => {
     const { slug } = useParams();
@@ -20,12 +21,9 @@ const   PostDisplayCard = memo(() => {
     const [isDeleteModalOpen, setDeleteIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editedContent, setEditedContent] = useState("");
-    const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [isLiked, setIsLiked] = useState(false)
     const [likedPeople, setLikedPeople] = useState([])
     const [showComment, setShowComment] = useState(false)
-
-    const [isSaved, setIsSaved] = useState(false)
 
 
     const [snackbarMessage, setSnackbarMessage] = useState("")
@@ -45,18 +43,6 @@ const   PostDisplayCard = memo(() => {
     updatedAt.setSeconds(0, 0)
     const isPostEdited = createdAt.getTime() !== updatedAt.getTime()
 
-    const fetchSavedUsers = useCallback(async () => {
-        setIsLoading(true)
-        try {
-            const response = await dispatch(fetchPostSavedUsers(post_id)).unwrap()
-            setIsSaved(response.is_saved_by_user);
-        } catch (error) {
-            
-        } finally {
-            setIsLoading(false)
-        }
-    }, [dispatch, post_id])
-
     const fetchData = useCallback((slug) => {
         setIsLoading(true)
         try {
@@ -69,12 +55,6 @@ const   PostDisplayCard = memo(() => {
             setIsLoading(false)
         }
     }, [dispatch])
-
-    useEffect(() => {
-        if (post_id) {
-            fetchSavedUsers()
-        }
-    }, [post_id, fetchSavedUsers])
 
     useEffect(() => {
         if (slug) {
@@ -168,18 +148,6 @@ const   PostDisplayCard = memo(() => {
         }
     };
 
-    const nextImage = () => {
-        if (currentImageIndex < post.images.length - 1) {
-            setCurrentImageIndex(currentImageIndex + 1);
-        }
-    };
-
-    const prevImage = () => {
-        if (currentImageIndex > 0) {
-            setCurrentImageIndex(currentImageIndex - 1);
-        }
-    };
-
     const handleLike = async () => {
         const post_id = post.id
         try {
@@ -227,22 +195,44 @@ const   PostDisplayCard = memo(() => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col lg:flex-row gap-4 p-4">
-                <div className="flex-shrink-0 w-full lg:w-1/2 relative">
-                    <Shimmer className="w-full h-full lg:rounded-s-lg" />
+            <div className="bg-white lg:shadow-lg w-full rounded-lg flex flex-col lg:flex-row">
+                {/* Left side - Image shimmer */}
+                <div className="w-full lg:w-1/2 relative min-h-[600px]">
+                    <Shimmer className="w-full h-full min-h-[300px] lg:rounded-l-lg" />
                 </div>
-                <div className="flex-grow w-full flex flex-col justify-between my-2">
-                    <div className="flex items-center justify-between my-2 mx-4">
-                        <Shimmer className="h-10 w-10 rounded-full" />
-                        <div className="flex flex-col">
-                            <Shimmer className="h-4 w-32 mb-2" />
-                            <Shimmer className="h-4 w-24" />
+                
+                {/* Right side - Content shimmer */}
+                <div className="flex-grow w-full lg:w-1/2 flex flex-col justify-between p-4">
+                    {/* User header shimmer */}
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                            <Shimmer className="h-10 w-10 rounded-full" />
+                            <div className="flex flex-col ml-3">
+                                <Shimmer className="h-4 w-24 mb-2" />
+                                <Shimmer className="h-3 w-16" />
+                            </div>
                         </div>
-                        <Shimmer className="h-5 w-5" />
+                        <Shimmer className="h-6 w-6 rounded-full" />
                     </div>
-                    <Shimmer className="w-full h-12 mb-4" />
-                    <div className="flex justify-between items-center">
-                        <Shimmer className="w-1/2 h-6" />
+                    
+                    {/* Content shimmer */}
+                    <div className="flex-grow">
+                        <Shimmer className="w-full h-4 mb-2" />
+                        <Shimmer className="w-5/6 h-4 mb-2" />
+                        <Shimmer className="w-4/6 h-4 mb-2" />
+                        <Shimmer className="w-3/6 h-4" />
+                    </div>
+                    
+                    {/* Action buttons shimmer */}
+                    <div className="mt-4 pt-4 border-t">
+                        <div className="flex items-center">
+                            <Shimmer className="h-8 w-8 rounded-full mr-2" />
+                            <Shimmer className="h-4 w-6 mr-4" />
+                            <Shimmer className="h-8 w-8 rounded-full mr-2" />
+                            <Shimmer className="h-4 w-6 mr-4" />
+                            <Shimmer className="h-8 w-8 rounded-full" />
+                        </div>
+                        <Shimmer className="h-3 w-32 mt-3" />
                     </div>
                 </div>
             </div>
@@ -250,7 +240,8 @@ const   PostDisplayCard = memo(() => {
     }
 
 
-    if (!post || !post.images || post.images.length === 0) {
+
+    if ((!post || !post.images || post.images.length === 0)  && !isLoading) {
         return (
             <div className="w-full h-64 flex items-center justify-center rounded-lg">
                 <p className="text-gray-500">Post not found</p>
@@ -267,135 +258,33 @@ const   PostDisplayCard = memo(() => {
                     alert_type={snackbarAlertType}
                     onClose={() => setSnackbarOpen(false)}
                 />
-                {/* Left Section: Image */}
-                <div className="flex-shrink-0 w-full lg:w-1/2 relative">
-                    {/* Display current image */}
-                    <img
-                        src={post.images[currentImageIndex].image}
-                        alt={post.content}
-                        className="w-full h-full lg:rounded-s-lg object-cover"
-                    />
 
-                    {/* Navigation buttons */}
-                    {currentImageIndex > 0 && (
-                        <button
-                            className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-700 text-white p-3 rounded-full"
-                            onClick={prevImage}
-                            aria-label="Previous Image"
-                        >
-                            <svg
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                className="w-3 h-3"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M15 19l-7-7 7-7"
-                                />
-                            </svg>
-                        </button>
-                    )}
-                    {currentImageIndex < post.images.length - 1 && (
-                        <button
-                            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-700 text-white p-3 rounded-full"
-                            onClick={nextImage}
-                            aria-label="Next Image"
-                        >
-                            <svg
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                className="w-3 h-3"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M9 5l7 7-7 7"
-                                />
-                            </svg>
-                        </button>
-                    )}
-                </div>
+                <PostHeader post={post} toggleModal={toggleModal} />
+
+                <ContentArea post={post} />
 
                 {!showComment ? (
                     // Right Section: Content
-                    <div className="flex-grow w-full flex flex-col justify-between my-2">
+                    <div className="flex-grow w-full flex flex-col justify-between">
                         {/* User Info */}
-                        <div>
-                            <div className="flex items-center justify-between my-2 mx-4">
-                                {/* Left Section: Profile and Date */}
-                                <div className="flex items-center">
-                                    <img
-                                        src={post.user_profile.profile_picture || ""}
-                                        alt={post.user_profile.user.username || "User"}
-                                        className="w-10 h-10 rounded-full object-cover mr-3"
-                                    />
-                                    <div className="flex flex-col">
-                                        <p className="text-lg text-gray-800 font-semibold">
-                                            {post.user_profile.user.username || "Anonymous"}
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            {post.created_at
-                                                ? new Date(post.created_at).toLocaleDateString("en-GB", {
-                                                    day: "2-digit",
-                                                    month: "short",
-                                                    year: "numeric",
-                                                })
-                                                : ""}
-                                        </p>
-                                    </div>
-                                </div>
+                        <div className="m-0 p-0">
 
-                                {/* Right Section: Dot Menu */}
-                                <button
-                                    className="flex items-center"
-                                    aria-label="Dot-Menu"
-                                    onClick={toggleModal}
-                                >
-                                    <img src={dotMenuIcon} alt="Dot-Menu" className="w-5" />
-                                </button>
-                            </div>
+                            <PostHeader post={post} toggleModal={toggleModal} isScreenLarger={true} />
 
-                            <hr className="mt-2" />
+                            <hr className="mt-2 hidden lg:flex" />
                             {/* Post Content */}
                             {isEditing ? (
-                                <div className="relative m-4">
-                                    {/* Done and Cancel Links */}
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span
-                                            onClick={handleCancel}
-                                            className="text-gray-500 hover:text-gray-700 cursor-pointer text-sm"
-                                        >
-                                            Cancel
-                                        </span>
-                                        <span
-                                            onClick={handleContentSave}
-                                            className="text-gray-500 hover:text-gray-700 cursor-pointer text-sm"
-                                        >
-                                            Done
-                                        </span>
-                                    </div>
-
-                                    {/* Editable Input Field */}
-                                    <input
-                                        id="post-content"
-                                        name="content"
-                                        type="text"
-                                        value={editedContent}
-                                        onChange={(e) => setEditedContent(e.target.value)}
-                                        maxLength={100}
-                                        className="w-full h-12 rounded-lg p-2 text-lg focus:outline-none"
-                                        placeholder="Edit your post content..."
-                                    />
-                                </div>
+                                <EditContentArea 
+                                    isEditing={isEditing}
+                                    editedContent={editedContent}
+                                    setEditedContent={setEditedContent}
+                                    handleCancel={handleCancel}
+                                    handleContentSave={handleContentSave}
+                                />
                             ) : (
-                                <div className="flex justify-between m-4 items-center">
-                                    <h2 className="text-lg">{post.content}</h2>
-                                    {isPostEdited && (
+                                <div className="hidden lg:flex justify-between m-2 items-center">
+                                    <h2>{post.content}</h2>
+                                    {/* {isPostEdited && (
                                         <p className="text-xs text-gray-500">
                                             Edited on{" "}
                                             {new Date(post.updated_at).toLocaleDateString("en-GB", {
@@ -404,15 +293,15 @@ const   PostDisplayCard = memo(() => {
                                                 year: "numeric",
                                             })}
                                         </p>
-                                    )}
-                                </div>                                
+                                    )} */}
+                                </div>                         
                             )}
                         </div>
 
                         {/* Action Icons */}
                         <div>
-                            <hr />
-                            <div className="flex flex-col gap-0 m-4">
+                            <hr className="hidden lg:flex" />
+                            <div className="flex flex-col m-3 lg:m-4">
                                 <div className="flex items-center text-gray-600">
                                     <button
                                         className="flex items-center p-2 hover:bg-gray-200 rounded-full"
@@ -452,7 +341,7 @@ const   PostDisplayCard = memo(() => {
                                     </button>
                                 </div>
                                 {likedPeople?.length > 0 && (
-                                    <p className="ms-2 text-blackOpacity85">
+                                    <p className="ms-2 text-sm text-blackOpacity70">
                                         Liked by{" "}
                                         {likedPeople[0] === profile?.user?.username ? "you" : likedPeople[0]}
                                         {likedPeople?.length > 1 && (
@@ -465,7 +354,9 @@ const   PostDisplayCard = memo(() => {
                                     </p>
                                 )}
                             </div>
+                            <h2 className="px-5 lg:hidden">{post.content}</h2>
                         </div>
+                        
                     </div>
                 ) : (
                     <CommentArea onClose={handleCommentAreaClose} postId={post.id} post={post} />
