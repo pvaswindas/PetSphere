@@ -50,8 +50,13 @@ def initiate_call(request):
             "profile_picture": get_profile_picture_url(profile),
         }
 
+        print("CALLER :", caller_data)
+
         callee = get_object_or_404(PetSphereUser, username=callee_username)
 
+        print("CALLEE :", callee)
+
+        print("DEBUG : BEFORE CHANNEL")
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             f"user_{callee.id}",
