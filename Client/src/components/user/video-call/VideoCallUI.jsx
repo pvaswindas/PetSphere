@@ -60,8 +60,10 @@ const VideoCallUI = ({ isCaller = false }) => {
     useEffect(() => {
         const token = localStorage.getItem("ACCESS_TOKEN");
         if (!token) return;
+
+        const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
     
-        socket.current = new WebSocket(`wss://${process.env.REACT_APP_API_SITE_URL}/ws/video_call/${username}/?token=${token}`);
+        socket.current = new WebSocket(`${wsProtocol}://${process.env.REACT_APP_API_SITE_URL}/ws/video_call/${username}/?token=${token}`);
 
         // socket.current.onopen = () => {
             

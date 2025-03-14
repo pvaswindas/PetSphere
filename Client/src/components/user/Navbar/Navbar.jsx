@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import SearchBar from "./SearchBar";
 import mainLogo from "../../../assets/logo/main-logo.png";
 import { useLogout } from "../../../hooks/useLogout";
@@ -115,4 +115,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default memo(Navbar);

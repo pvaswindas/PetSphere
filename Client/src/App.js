@@ -56,7 +56,6 @@ import ManageReports from "./pages/admin-ui/reports/ManageReports";
 import NotFoundPage from "./pages/NotFoundPage";
 import ServerDownPage from "./pages/ServerDownPage";
 import LoadingPage from "./pages/LoadingPage";
-import WebSocketInitializer from "./utils/WebSocketInitializer";
 import { useNetworkStatus } from "./hooks/useNetworkStatus";
 
 function App() {
@@ -87,7 +86,6 @@ function App() {
 
     return (
         <div className="bg-gray-75 h-screen">
-            <WebSocketInitializer />
             <Routes>
                 {/* Landing Route */}
                 <Route path="/" element={<RestrictedRoute><Landing /></RestrictedRoute>} />

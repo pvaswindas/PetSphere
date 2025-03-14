@@ -291,7 +291,6 @@ class LoginView(APIView):
             )
 
         except Exception as e:
-            print(str(e))
             return Response(
                 {"error": "Unexpected error", "details": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
