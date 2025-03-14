@@ -24,13 +24,6 @@ def send_notification(request):
     return JsonResponse({"status": "Notification sent"})
 
 
-def get_profile_picture_url(profile):
-    """Helper function to get absolute profile picture URL"""
-    if profile.profile_picture:
-        return f"{settings.BASE_URL}{profile.profile_picture.url}"
-    return ""
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def initiate_call(request):
@@ -50,7 +43,7 @@ def initiate_call(request):
 
         caller_data = {
             "username": caller.username,
-            "profile_picture": get_profile_picture_url(profile),
+            "profile_picture": profile.profile_picture,
         }
 
         print("CALLER :", caller_data)
