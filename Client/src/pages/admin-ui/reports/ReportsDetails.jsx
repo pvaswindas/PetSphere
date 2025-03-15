@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { Flag, User, Calendar, AlertTriangle, Ban, MessageSquareWarning, CheckCircle, XCircle } from 'lucide-react';
+import { Flag, User, Calendar, AlertTriangle, Ban, CheckCircle, XCircle } from 'lucide-react';
+import axiosInstance from '../../../axios/axiosinstance';
 
-
-function ReportDetails({ report, onBack, onAction }) {
+function ReportDetails({ report, onBack, onReportUpdated }) {
+    const [isLoading, setIsLoading] = useState(false);
+    const [actionMessage, setActionMessage] = useState(null);
     const activeIcon = "manage-reports";
+    
     const getActionButtons = () => {
         switch (report.type) {
         case 'user':
@@ -19,11 +22,10 @@ function ReportDetails({ report, onBack, onAction }) {
             { label: 'Remove Listing', icon: XCircle, action: 'remove', color: 'red' },
             { label: 'Mark as Safe', icon: CheckCircle, action: 'safe', color: 'green' }
             ];
-        case 'comment':
+        case 'post':
             return [
-            { label: 'Hide Comment', icon: MessageSquareWarning, action: 'hide', color: 'yellow' },
-            { label: 'Delete Comment', icon: XCircle, action: 'delete', color: 'red' },
-            { label: 'Approve', icon: CheckCircle, action: 'approve', color: 'green' }
+                { label: 'Delete Post', icon: XCircle, action: 'delete', color: 'red' },
+                { label: 'Approve Post', icon: CheckCircle, action: 'approve', color: 'green' }
             ];
         default:
             return [];
@@ -38,8 +40,83 @@ function ReportDetails({ report, onBack, onAction }) {
             return 'bg-blue-100 text-blue-800';
         case 'resolved':
             return 'bg-green-100 text-green-800';
+        case 'rejected':
+            return 'bg-gray-100 text-gray-800';
         default:
             return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    const handleNavigate = () => {
+        let navigateTo = 'post'
+
+        if (report.type === 'user') {
+            navigateTo = 'profile'
+        }
+
+        if (report.type === 'listing') {
+            navigateTo = 'listing'
+        }
+
+        window.open(`/${navigateTo}/${report.link_to_content}`, '_blank', 'noopener,noreferrer');
+    };
+    
+    const handleAction = async (reportId, action) => {
+        setIsLoading(true);
+        setActionMessage(null);
+        
+        try {
+            
+            const response = await axiosInstance.post('reports/handle-report-action/', {
+                report_id: reportId,
+                action: action
+            });
+            
+            if (response.data.status === 'success') {
+                setActionMessage({
+                    type: 'success',
+                    text: response.data.message
+                });
+                
+                if (onReportUpdated) {
+                    // Create an updated report object based on the action
+                    const updatedReport = {
+                        ...report,
+                        status: getUpdatedStatus(action)
+                    };
+                    onReportUpdated(updatedReport);
+                }
+                
+                setTimeout(() => {
+                    onBack();
+                }, 2000);
+            }
+        } catch (error) {
+            console.error("Error handling action:", error);
+            setActionMessage({
+                type: 'error',
+                text: error.response?.data?.message || 'An error occurred while processing your request'
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    const getUpdatedStatus = (action) => {
+        switch (action) {
+            case 'warn':
+            case 'temp-ban':
+            case 'perm-ban':
+            case 'delete':
+            case 'remove':
+                return 'resolved';
+            case 'flag':
+                return 'investigating';
+            case 'approve':
+            case 'safe':
+                return 'rejected';
+            default:
+                return report.status;
         }
     };
 
@@ -58,12 +135,18 @@ function ReportDetails({ report, onBack, onAction }) {
                         <div className="flex items-center justify-between">
                         <h1 className="text-2xl font-bold text-gray-900">Report Details</h1>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(report.status)}`}>
-                            {report.type.charAt(0).toUpperCase() + report.type.slice(1)}
+                            {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
                         </span>
                         </div>
                     </div>
 
                     <div className="p-6">
+                        {actionMessage && (
+                            <div className={`mb-4 p-4 rounded-md ${actionMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                                {actionMessage.text}
+                            </div>
+                        )}
+                        
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                             <div>
@@ -76,7 +159,10 @@ function ReportDetails({ report, onBack, onAction }) {
 
                             <div>
                             <h3 className="text-sm font-medium text-gray-500">Reported Content</h3>
-                            <p className="mt-1 flex items-center text-lg font-medium text-gray-900">
+                            <p 
+                                className="mt-1 flex items-center text-lg font-medium text-gray-900 hover:text-amber-500 cursor-pointer"
+                                onClick={() => handleNavigate()}
+                            >
                                 <User className="h-5 w-5 mr-2 text-gray-400" />
                                 {report.reported_content}
                             </p>
@@ -100,25 +186,29 @@ function ReportDetails({ report, onBack, onAction }) {
                         </div>
                         </div>
 
-                        <div className="mt-8 border-t border-gray-200 pt-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Take Action</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {getActionButtons().map((button) => (
-                            <button
-                                key={button.action}
-                                onClick={() => onAction(report.id, button.action)}
-                                className={`flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
-                                ${button.color === 'red' ? 'bg-red-600 hover:bg-red-700' :
-                                    button.color === 'yellow' ? 'bg-yellow-500 hover:bg-yellow-600' :
-                                    button.color === 'orange' ? 'bg-orange-500 hover:bg-orange-600' :
-                                    'bg-green-600 hover:bg-green-700'}`}
-                            >
-                                <button.icon className="h-5 w-5 mr-2" />
-                                {button.label}
-                            </button>
-                            ))}
-                        </div>
-                        </div>
+                        {report.status === "pending" &&
+                            <div className="mt-8 border-t border-gray-200 pt-6">
+                                <h3 className="text-lg font-medium text-gray-900 mb-4">Take Action</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {getActionButtons().map((button) => (
+                                    <button
+                                        key={button.action}
+                                        onClick={() => handleAction(report.id, button.action)}
+                                        disabled={isLoading}
+                                        className={`flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+                                        ${button.color === 'red' ? 'bg-red-600 hover:bg-red-700' :
+                                            button.color === 'yellow' ? 'bg-yellow-500 hover:bg-yellow-600' :
+                                            button.color === 'orange' ? 'bg-orange-500 hover:bg-orange-600' :
+                                            'bg-green-600 hover:bg-green-700'}
+                                        ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        <button.icon className="h-5 w-5 mr-2" />
+                                        {button.label}
+                                    </button>
+                                    ))}
+                                </div>
+                            </div>
+                        }
                     </div>
                     </div>
                 </div>

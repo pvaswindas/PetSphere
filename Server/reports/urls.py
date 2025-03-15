@@ -3,12 +3,16 @@ from rest_framework.routers import DefaultRouter
 from . import views
 
 
-# Create a router and register our ViewSets with it.
 router = DefaultRouter()
 router.register(r'report-content', views.ReportsViewSet, basename='reports')
 
 
-# The API URLs are now determined automatically by the router.
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path(
+        'handle-report-action/',
+        views.handle_report_action,
+        name='handle_report_action'
+    ),
+    path('stats/', views.report_stats, name='report-stats'),
 ]

@@ -9,10 +9,9 @@ class Reports(models.Model):
     ]
 
     REPORT_TYPE_CHOICES = [
-        ('post', 'Post'),
         ('user', 'User'),
         ('listing', "Listing"),
-        ('comment', 'Comment'),
+        ('post', 'Post'),
     ]
 
     type = models.CharField(max_length=20, choices=REPORT_TYPE_CHOICES)

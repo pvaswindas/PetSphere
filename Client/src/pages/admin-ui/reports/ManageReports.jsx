@@ -1,77 +1,97 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import AdminLayout from '../../../components/admin/AdminLayout'
-import { Flag, Users, ShoppingBag, MessageCircle, BarChart3 } from 'lucide-react';
+import { Flag, Users, ShoppingBag, Image, BarChart3 } from 'lucide-react';
 import ReportDetails from './ReportsDetails';
+import { getReports, getReportStats } from '../../../api/reports';
+import AlertSnackbar from '../../../components/Snackbar/AlertSnackbar';
 
-const mockReports = [
-  {
-    id: 1,
-    type: 'user',
-    reported_content: 'john_doe',
-    reason: 'Inappropriate behavior',
-    description: 'User was spamming in comments',
-    created_at: '2024-03-15',
-    status: 'pending'
-  },
-  {
-    id: 2,
-    type: 'listing',
-    reported_content: 'Golden Retriever Puppies',
-    reason: 'Suspicious listing',
-    description: 'Price seems too low, might be a scam',
-    created_at: '2024-03-14',
-    status: 'investigating'
-  },
-  {
-    id: 3,
-    type: 'comment',
-    reported_content: 'Inappropriate comment content',
-    reason: 'Harassment',
-    description: 'User making threatening comments',
-    created_at: '2024-03-13',
-    status: 'resolved'
-  }
-];
-
-const reportStats = [
-  { type: 'User Reports', count: 156, icon: Users, color: 'bg-blue-100 text-blue-600' },
-  { type: 'Listing Reports', count: 89, icon: ShoppingBag, color: 'bg-green-100 text-green-600' },
-  { type: 'Comment Reports', count: 234, icon: MessageCircle, color: 'bg-purple-100 text-purple-600' }
-];
+const reportTypeConfig = {
+    'user': { icon: Users, color: 'bg-blue-100 text-blue-600' },
+    'listing': { icon: ShoppingBag, color: 'bg-green-100 text-green-600' },
+    'post': { icon: Image, color: 'bg-purple-100 text-purple-600' },
+    'comment': { icon: Flag, color: 'bg-orange-100 text-orange-600' }
+  };
 
 function ManageReports() {
     const activeIcon = "manage-reports";
     const [viewMode, setViewMode] = useState('grid');
     const [selectedReport, setSelectedReport] = useState(null);
-    const [reports, setReports] = useState(mockReports);
-    // const [snackbarMessage, setSnackbarMessage] = useState("");
-    // const [snackbarOpen, setSnackbarOpen] = useState(false);
-    // const [isLoading, setIsLoading] = useState(true);
+    const [reports, setReports] = useState([]);
+    const [reportStats, setReportStats] = useState([])
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [alertType, setAlertType] = useState("error")
+    const [isLoading, setIsLoading] = useState(true);
 
+    const fetchReports = async () => {
+        setIsLoading(true)
+        try {
+            const response = await getReports();
+            setReports(response.results);
+        } catch (error) {
+            setSnackbarMessage("Error fetching reports");
+            setAlertType("error")
+            setSnackbarOpen(true);
+        } finally {
+            setIsLoading(false)
+        }
+    };
 
-    const handleAction = (reportId, action) => {
-        // In a real app, this would make an API call
-        setReports(reports.map(report => {
-          if (report.id === reportId) {
-            return {
-              ...report,
-              status: 'resolved'
-            };
-          }
-          return report;
-        }));
-        
-        // Show a notification (in a real app, use a proper notification system)
-        alert(`Action "${action}" taken on report #${reportId}`);
+    const fetchReportStats = async () => {
+        try {
+            const stats = await getReportStats();
+            const formattedStats = Object.entries(stats).map(([type, count]) => {
+                const config = reportTypeConfig[type] || { 
+                    icon: Flag, 
+                    color: 'bg-gray-100 text-gray-600' 
+                };
+                
+                return {
+                    type: `${type.charAt(0).toUpperCase() + type.slice(1)} Reports`,
+                    count,
+                    icon: config.icon,
+                    color: config.color
+                };
+            });
+            
+            setReportStats(formattedStats);
+        } catch (error) {
+            setSnackbarMessage("Error fetching report statistics");
+            setAlertType("error");
+            setSnackbarOpen(true);
+        }
+    };
+
+    useEffect(() => {
+        fetchReports();
+        fetchReportStats()
+    }, []);
+
+    const handleBackToList = () => {
         setSelectedReport(null);
-      };
+        fetchReports();
+        fetchReportStats()
+    };
+
+
+    const handleReportUpdated = (updatedReport) => {
+        setReports(prevReports => 
+            prevReports.map(report => 
+                report.id === updatedReport.id ? updatedReport : report
+            )
+        );
+        
+        if (selectedReport && selectedReport.id === updatedReport.id) {
+            setSelectedReport(updatedReport);
+        }
+    };
 
     if (selectedReport) {
         return (
           <ReportDetails
             report={selectedReport}
-            onBack={() => setSelectedReport(null)}
-            onAction={handleAction}
+            onBack={() => handleBackToList()}
+            handleReportUpdated={handleReportUpdated}
           />
         );
       }
@@ -85,6 +105,12 @@ function ManageReports() {
             setViewMode={setViewMode}
             pageDescription={"Review and manage user-reported content to ensure community guidelines are upheld."}
         >
+            <AlertSnackbar
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type={alertType}
+                onClose={() => setSnackbarOpen(false)}
+            />
             <div className="pb-16">
                 <main className="max-w-7xl mx-auto pt-4">
                     {/* Stats Overview */}
@@ -111,7 +137,7 @@ function ManageReports() {
                     </div>
                     
                     <div className={`p-6 ${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'}`}>
-                        {mockReports.map((report) => (
+                        {reports.map((report) => (
                         <div 
                             key={report.id} 
                             className={`bg-white ${viewMode === 'grid' ? 'rounded-lg border' : 'border-b'} p-4`}
@@ -130,7 +156,7 @@ function ManageReports() {
                                 report.status === 'investigating' ? 'bg-blue-100 text-blue-800' :
                                 'bg-green-100 text-green-800'
                             }`}>
-                                {report.type.charAt(0).toUpperCase() + report.type.slice(1)}
+                                {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
                             </span>
                             </div>
                             

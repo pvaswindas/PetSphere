@@ -20,3 +20,22 @@ export const submitReport = async (
         throw error
     }
 }
+
+export const getReports = async () => {
+    try {
+        const response = await axiosInstance.get('reports/report-content/')
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+
+export const getReportStats = async () => {
+    try {
+        const response = await axiosInstance.get('reports/stats/')
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+  };
