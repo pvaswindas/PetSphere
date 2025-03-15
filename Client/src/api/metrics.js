@@ -40,10 +40,8 @@ export const fetchSubscriptionStatusData = async () => {
 export const fetchPetListingLocationData = async () => {
     try {
       const response = await axiosInstance.get('posts/admin/metrics/pet-listings-location');
-      console.log(response.data)
       return response.data;
     } catch (error) {
-      console.error('Error fetching pet listing location data:', error);
       throw error;
     }
   };
@@ -52,10 +50,8 @@ export const fetchPetListingLocationData = async () => {
 export const fetchUserStatusData = async () => {
   try {
     const response = await axiosInstance.get('accounts/admin/metrics/users-status');
-    console.log(response.data)
     return response.data;
   } catch (error) {
-    console.error('Error fetching users status:', error);
     throw error;
   }
 }

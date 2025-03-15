@@ -85,6 +85,7 @@ class PetListingCreateSerializer(serializers.ModelSerializer):
 class PetListingRetrieveSerializer(serializers.ModelSerializer):
     images = PetListingImageSerializer(many=True, read_only=True)
     location = PetListingLocationSerializer()
+    user_profile = serializers.SerializerMethodField()
 
     pet_type = serializers.SerializerMethodField()
     breed = serializers.SerializerMethodField()
@@ -92,7 +93,7 @@ class PetListingRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = PetListing
         fields = [
-            'id', 'post_type', 'seller', 'pet_name', 'pet_type', 'breed',
+            'id', 'post_type', 'user_profile', 'pet_name', 'pet_type', 'breed',
             'slug', 'description', 'gender', 'age', 'price', 'created_at',
             'updated_at', 'is_available', 'is_sold_or_adopted', 'images',
             'location'
@@ -104,3 +105,11 @@ class PetListingRetrieveSerializer(serializers.ModelSerializer):
 
     def get_breed(self, obj):
         return obj.breed.name if obj.breed else None
+
+    def get_user_profile(self, obj):
+        """Pass optional_fields context to ProfileSerializer"""
+        optional_fields = self.context.get('optional_fields', None)
+        return ProfileSerializer(
+            obj.seller.user.profile,
+            context={'optional_fields': optional_fields}
+        ).data

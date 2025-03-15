@@ -18,8 +18,7 @@ const UserStatusChart = () => {
       setIsLoading(true);
       try {
         const response = await fetchUserStatusData();
-        
-        console.log(response);
+      
         
         // Validate response data
         if (response && 

@@ -18,8 +18,6 @@ const SubscriptionStatusChart = () => {
       setIsLoading(true);
       try {
           const response = await fetchSubscriptionStatusData();
-
-          console.log(response)
           
           // Validate response data
           if (response && 

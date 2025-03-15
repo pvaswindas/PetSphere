@@ -1,7 +1,7 @@
 from rest_framework import viewsets, filters
 from .models import Reports
 from .serializers import ReportsSerializer
-from .permissions import IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnlyAllowPost
 from .pagination import ReportsPagination
 
 
@@ -13,7 +13,7 @@ class ReportsViewSet(viewsets.ModelViewSet):
         is_deleted=False
     ).order_by('-created_at')
     serializer_class = ReportsSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminOrReadOnlyAllowPost]
     pagination_class = ReportsPagination
 
     filter_backends = [filters.SearchFilter]

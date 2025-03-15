@@ -1,13 +1,9 @@
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { deletePawstory, fetchPawstory, updatePawstory } from "../../../redux/thunks/PostThunk";
-import Swal from "sweetalert2";
-import axiosInstance from "../../../axios/axiosinstance";
+import { deletePetListing, fetchPetListing, updatePetListing } from "../../../redux/thunks/PetListingThunk";
 import AlertSnackbar from "../../Snackbar/AlertSnackbar";
-import { fetchLikedUsers } from "../../../redux/thunks/FetchLikedUsers";
-import { CommentArea } from "../CommentArea/CommentArea";
-import { Send, Heart, MessageSquareText } from "lucide-react";
+import { Send } from "lucide-react";
 import OptionsModal from "../../common/OptionsModal";
 import Shimmer from "../../Shimmer/Shimmer";
 import { ContentArea } from "./ContentArea";
@@ -15,16 +11,13 @@ import { PostHeader } from "./PostHeader";
 import EditContentArea from "./EditContentArea";
 import ReportContent from "../report/ReportContent";
 
-const PostDisplayCard = memo(() => {
+const   ListingDisplayCard = memo(() => {
     const { slug } = useParams();
     const dispatch = useDispatch();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setDeleteIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editedContent, setEditedContent] = useState("");
-    const [isLiked, setIsLiked] = useState(false)
-    const [likedPeople, setLikedPeople] = useState([])
-    const [showComment, setShowComment] = useState(false)
     const [showReport, setShowReport] = useState(false);
     
 
@@ -35,12 +28,14 @@ const PostDisplayCard = memo(() => {
 
     const [isLoading, setIsLoading] = useState(true)
 
-    const post = useSelector((state) => state.posts?.currentPawstory || null);
+    const listing = useSelector((state) => state.petListings?.petListing || null);
     const profile = useSelector((state) => state.profile?.profile_data || null);
     const navigate = useNavigate();
-    const post_id = post?.id || null
-    const createdAt = new Date(post?.created_at)
-    const updatedAt = new Date(post?.updated_at)
+    const createdAt = new Date(listing?.created_at)
+    const updatedAt = new Date(listing?.updated_at)
+
+    console.log("LISTING : ", listing)
+    console.log("PROFILE :", profile)
 
     createdAt.setSeconds(0, 0)
     updatedAt.setSeconds(0, 0)
@@ -49,9 +44,9 @@ const PostDisplayCard = memo(() => {
     const fetchData = useCallback((slug) => {
         setIsLoading(true)
         try {
-            dispatch(fetchPawstory(slug))
+            dispatch(fetchPetListing(slug))
         } catch (error) {
-            setSnackbarMessage("Unable to fetch post")
+            setSnackbarMessage("Unable to fetch listing")
             setSnackbarAlertType("error")
             setSnackbarOpen(true)
         } finally {
@@ -67,30 +62,11 @@ const PostDisplayCard = memo(() => {
 
     
     useEffect(() => {
-        if (post) {
-            setEditedContent(post.content);
+        if (listing) {
+            setEditedContent(listing.description);
         }
-    }, [post]);
+    }, [listing]);
 
-    const isUserLike = useCallback(async (callback) => {
-        try {
-            const response = await dispatch(fetchLikedUsers(post_id)).unwrap();
-            setLikedPeople(response.liked_users);
-            setIsLiked(response.is_liked_by_user);
-    
-            if (callback && typeof callback === 'function') {
-                callback(response);
-            }
-        } catch (error) {
-            return
-        }
-    }, [dispatch, post_id]);
-
-    useEffect(() => {
-        if (post_id) {
-            isUserLike();
-        }
-    }, [post_id, dispatch, setLikedPeople, isUserLike]);
 
     const toggleModal = () => setIsModalOpen((prev) => !prev);
     const toggleDeleteModal = () => setDeleteIsModalOpen((prev) => !(prev));
@@ -106,16 +82,16 @@ const PostDisplayCard = memo(() => {
     };
 
     const handlePostSettingsToggle = (field, value) => {
-        dispatch(updatePawstory({
-            slug: post.slug,
+        dispatch(updatePetListing({
+            slug: listing.slug,
             data: {[field]: value}
         }));
     }
 
     const handleContentSave = () => {
-        if (post?.content !== editedContent) {
-            dispatch(updatePawstory({
-                slug: post.slug,
+        if (listing?.description !== editedContent) {
+            dispatch(updatePetListing({
+                slug: listing.slug,
                 data: {content: editedContent}
             }));
             setEditedContent(" ");
@@ -127,56 +103,20 @@ const PostDisplayCard = memo(() => {
     };
 
     const handleCancel = () => {
-        setEditedContent(post.content);
+        setEditedContent(listing.description);
         setIsEditing(false);
     };
 
     const handleDeletePost = async () => {
         try {
-            await dispatch(deletePawstory(slug)).unwrap();
+            await dispatch(deletePetListing(slug)).unwrap();
             navigate(`/profile/${profile.user.usename}`);
-        } catch (error) {
-            Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: "Failed to update Post",
-                position: "top",
-                toast: true,
-                timer: 3000,
-                showConfirmButton: false,
-                customClass: {
-                    popup: "swal-popup",
-                },
-            });
-        }
-    };
-
-    const handleLike = async () => {
-        const post_id = post.id
-        try {
-            const likePostResponse = await axiosInstance.post('socials/likepost/', { post_id })
-            if (likePostResponse.status === 201) {
-                setIsLiked(true)
-            } else if (likePostResponse.status === 200) {
-                setIsLiked(false)
-            } else {
-                setSnackbarMessage("Something went wrong. Try again.")
-                setSnackbarAlertType("error")
-                setSnackbarOpen(true)
-            }
-            fetchData(slug)
-            isUserLike()
         } catch (error) {
             setSnackbarMessage("Something went wrong. Try again.")
             setSnackbarAlertType("error")
             setSnackbarOpen(true)
         }
-    }
-
-    const handleCommentAreaClose = () => {
-        setShowComment(false)
-        fetchData(slug)
-    }
+    };
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href)
@@ -242,7 +182,7 @@ const PostDisplayCard = memo(() => {
 
 
 
-    if ((!post || !post.images || post.images.length === 0)  && !isLoading) {
+    if ((!listing || !listing.images || listing.images.length === 0)  && !isLoading) {
         return (
             <div className="w-full h-64 flex items-center justify-center rounded-lg">
                 <p className="text-gray-500">Post not found</p>
@@ -260,27 +200,27 @@ const PostDisplayCard = memo(() => {
                     onClose={() => setSnackbarOpen(false)}
                 />
 
-                <PostHeader post={post} toggleModal={toggleModal} />
+                <PostHeader post={listing} toggleModal={toggleModal} />
 
-                <ContentArea post={post} />
+                <ContentArea post={listing} />
 
                 {showReport ? (
                     // Report Content will replace the regular content when showReport is true
                     <ReportContent 
                         isOpen={showReport}
                         onClose={handleReportClose}
-                        reportType="post"
-                        targetId={post?.content ? post.content : { [post.user.username]: post.id }}
-                        targetSlug={post?.slug}
+                        reportType="listing"
+                        targetId={listing?.description ? listing.description : { [listing.user_profile.username]: listing.id }}
+                        targetSlug={listing?.slug}
                         customClass="flex-grow w-full"
                     />
-                ) : !showComment ? (
+                ) : (
                     // Right Section: Content
                     <div className="flex-grow w-full flex flex-col justify-between">
                         {/* User Info */}
                         <div className="m-0 p-0">
 
-                            <PostHeader post={post} toggleModal={toggleModal} isScreenLarger={true} />
+                            <PostHeader post={listing} toggleModal={toggleModal} isScreenLarger={true} />
 
                             <hr className="mt-2 hidden lg:flex" />
                             {/* Post Content */}
@@ -294,11 +234,11 @@ const PostDisplayCard = memo(() => {
                                 />
                             ) : (
                                 <div className="hidden lg:flex justify-between m-2 items-center">
-                                    <h2>{post.content}</h2>
+                                    <h2>{listing.description}</h2>
                                     {/* {isPostEdited && (
                                         <p className="text-xs text-gray-500">
                                             Edited on{" "}
-                                            {new Date(post.updated_at).toLocaleDateString("en-GB", {
+                                            {new Date(listing.updated_at).toLocaleDateString("en-GB", {
                                                 day: "2-digit",
                                                 month: "short",
                                                 year: "numeric",
@@ -316,68 +256,24 @@ const PostDisplayCard = memo(() => {
                                 <div className="flex items-center text-gray-600">
                                     <button
                                         className="flex items-center p-2 hover:bg-gray-200 rounded-full"
-                                        aria-label="Like"
-                                        onClick={handleLike}
-                                    >
-                                        {isLiked ? (
-                                            <Heart size={19} fill='red' stroke='red' />
-                                        )
-                                        : (
-                                            <Heart size={19} className="text-gray-500" />
-                                        )}
-                                    </button>
-                                        {post?.like_count > 0 && !post?.hide_likes && (
-                                            <p className="pe-4">{ post?.like_count }</p>
-                                        )}
-                                    {!post?.turn_off_comments && (
-                                        <>
-                                            <button
-                                                className="flex items-center p-2 hover:bg-gray-200 rounded-full"
-                                                aria-label="Comment"
-                                                onClick={() => setShowComment(true)}
-                                            >
-                                                <MessageSquareText size={19} className="text-gray-500" />
-                                            </button>
-                                            {post?.comment_count > 0 && !post?.hide_comments && (
-                                                <p className="pe-4">{post?.comment_count}</p>
-                                            )   }
-                                        </>
-                                    )}
-                                    <button
-                                        className="flex items-center p-2 hover:bg-gray-200 rounded-full"
                                         aria-label="Save"
                                         onClick={handleCopyLink}
                                     >
                                         <Send size={19} className="text-gray-500" />
                                     </button>
                                 </div>
-                                {likedPeople?.length > 0 && (
-                                    <p className="ms-2 text-sm text-blackOpacity70">
-                                        Liked by{" "}
-                                        {likedPeople[0] === profile?.user?.username ? "you" : likedPeople[0]}
-                                        {likedPeople?.length > 1 && (
-                                            <>
-                                                {post?.hide_likes 
-                                                    ? ` and other${likedPeople.length - 1 > 1 ? 's' : ''}` 
-                                                    : ` and ${likedPeople.length - 1} other${likedPeople.length - 1 > 1 ? 's' : ''}`}
-                                            </>
-                                        )}
-                                    </p>
-                                )}
                             </div>
-                            <h2 className="px-5 lg:hidden">{post.content}</h2>
+                            <h2 className="px-5 lg:hidden">{listing.description}</h2>
                         </div>
                         
                     </div>
-                ) : (
-                    <CommentArea onClose={handleCommentAreaClose} postId={post.id} post={post} />
                 )}
 
             </div>
 
             {/* Reusable Modal */}
             <OptionsModal isOpen={isModalOpen} onClose={toggleModal}>
-                {post?.user_profile.user.id === profile.user.id ? 
+                {listing?.user_profile.id === profile.user.id ? 
                     (
                         <ul className="text-center text-gray-700">
                             <li
@@ -396,27 +292,27 @@ const PostDisplayCard = memo(() => {
                             <hr />
                             <li
                                 className="hover:bg-gray-100 p-3 rounded cursor-pointer"
-                                onClick={() => handlePostSettingsToggle('hide_likes', !post?.hide_likes)}
+                                onClick={() => handlePostSettingsToggle('hide_likes', !listing?.hide_likes)}
                             >
-                                {post?.hide_likes ? 'Show Like Count' : 'Hide Like Count'}
+                                {listing?.hide_likes ? 'Show Like Count' : 'Hide Like Count'}
                             </li>
                             <hr />
-                            {!post?.turn_off_comments && (
+                            {!listing?.turn_off_comments && (
                                 <>
                                     <li
                                         className="hover:bg-gray-100 p-3 rounded cursor-pointer"
-                                        onClick={() => handlePostSettingsToggle('hide_comments', !post?.hide_comments)}
+                                        onClick={() => handlePostSettingsToggle('hide_comments', !listing?.hide_comments)}
                                     >
-                                        {post?.hide_comments ? 'Show Comment Count' : 'Hide Comment Count'}
+                                        {listing?.hide_comments ? 'Show Comment Count' : 'Hide Comment Count'}
                                     </li>
                                 </>
                             )}
                             <hr />
                             <li
                                 className="hover:bg-gray-100 p-3 rounded cursor-pointer"
-                                onClick={() => handlePostSettingsToggle('turn_off_comments', !post?.turn_off_comments)}
+                                onClick={() => handlePostSettingsToggle('turn_off_comments', !listing?.turn_off_comments)}
                             >
-                                {post?.turn_off_comments ? 'Turn On Commenting' : 'Turn Off Commenting'}
+                                {listing?.turn_off_comments ? 'Turn On Commenting' : 'Turn Off Commenting'}
                             </li>
                             {/* <hr />
                             <li
@@ -445,7 +341,7 @@ const PostDisplayCard = memo(() => {
                 <ul className="text-center text-gray-700">
                     <div className="py-3 flex flex-col">
                         <p className="text-xl font-medium">Delete Post?</p>
-                        <p className="text-sm text-gray-500 py-2">Are you sure you want to delete this post?</p>
+                        <p className="text-sm text-gray-500 py-2">Are you sure you want to delete this listing?</p>
                     </div>
                     <hr />
                     <li
@@ -461,4 +357,6 @@ const PostDisplayCard = memo(() => {
     );
 });
 
-export default PostDisplayCard;
+
+
+export default ListingDisplayCard;
