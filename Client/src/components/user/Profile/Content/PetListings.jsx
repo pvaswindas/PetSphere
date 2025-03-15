@@ -49,8 +49,8 @@ const PetListings = ({ username }) => {
         fetchData();
     }, [dispatch, username]);
 
-    const handlePostClick = () => {
-
+    const handlePostClick = (slug) => {
+        navigate(`/listing/${slug}`);
     };
 
     return (
@@ -98,8 +98,8 @@ const PetListings = ({ username }) => {
                                 return (
                                     <div
                                         key={index}
-                                        className="relative w-full aspect-square"
-                                        onClick={handlePostClick}
+                                        className="relative w-full aspect-square cursor-pointer"
+                                        onClick={() => handlePostClick(listing.slug)}
                                     >
                                         {/* Status Indicator Badge */}
                                         <div

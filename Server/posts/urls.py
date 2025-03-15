@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
      UserPostListCreateView, UserPostDetailView, PetListingsView,
-     PostListView, PetListingListView, UserFeedView, PetMarketplaceView,
+     PostListView, UserListingListCreateView, UserFeedView, PetMarketplaceView,
      save_post, fetch_saved_by, post_engagement_metrics, pet_listings_location,
 )
 
@@ -12,9 +12,13 @@ urlpatterns = [
      path('saved-users/<int:post_id>/', fetch_saved_by, name='saved-users'),
 
      # Pet Listings URLs
-     path('petlistings-list/', PetListingListView.as_view(),
+     path('petlistings-list/', UserListingListCreateView.as_view(),
           name='petlistings-list'),
-     path('petlisting/', PetListingsView.as_view(), name='pet-listing'),
+     path(
+          'petlisting/<str:slug>/',
+          PetListingsView.as_view(),
+          name='pet-listing'
+     ),
 
      # Feed-related URLs
      path('user-feed/', UserFeedView.as_view(), name='user-feed'),
@@ -35,6 +39,9 @@ urlpatterns = [
 
      # User-related URLs
      path('', UserPostListCreateView.as_view(), name='user-post-list-create'),
-     path('<str:slug>/', UserPostDetailView.as_view(),
-          name='user-post-detail'),
+     path(
+         '<str:slug>/',
+         UserPostDetailView.as_view(),
+         name='user-post-detail'
+     ),
 ]

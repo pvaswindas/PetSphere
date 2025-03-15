@@ -12,7 +12,7 @@ export const PostHeader = ({ post, toggleModal, isScreenLarger=false }) => {
                     className="w-10 h-10 rounded-full object-cover mr-3"
                 />
                 <div className="flex flex-col">
-                    <p className="text-lg text-gray-800 font-semibold">
+                    <p className="text-gray-800 font-semibold">
                         {post.user_profile.user.username || "Anonymous"}
                     </p>
                     <p className="text-xs text-gray-500">

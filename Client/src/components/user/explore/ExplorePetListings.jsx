@@ -4,6 +4,7 @@ import Shimmer from "../../Shimmer/Shimmer";
 import { fetchPetListings } from "../../../utils/exploreFetch";
 import { useSelector } from "react-redux";
 import AlertSnackbar from "../../Snackbar/AlertSnackbar";
+import { useNavigate } from "react-router-dom";
 
 const getStatusClasses = (status) => {
     switch (status) {
@@ -27,6 +28,8 @@ export function ExplorePetListings() {
     const [petListings, setPetListings] = useState([])
     const [searchLocation, setSearchLocation] = useState("");
 
+    const navigate = useNavigate()
+
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
 
@@ -34,8 +37,8 @@ export function ExplorePetListings() {
 
     const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
-    const handlePostClick = () => {
-
+    const handlePostClick = (slug) => {
+        navigate(`/listing/${slug}`);
     };
 
     useEffect(() => {
@@ -101,7 +104,7 @@ export function ExplorePetListings() {
 
             {/* Loading State with Shimmer Effect */}
             {loading ? (
-                <div className="grid gap-0.5 grid-cols-4">
+                <div className="grid grid-cols-3 gap-0.5">
                     {Array.from({ length: 12 }).map((_, index) => (
                         <div
                             key={index}
@@ -119,7 +122,7 @@ export function ExplorePetListings() {
                             Listings not found matching your search!
                         </div>
                     ) : (
-                        <div className="grid gap-0.5 grid-cols-4">
+                        <div className="grid grid-cols-3 gap-0.5">
                             {filteredListings.map((listing, index) => {
                                 const status = listing.is_sold_or_adopted
                                     ? listing.post_type === "Selling"
@@ -134,8 +137,8 @@ export function ExplorePetListings() {
                                 return (
                                     <div
                                         key={index}
-                                        className="relative w-full aspect-square"
-                                        onClick={handlePostClick}
+                                        className="relative w-full aspect-square cursor-pointer"
+                                        onClick={() => handlePostClick(listing.slug)}
                                     >
                                         {/* Status Indicator Badge */}
                                         <div

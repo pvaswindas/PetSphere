@@ -385,28 +385,60 @@ class UserPostDetailView(APIView):
             return Response({"detail": "Permission denied"},
                             status=status.HTTP_403_FORBIDDEN)
         post.delete()
+        profile = post.user.profile
+        if profile.pawstory_count > 0:
+            profile.pawstory_count -= 1
+            profile.save()
         return Response({'detail': 'Post Deleted Successfully'},
                         status=status.HTTP_204_NO_CONTENT)
 
 
-class PetListingsView(APIView):
+class UserListingListCreateView(APIView):
+    """
+    Handles listing and creating user posts.
+    Permissions:
+        - Requires user to be authenticated.
+    """
+
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
-        username = request.query_params.get("username")
+        """
+        Retrieves a list of listings created by the authenticated user.
 
+        Parameters:
+            - request: The HTTP request object containing user information.
+            - username (optional): fetches listings for the specified user.
+
+        Returns:
+            - Response: A list of listings if they exist.
+            - Response: A 204 status if no listings are found.
+        """
+        username = request.query_params.get("username")
+        search_query = request.query_params.get('search', None)
+
+        if search_query:
+            pet_listings = PetListing.objects.filter(
+                Q(description__icontains=search_query) | Q(
+                    slug__icontains=search_query)
+            )
         if username:
             user = get_object_or_404(PetSphereUser, username=username)
         else:
             user = validate_authenticated_user(request)
-        if isinstance(user, Response):
-            return user
+            if isinstance(user, Response):
+                return user
+
         pet_listings = PetListing.objects.filter(seller__user=user)
+
         if not pet_listings:
-            return Response({"detail": "No data found"},
+            return Response({"detail": "No Listing found"},
                             status=status.HTTP_204_NO_CONTENT)
-        serializer = PetListingRetrieveSerializer(pet_listings, many=True)
+        serializer = PetListingRetrieveSerializer(
+            pet_listings, many=True,
+            context={'request': request}
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -496,20 +528,121 @@ class PetListingsView(APIView):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class PetListingListView(APIView):
-    def get(self, request):
-        search_query = request.query_params.get('search', None)
+class PetListingsView(APIView):
+    """
+    Handles retrieving, updating, and deleting a listing by slug.
 
-        if search_query:
-            pet_listings = PetListing.objects.filter(
-                Q(description__icontains=search_query) | Q(
-                    slug__icontains=search_query)
-            )
-        else:
-            pet_listings = PetListing.objects.all()
+    Permissions:
+        - AllowAny: Any user can access the view (no authentication required).
 
-        serializer = PetListingRetrieveSerializer(pet_listings, many=True)
+    Methods:
+        - GET: Retrieves the details of a specific listing.
+        - PATCH: Updates the details of a specific listing.
+        - DELETE: Deletes the specified listing.
+    """
+
+    permission_classes = [AllowAny,]
+
+    def get(self, request, slug):
+        """
+        Retrieves the details of a specific listing.
+
+        Parameters:
+            - request: The HTTP request object.
+            - slug (str): The unique slug for the listing to retrieve.
+
+        Workflow:
+            1. Attempts to fetch the listing object using the provided slug.
+            2. If the listing is found, serializes and returns the data.
+            3. If the listing does not exist, returns a 404 response.
+
+        Returns:
+            - Response: Listing details if found (200 OK).
+            - Response: Error message if listing not found (404 Not Found).
+        """
+        try:
+            listing = PetListing.objects.get(slug=slug)
+        except Post.DoesNotExist:
+            return Response({"detail": "Post not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PetListingRetrieveSerializer(
+            listing, context={'request': request}
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, slug):
+        """
+        Updates the details of a specific listing.
+
+        Parameters:
+            - request: The HTTP request object with the update data.
+            - slug (str): The unique slug of the listing to update.
+
+        Workflow:
+            1. Fetches the listing by its slug.
+            2. Removes the slug from the data to prevent modification.
+            3. Serializes the data with the partial update option.
+            4. If the data is valid, saves and returns the updated listing.
+            5. If the data is invalid, returns validation errors.
+
+        Returns:
+            - Response: Updated listing data if successful (200 OK).
+            - Response: Validation errors if update fails (400 Bad Request).
+            - Response: Error message if listing not found (404 Not Found).
+        """
+        try:
+            listing = PetListing.objects.get(slug=slug)
+        except Post.DoesNotExist:
+            return Response({"detail": "Listing not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data.copy()
+        data.pop('slug', None)
+
+        serializer = PetListingCreateSerializer(
+            listing, data=data, partial=True, context={'request': request}
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, slug):
+        """
+        Deletes the specified post.
+
+        Parameters:
+            - request: The HTTP request object.
+            - slug (str): The unique slug of the listing to delete.
+
+        Workflow:
+            1. Attempts to fetch the listing by slug.
+            2. Checks if the current user owns the listing.
+            3. If authorized, deletes the post and returns a success message.
+            4. If not authorized, returns a permission denied message.
+
+        Returns:
+            - Response: Success message if post is deleted (204 No Content).
+            - Response: Forbidden if user is not the owner (403 Forbidden).
+            - Response: Error message if listing not found (404 Not Found).
+        """
+        try:
+            listing = PetListing.objects.get(slug=slug)
+        except Post.DoesNotExist:
+            return Response({"detail": "Listing not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+        if listing.seller.user != request.user:
+            return Response({"detail": "Permission denied"},
+                            status=status.HTTP_403_FORBIDDEN)
+        listing.delete()
+        profile = listing.seller.user.profile
+        if profile.petlisting_count > 0:
+            profile.petlisting_count -= 1
+            profile.save()
+        return Response({'detail': 'Listing Deleted Successfully'},
+                        status=status.HTTP_204_NO_CONTENT)
 
 
 class UserFeedView(APIView):

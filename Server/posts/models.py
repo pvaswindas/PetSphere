@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils.text import slugify
+import uuid
 from accounts.models import PetSphereUser
 from sellers.models import Seller
 from pets.models import Pet, PetBreed
@@ -68,6 +70,18 @@ class PetListing(models.Model):
 
     def __str__(self):
         return f"{self.pet_name} {self.post_type} {self.pet_type} {self.breed}"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.pet_name)
+
+            self.slug = base_slug
+
+            if PetListing.objects.filter(slug=self.slug).exists():
+                unique_id = str(uuid.uuid4()).split('-')[0]
+                self.slug = f"{base_slug}-{unique_id}"
+
+        super().save(*args, **kwargs)
 
 
 class PetListingImage(models.Model):

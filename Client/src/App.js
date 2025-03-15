@@ -57,6 +57,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ServerDownPage from "./pages/ServerDownPage";
 import LoadingPage from "./pages/LoadingPage";
 import { useNetworkStatus } from "./hooks/useNetworkStatus";
+import ListingDisplay from "./pages/user-ui/profile/ListingDispaly";
 
 function App() {
     const location = useLocation();
@@ -132,6 +133,7 @@ function App() {
                 />
 
                 <Route path="post/:slug" element={ <ProtectedRoute><PostDisplay /></ProtectedRoute> } />
+                <Route path="listing/:slug" element={ <ProtectedRoute><ListingDisplay /></ProtectedRoute> } />
 
                 <Route path="/feed" element={ <ProtectedRoute><Feed /></ProtectedRoute>} />
 

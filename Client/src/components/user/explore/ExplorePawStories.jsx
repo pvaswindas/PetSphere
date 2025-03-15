@@ -44,7 +44,7 @@ export function ExplorePawStories() {
                 onClose={() => setSnackbarOpen(false)}
             />
             {loading ? (
-                <div className="grid grid-cols-4 gap-0.5">
+                <div className="grid grid-cols-3 gap-0.5">
                     {Array.from({ length: 12 }).map((_, index) => (
                         <div
                             key={index}
@@ -59,7 +59,7 @@ export function ExplorePawStories() {
                     No PawStories Found
                 </div>
             ) : (
-                <div className="grid grid-cols-4 gap-0.5">
+                <div className="grid grid-cols-3 gap-0.5">
                     {posts.slice().reverse().map((post, index) => (
                         <div
                             key={index}
