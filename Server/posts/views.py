@@ -385,6 +385,10 @@ class UserPostDetailView(APIView):
             return Response({"detail": "Permission denied"},
                             status=status.HTTP_403_FORBIDDEN)
         post.delete()
+        profile = post.user.profile
+        if profile.pawstory_count > 0:
+            profile.pawstory_count -= 1
+            profile.save()
         return Response({'detail': 'Post Deleted Successfully'},
                         status=status.HTTP_204_NO_CONTENT)
 
@@ -633,6 +637,10 @@ class PetListingsView(APIView):
             return Response({"detail": "Permission denied"},
                             status=status.HTTP_403_FORBIDDEN)
         listing.delete()
+        profile = listing.seller.user.profile
+        if profile.petlisting_count > 0:
+            profile.petlisting_count -= 1
+            profile.save()
         return Response({'detail': 'Listing Deleted Successfully'},
                         status=status.HTTP_204_NO_CONTENT)
 
