@@ -28,6 +28,8 @@ function MessageBar() {
     }, []);
 
     const filteredConversations = conversations.filter(conversation => 
+        conversation.other_user && conversation.other_user.user && 
+        conversation.other_user.user.username && 
         conversation.other_user.user.username.toLowerCase().includes(searchTerm.toLowerCase())
     );
 

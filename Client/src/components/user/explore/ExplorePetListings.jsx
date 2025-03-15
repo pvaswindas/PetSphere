@@ -46,15 +46,17 @@ export function ExplorePetListings() {
             setLoading(true)
             try {
                 const data = await fetchPetListings(query)
-                setPetListings(data)
+                setPetListings(Array.isArray(data) ? data : [])
             } catch (error) {
                 setSnackbarMessage("Unable to fetch PetListings")
+                setSnackbarOpen(true)
+                setPetListings([])
             } finally {
                 setLoading(false)
             }
         }
         fetchData()
-    }, [query, setPetListings])
+    }, [query])
 
 
     const filteredListings = petListings.filter((listing) => {
