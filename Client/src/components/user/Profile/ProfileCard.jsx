@@ -5,7 +5,7 @@ import ProfileHeader from "./ProfileHeader"
 import { useDispatch, useSelector } from "react-redux"
 import { fetchProfile } from "../../../redux/thunks/ProfileThunk"
 import Shimmer from "../../Shimmer/Shimmer"
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 
 const PawStories = lazy(() => import("./Content/PawStories"))
 const PetListings = lazy(() => import("./Content/PetListings"))
@@ -18,6 +18,8 @@ const ProfileCard = memo(() => {
     const [selectedFeed, setSelectedFeed] = useState("PawStories");
     const dispatch = useDispatch();
     const { username } = useParams();
+    const navigate = useNavigate()
+
     
     const profile = useSelector((state) => state.profile.profile_data);
     const userProfile = useSelector((state) => state.profile.other_users_profile?.[username]);
@@ -26,10 +28,13 @@ const ProfileCard = memo(() => {
     const currentProfile = isCurrentUser ? profile : userProfile || null;
 
     useEffect(() => {
+        if (!username && profile?.user?.username) {
+            navigate(`/profile/${profile.user.username}`);
+        }
         if (username && !userProfile && profile?.user?.username) {
             dispatch(fetchProfile({ auth_username: profile.user.username, username }));
         }
-    }, [dispatch, username, profile?.user?.username, userProfile]);
+    }, [dispatch, username, profile?.user?.username, userProfile, navigate]);
 
     const renderSelectedFeed = () => {
         switch (selectedFeed) {

@@ -134,7 +134,7 @@ const PostDisplayCard = memo(() => {
     const handleDeletePost = async () => {
         try {
             await dispatch(deletePawstory(slug)).unwrap();
-            navigate(`/profile/${profile.user.usename}`);
+            navigate(`/profile/${profile.user.username}`);
         } catch (error) {
             Swal.fire({
                 icon: "error",

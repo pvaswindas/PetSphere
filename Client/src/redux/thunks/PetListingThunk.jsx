@@ -41,9 +41,9 @@ export const fetchPetListing = createAsyncThunk(
 
 export const updatePetListing = createAsyncThunk(
     "post/updatePetListing",
-    async ({ slug, content }, { dispatch, rejectWithValue }) => {
+    async ({ slug, description }, { dispatch, rejectWithValue }) => {
         try {
-            const response = await axiosInstance.patch(`posts/petlisting/${slug}/`, { content })
+            const response = await axiosInstance.patch(`posts/petlisting/${slug}/`, { description })
             if (response.status === 200) {
                 dispatch(setCurrentPetListing({ petListing: response.data }))
             } else {

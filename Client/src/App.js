@@ -58,6 +58,7 @@ import ServerDownPage from "./pages/ServerDownPage";
 import LoadingPage from "./pages/LoadingPage";
 import { useNetworkStatus } from "./hooks/useNetworkStatus";
 import ListingDisplay from "./pages/user-ui/profile/ListingDispaly";
+import ProfileRedirect from "./pages/user-ui/profile/ProfileRedirect";
 
 function App() {
     const location = useLocation();
@@ -127,6 +128,8 @@ function App() {
                         <Route path="add-pet-story" element={<AddPetStory />} />
                         <Route path="add-pet-listing" element={<AddPetListing />} />
                         <Route path="mapexplore" element={<MapExplorer />} />
+
+                        <Route path="" element={<ProfileRedirect />} />
                       </Routes>
                     </ProtectedRoute>
                   } 

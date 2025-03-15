@@ -593,21 +593,30 @@ class PetListingsView(APIView):
         """
         try:
             listing = PetListing.objects.get(slug=slug)
+            data = request.data.copy()
+            data.pop('slug', None)
+
+            serializer = PetListingCreateSerializer(
+                listing, data=data, partial=True, context={'request': request}
+            )
+
+            if serializer.is_valid():
+                serializer.save()
+                serializer = PetListingRetrieveSerializer(
+                    listing, context={'request': request}
+                )
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
         except Post.DoesNotExist:
             return Response({"detail": "Listing not found"},
                             status=status.HTTP_404_NOT_FOUND)
-
-        data = request.data.copy()
-        data.pop('slug', None)
-
-        serializer = PetListingCreateSerializer(
-            listing, data=data, partial=True, context={'request': request}
-        )
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def delete(self, request, slug):
         """

@@ -81,22 +81,15 @@ const   ListingDisplayCard = memo(() => {
         toggleModal();
     };
 
-    const handlePostSettingsToggle = (field, value) => {
-        dispatch(updatePetListing({
-            slug: listing.slug,
-            data: {[field]: value}
-        }));
-    }
-
     const handleContentSave = () => {
         if (listing?.description !== editedContent) {
             dispatch(updatePetListing({
                 slug: listing.slug,
-                data: {content: editedContent}
+                description: editedContent
             }));
-            setEditedContent(" ");
+            setEditedContent("");
             setIsEditing(false);
-            setSnackbarMessage("Post has been saved.")
+            setSnackbarMessage("Listing has been saved.")
             setSnackbarAlertType("success")
             setSnackbarOpen(true)
         }
@@ -110,7 +103,7 @@ const   ListingDisplayCard = memo(() => {
     const handleDeletePost = async () => {
         try {
             await dispatch(deletePetListing(slug)).unwrap();
-            navigate(`/profile/${profile.user.usename}`);
+            navigate(`/profile/${profile.user.username}`);
         } catch (error) {
             setSnackbarMessage("Something went wrong. Try again.")
             setSnackbarAlertType("error")
@@ -288,31 +281,6 @@ const   ListingDisplayCard = memo(() => {
                                 onClick={handleEditClick}
                             >
                                 Edit
-                            </li>
-                            <hr />
-                            <li
-                                className="hover:bg-gray-100 p-3 rounded cursor-pointer"
-                                onClick={() => handlePostSettingsToggle('hide_likes', !listing?.hide_likes)}
-                            >
-                                {listing?.hide_likes ? 'Show Like Count' : 'Hide Like Count'}
-                            </li>
-                            <hr />
-                            {!listing?.turn_off_comments && (
-                                <>
-                                    <li
-                                        className="hover:bg-gray-100 p-3 rounded cursor-pointer"
-                                        onClick={() => handlePostSettingsToggle('hide_comments', !listing?.hide_comments)}
-                                    >
-                                        {listing?.hide_comments ? 'Show Comment Count' : 'Hide Comment Count'}
-                                    </li>
-                                </>
-                            )}
-                            <hr />
-                            <li
-                                className="hover:bg-gray-100 p-3 rounded cursor-pointer"
-                                onClick={() => handlePostSettingsToggle('turn_off_comments', !listing?.turn_off_comments)}
-                            >
-                                {listing?.turn_off_comments ? 'Turn On Commenting' : 'Turn Off Commenting'}
                             </li>
                             {/* <hr />
                             <li
