@@ -115,7 +115,7 @@ const MapboxLocationPicker = () => {
             formData.append('country', location.country);
             formData.append('zip_code', location.pincode);
             
-            const petListingData = await axiosInstance.post('posts/petlisting/', formData, {
+            const petListingData = await axiosInstance.post('posts/petlistings-list/', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
