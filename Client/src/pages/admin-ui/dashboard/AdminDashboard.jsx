@@ -4,6 +4,7 @@ import AdminLayout from "../../../components/admin/AdminLayout";
 import PetListingLocationTreemap from "../../../components/admin/dashboard/charts/PetListingLocationTreemap";
 import PostEngagementPieChart from "../../../components/admin/dashboard/charts/PostEngagementPieChart";
 import UserStatusChart from "../../../components/admin/dashboard/charts/UserStatusChart";
+import ReportsFlagChart from "../../../components/admin/dashboard/charts/ReportsFlagChart";
 
 const AdminDashboard = () => {
     const activeIcon = "dashboard";
@@ -31,7 +32,7 @@ const AdminDashboard = () => {
                 </MetricsCard>
                 
                 <MetricsCard title="Reports & Flags">
-
+                    <ReportsFlagChart />
                 </MetricsCard>
             </div>
         </AdminLayout>

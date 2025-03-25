@@ -1,6 +1,4 @@
 import React from "react"
-import editIcon from "../../../assets/admin/commonIcons/edit-icon.svg"
-import deleteIcon from "../../../assets/admin/commonIcons/delete-icon.svg"
 import FlexiCard from "../common/FlexiCard"
 
 const PetList = ({ data, handleEdit, handleDelete, type, title, description }) => {
@@ -34,15 +32,6 @@ const PetList = ({ data, handleEdit, handleDelete, type, title, description }) =
                                                 {item.description}
                                             </p>
                                         </div>
-                                    </div>
-                                    {/* Right side: Edit and Delete Buttons */}
-                                    <div className="flex space-x-2">
-                                        <button onClick={() => handleEdit(item.id)}>
-                                            <img src={editIcon} alt="edit" className="w-4 h-4" />
-                                        </button>
-                                        <button onClick={() => handleDelete(item.id)}>
-                                            <img src={deleteIcon} alt="delete" className="w-4 h-4" />
-                                        </button>
                                     </div>
                                 </li>
                                 {index !== limitedData.length - 1 && <hr className="my-2 border-gray-300" />}

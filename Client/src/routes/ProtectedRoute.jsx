@@ -14,7 +14,7 @@ function ProtectedRoute({ children }) {
             if (!isAuthorized) {
                 navigate('/');
             } else if (userStatus === 'suspended') {
-                navigate('/account-suspended');
+                navigate('/login');
             }
         }
     }, [isAuthorized, isLoading, navigate, userStatus]);

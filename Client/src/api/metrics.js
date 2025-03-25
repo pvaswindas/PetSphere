@@ -55,3 +55,12 @@ export const fetchUserStatusData = async () => {
     throw error;
   }
 }
+
+export const fetchReportsData = async () => {
+  try {
+      const response = await axiosInstance.get('reports/admin/metrics/report-types');
+      return response.data;
+  } catch (error) {
+      throw error;
+  }
+};
