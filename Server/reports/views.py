@@ -163,3 +163,25 @@ def report_stats(request):
             result[report_type] = 0
 
     return Response(result)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def report_types_stats(request):
+    """
+    Get counts of reports by status
+    """
+    status_stats = (
+        Reports.objects
+        .filter(is_deleted=False)
+        .values('status')
+        .annotate(count=Count('id'))
+    )
+
+    result = {item['status']: item['count'] for item in status_stats}
+
+    for status, _ in Reports.REPORT_STATUS_CHOICES:
+        if status not in result:
+            result[status] = 0
+
+    return Response(result)

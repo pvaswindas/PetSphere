@@ -15,4 +15,9 @@ urlpatterns = [
         name='handle_report_action'
     ),
     path('stats/', views.report_stats, name='report-stats'),
+    path(
+        'admin/metrics/report-types/',
+        views.report_types_stats,
+        name='report-types'
+    )
 ]
