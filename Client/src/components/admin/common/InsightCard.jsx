@@ -6,6 +6,7 @@ import adminAvatar from "../../../assets/admin/admin-avatar.svg";
 import { fetchActiveUsers, fetchLatestTeamMembers, fetchRevenue, fetchReportMetrics } from "../../../api/insights";
 import Shimmer from "../../Shimmer/Shimmer";
 import { formatNumber } from "../../../utils/formatTime";
+import { fetchPostEngagementData } from "../../../api/metrics";
 
 const InsightCard = () => {
     const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -28,6 +29,13 @@ const InsightCard = () => {
     });
 
 
+
+    const [postEngagement, setPostEngagement] = useState({
+        listings: 0,
+        adoption: 0,
+        stories: 0
+    });
+
     const fetchInsights = async () => {
         setIsLoading(true)
         try {
@@ -39,10 +47,16 @@ const InsightCard = () => {
             setNewUsersThisMonth(getActiveUsers.users_this_month || 0)
             setNewUsersLastMonth(getActiveUsers.users_last_month || 0)
 
-            const getRevenue = await fetchRevenue()
-            setTotalRevenue(getRevenue.total_revenue || 0)
-            setRevenueThisMonth(getRevenue.revenue_this_month || 0)
-            setRevenueLastMonth(getRevenue.revenue_last_month || 0)
+            const postEngagementData = await fetchPostEngagementData()
+            const formattedEngagement = postEngagementData.reduce((acc, item) => {
+                acc[item.name.toLowerCase()] = item.value;
+                return acc;
+            }, {});
+            setPostEngagement({
+                listings: formattedEngagement.listings || 0,
+                adoption: formattedEngagement.adoption || 0,
+                stories: formattedEngagement.stories || 0
+            });
 
             const reportData = await fetchReportMetrics()
             setReportMetrics({
@@ -181,11 +195,13 @@ const InsightCard = () => {
                 {/* Revenue Card */}
                 <div className="bg-pastelBlue w-full max-w-xs rounded-3xl flex flex-col justify-between transition-transform duration-300 hover:scale-105 p-4 min-h-[120px]">
                     <div className="flex items-center justify-between">
-                        <h1 className="text-sm md:text-base font-medium text-white">Revenue</h1>
+                        <h1 className="text-sm md:text-base font-medium text-white">Post Engagement</h1>
                         {isLoading ? (
                             <Shimmer className="w-12 h-4 rounded-full" />
                         ) : (
-                            <p className="text-xs text-white/70">${formatNumber(totalRevenue)}</p>
+                            <p className="text-xs text-white/70">
+                                {formatNumber(postEngagement.listings + postEngagement.adoption + postEngagement.stories)} Total
+                            </p>
                         )}
                     </div>
                     <hr className="my-2" />
@@ -194,16 +210,21 @@ const InsightCard = () => {
                             <>
                                 <Shimmer className="w-16 h-5 my-2 rounded-full" />
                                 <Shimmer className="w-16 h-5 my-2 rounded-full" />
+                                <Shimmer className="w-16 h-5 my-2 rounded-full" />
                             </>
                         ) : (
                             <>
                                 <div className="text-center">
-                                    <p className="text-sm font-medium text-white">${formatNumber(revenueLastMonth)}</p>
-                                    <p className="text-xs text-white/50">Last Month</p>
+                                    <p className="text-sm font-medium text-white">{formatNumber(postEngagement.listings)}</p>
+                                    <p className="text-xs text-white/50">List</p>
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-sm font-medium text-white">${formatNumber(revenueThisMonth)}</p>
-                                    <p className="text-xs text-white/50">This Month</p>
+                                    <p className="text-sm font-medium text-white">{formatNumber(postEngagement.adoption)}</p>
+                                    <p className="text-xs text-white/50">Adopt</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-sm font-medium text-white">{formatNumber(postEngagement.stories)}</p>
+                                    <p className="text-xs text-white/50">Story</p>
                                 </div>
                             </>
                         )}
