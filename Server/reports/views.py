@@ -185,3 +185,41 @@ def report_types_stats(request):
             result[status] = 0
 
     return Response(result)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def report_metrics(request):
+    """
+    Get comprehensive report metrics
+    """
+    type_stats = (
+        Reports.objects
+        .filter(is_deleted=False)
+        .values('type')
+        .annotate(count=Count('id'))
+    )
+
+    status_stats = (
+        Reports.objects
+        .filter(is_deleted=False)
+        .values('status')
+        .annotate(count=Count('id'))
+    )
+
+    type_result = {item['type']: item['count'] for item in type_stats}
+    status_result = {item['status']: item['count'] for item in status_stats}
+
+    for report_type, _ in Reports.REPORT_TYPE_CHOICES:
+        if report_type not in type_result:
+            type_result[report_type] = 0
+
+    for status, _ in Reports.REPORT_STATUS_CHOICES:
+        if status not in status_result:
+            status_result[status] = 0
+
+    return Response({
+        'types': type_result,
+        'statuses': status_result,
+        'total_reports': sum(type_result.values())
+    })

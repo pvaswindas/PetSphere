@@ -39,3 +39,12 @@ export const fetchRevenue = async () => {
         throw error
     }
 }
+
+export const fetchReportMetrics = async () => {
+    try {
+        const response = await axiosInstance.get('reports/admin/metrics/report-metrics/');
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};

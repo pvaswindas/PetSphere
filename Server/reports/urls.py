@@ -19,5 +19,10 @@ urlpatterns = [
         'admin/metrics/report-types/',
         views.report_types_stats,
         name='report-types'
-    )
+    ),
+    path(
+        'admin/metrics/report-metrics/',
+        views.report_metrics,
+        name='report-metrics'
+    ),
 ]

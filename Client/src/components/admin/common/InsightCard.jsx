@@ -3,7 +3,7 @@ import DashboardWelcome from "../../../assets/admin/dashboardcard.svg";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import AlertSnackbar from "../../Snackbar/AlertSnackbar";
 import adminAvatar from "../../../assets/admin/admin-avatar.svg";
-import { fetchActiveUsers, fetchLatestTeamMembers, fetchRevenue } from "../../../api/insights";
+import { fetchActiveUsers, fetchLatestTeamMembers, fetchRevenue, fetchReportMetrics } from "../../../api/insights";
 import Shimmer from "../../Shimmer/Shimmer";
 import { formatNumber } from "../../../utils/formatTime";
 
@@ -22,6 +22,11 @@ const InsightCard = () => {
     const [revenueThisMonth, setRevenueThisMonth] = useState(0)
     const [revenueLastMonth, setRevenueLastMonth] = useState(0)
 
+    const [reportMetrics, setReportMetrics] = useState({
+        scamListings: 0,
+        plagiarismReports: 0
+    });
+
 
     const fetchInsights = async () => {
         setIsLoading(true)
@@ -38,6 +43,12 @@ const InsightCard = () => {
             setTotalRevenue(getRevenue.total_revenue || 0)
             setRevenueThisMonth(getRevenue.revenue_this_month || 0)
             setRevenueLastMonth(getRevenue.revenue_last_month || 0)
+
+            const reportData = await fetchReportMetrics()
+            setReportMetrics({
+                scamListings: reportData.types.listing || 0,
+                plagiarismReports: reportData.types.post || 0
+            });
         } catch (error) {
             setSnackbarMessage("Error fetching insights!");
             setSnackbarOpen(true);
@@ -89,7 +100,7 @@ const InsightCard = () => {
                                 <Shimmer className="w-10 h-6 rounded-full" />
                             ) : (
                                 <span className="bg-blue-100 text-blue-500 px-3 py-1 text-xs font-medium rounded-full">
-                                    14
+                                    {reportMetrics.scamListings}
                                 </span>
                             )}
                         </div>
@@ -102,7 +113,7 @@ const InsightCard = () => {
                                 <Shimmer className="w-10 h-6 rounded-full" />
                             ) : (
                                 <span className="bg-purple-100 text-purple-500 px-3 py-1 text-xs font-medium rounded-full">
-                                    6
+                                    {reportMetrics.plagiarismReports}
                                 </span>
                             )}
                         </div>
