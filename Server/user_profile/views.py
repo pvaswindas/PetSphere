@@ -268,12 +268,7 @@ class AccountDetailView(generics.RetrieveUpdateAPIView):
             )
         except Exception as e:
             return Response(
-                {
-                    "status": "failure",
-                    "message":
-                    "An error occurred while processing your request.",
-                    "error": str(e)
-                },
+                {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

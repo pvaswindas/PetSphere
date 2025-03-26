@@ -1,22 +1,28 @@
 import React, { useState } from 'react'
 import AdminLayout from '../../../components/admin/AdminLayout'
 import ProfileHeader from '../../../components/user/Profile/ProfileHeader';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import FlexiCard from '../../../components/admin/common/FlexiCard';
 import { formatDateTime, formatDMY } from "../../../utils/admin-utils/formatDate"
 import { timeElapsed } from "../../../utils/admin-utils/formatDate"
 import { useForm } from 'react-hook-form';
 import AlertSnackbar from '../../../components/Snackbar/AlertSnackbar';
+import { ChangePassword } from '../../../api/user';
+import axiosInstance from '../../../axios/axiosinstance';
+import { setProfile } from '../../../redux/slices/ProfileSlice';
 
 function AdminProfile() {
     const activeIcon = "admin-profile";
     const [editMode, setEditMode] = useState(false)
     const [adminLogs, setAdminLogs] = useState(null)
+    const dispatch = useDispatch()
 
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [alertType, setAlertType] = useState("error")
     const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+
+    const [isProfileLoading, setIsProfileLoading] = useState(false);
+    const [isPasswordLoading, setIsPasswordLoading] = useState(false);
 
     const profile = useSelector((state) => state.profile.profile_data);
     const dmy = formatDMY(profile?.user.date_joined)
@@ -38,12 +44,13 @@ function AdminProfile() {
         register: registerPassword,
         handleSubmit: handlePasswordSubmit,
         watch,
+        reset: resetPasswordForm,
         formState: { errors: passwordErrors },
     } = useForm({
         defaultValues: {
-            oldPassword: "",
-            newPassword: "",
-            confirmPassword: "",
+            old_password: "",
+            new_password: "",
+            confirm_password: "",
         },
     });
 
@@ -53,14 +60,66 @@ function AdminProfile() {
 
     const handleCancel = () => {
         setEditMode(false)
+        resetPasswordForm({
+            old_password: "",
+            new_password: "",
+            confirm_password: "",
+        })
     }
 
     const handleSave = async (data) => {
-        setEditMode(false)
-    }
+        setIsProfileLoading(true);
+    
+        try {
+            const cleanedData = Object.fromEntries(
+                Object.entries(data).filter(([_, v]) => v !== null && v !== undefined)
+            );
+
+            const endpoint = cleanedData.name 
+                ? 'accounts/user-profile/' 
+                : 'user/profile/';
+    
+            const response = await axiosInstance.patch(endpoint, cleanedData);
+
+            dispatch(setProfile({ profile_data: response.data }));
+            
+            setSnackbarMessage("Profile updated successfully");
+            setAlertType("success");
+            setSnackbarOpen(true);
+
+            setEditMode(false);
+        } catch (error) {
+            const errorMessage = error.response?.data?.detail 
+                || error.response?.data?.non_field_errors 
+                || "Unable to edit profile";
+    
+            setSnackbarMessage(errorMessage);
+            setAlertType("error");
+            setSnackbarOpen(true);
+        } finally {
+            setIsProfileLoading(false);
+        }
+    };
 
     const handlePasswordSave = async (data) => {
-        
+        setIsPasswordLoading(true)
+        try {
+            await ChangePassword(data)
+            setSnackbarMessage("Successfully updated the password!")
+            setAlertType("success")
+            setSnackbarOpen(true)
+            resetPasswordForm({
+                old_password: "",
+                new_password: "",
+                confirm_password: "",
+            })
+        } catch (error) {
+            setSnackbarMessage("Failed to update the password at the moment!")
+            setAlertType("error")
+            setSnackbarOpen(true)
+        } finally {
+            setIsPasswordLoading(false)
+        }
     }
 
     return (
@@ -233,15 +292,15 @@ function AdminProfile() {
                                     <label className='text-midnightNavy font-medium'>Old Password</label>
                                     <input
                                         {
-                                            ...registerPassword("oldPassword",
+                                            ...registerPassword("old_password",
                                             { required: "Old Password is required" })
                                         }
                                         type='password'
                                         className='border rounded-xl px-3 py-2 w-full text-sm text-black/60
                                         focus:outline-none focus:ring-1 focus:ring-gray-200' />
-                                    {passwordErrors.oldPassword && 
+                                    {passwordErrors.old_password && 
                                         <p className='text-red-500 text-sm'>
-                                            {passwordErrors.oldPassword.message}
+                                            {passwordErrors.old_password.message}
                                         </p>
                                     }
                                 </div>
@@ -249,16 +308,16 @@ function AdminProfile() {
                                     <label className='text-midnightNavy font-medium'>New Password</label>
                                     <input
                                         {
-                                            ...registerPassword("newPassword",
+                                            ...registerPassword("new_password",
                                             { required: "New Password is required",
                                             minLength: 8 })
                                         }
                                         type='password'
                                         className='border rounded-xl px-3 py-2 w-full text-sm text-black/60
                                         focus:outline-none focus:ring-1 focus:ring-gray-200' />
-                                    {passwordErrors.newPassword &&
+                                    {passwordErrors.new_password &&
                                         <p className='text-red-500 text-sm'>
-                                            {passwordErrors.newPassword.message}
+                                            {passwordErrors.new_password.message}
                                         </p>
                                     }
                                 </div>
@@ -266,26 +325,34 @@ function AdminProfile() {
                                     <label className='text-midnightNavy font-medium'>Confirm Password</label>
                                     <input
                                         {
-                                            ...registerPassword("confirmPassword",
+                                            ...registerPassword("confirm_password",
                                             { required: "Confirm Password is required",
-                                            validate: value => value === watch("newPassword") || "Passwords do not match" })
+                                            validate: value => value === watch("new_password") || "Passwords do not match" })
                                         }
                                         type='password'
                                         className='border rounded-xl px-3 py-2 w-full text-sm text-black/60
                                         focus:outline-none focus:ring-1 focus:ring-gray-200' />
-                                    {passwordErrors.confirmPassword &&
+                                    {passwordErrors.confirm_password &&
                                         <p className='text-red-500 text-sm'>
-                                            {passwordErrors.confirmPassword.message}
+                                            {passwordErrors.confirm_password.message}
                                         </p>
                                         }
                                 </div>
                                 <button
                                     type='submit'
-                                    className="text-center gap-1 bg-deepOceanBlue
+                                    disabled={isPasswordLoading}
+                                    className="text-center flex items-center justify-center gap-1 bg-deepOceanBlue
                                     hover:bg-deep-ocean-blue-gradient-end text-white
                                     px-5 lg:px-10 py-0 h-10 rounded-full w-full"
                                 >
-                                    Change Password
+                                    {isPasswordLoading ? (
+                                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    ) : (
+                                        "Change Password"
+                                    )}
                                 </button>
                             </form>
                         </div>

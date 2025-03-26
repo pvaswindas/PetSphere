@@ -111,10 +111,9 @@ class ChangePasswordSerializer(serializers.Serializer):
             })
         return data
 
-    def save(self, user):
+    def save(self):
         user = self.context['request'].user
-        new_password = self.validated_data['new_password']
-        user.set_password(new_password)
+        user.set_password(self.validated_data['new_password'])
         user.save()
         return user
 
