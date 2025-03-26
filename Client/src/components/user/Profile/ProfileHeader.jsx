@@ -6,6 +6,7 @@ import { setProfile } from '../../../redux/slices/ProfileSlice';
 import userAvatar from "../../../assets/icon/user-avatar.svg";
 import adminAvatar from "../../../assets/admin/admin-avatar.svg"
 import { convertToBase64 } from '../../../utils/convertToBase64';
+import AlertSnackbar from '../../Snackbar/AlertSnackbar';
 
 const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
     const [selectedImage, setSelectedImage] = useState(null);
@@ -14,9 +15,38 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
     const [isLoading, setIsLoading] = useState(false)
     const dispatch = useDispatch();
 
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [alertType, setAlertType] = useState("error");
+
+    const validateImageFile = (file) => {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        
+        // Maximum file size (2MB)
+        const maxSizeInBytes = 2 * 1024 * 1024;
+
+        // Check file type
+        if (!allowedTypes.includes(file.type)) {
+            setSnackbarMessage("Invalid file type. Please upload JPEG, PNG, GIF, or WebP images.");
+            setAlertType("error");
+            setSnackbarOpen(true);
+            return false;
+        }
+
+        if (file.size > maxSizeInBytes) {
+            setSnackbarMessage("File size exceeds 2MB. Please upload a smaller image.");
+            setAlertType("error");
+            setSnackbarOpen(true);
+            return false;
+        }
+
+        return true;
+    };
+
+
     const handleImageSelection = (event) => {
         const file = event.target.files[0];
-        if (file) {
+        if (file && validateImageFile(file)) {
             setSelectedImage(file);
             setPreviewImage(URL.createObjectURL(file));
             setShowConfirmCard(true);
@@ -52,8 +82,45 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
         setShowConfirmCard(false)
     }
 
+    const handleFileUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!validateImageFile(file)) {
+            return;
+        }
+
+        setIsLoading(true)
+        try {
+            const base64Image = await convertToBase64(file);
+            
+            const response = await axiosInstance.patch("user/profile/", {
+                profile_picture: base64Image
+            });
+            
+            if (response.status === 200) {
+                dispatch(setProfile({ profile_data: response.data }));
+                setSnackbarMessage("Profile picture updated successfully!");
+                setAlertType("success");
+                setSnackbarOpen(true);
+            }
+        } catch (error) {
+            setSnackbarMessage("Failed to update profile picture");
+            setAlertType("error");
+            setSnackbarOpen(true);
+        } finally {
+            setIsLoading(false)
+        }
+    };
+
     return (
         <div className="relative">
+            <AlertSnackbar
+                open={snackbarOpen}
+                message={snackbarMessage}
+                alert_type={alertType}
+                onClose={() => setSnackbarOpen(false)}
+            />
             {/* Cover Image */}
             {profile?.cover_image || previewImage ? (
                 <img
@@ -80,13 +147,35 @@ const ProfileHeader = ({ profile=null, isCurrentUser=null, isAdmin=false }) => {
                 </div>
             )}
 
-            {/* Profile Image */}
+            {/* Profile Image Container */}
             <div className={`absolute ${isAdmin ? "left-1/2 transform -translate-x-1/2 bottom-[-33px]" : "bottom-[-45px] lg:bottom-[-55px] left-4 lg:left-8"}`}>
-                <img
-                    src={profile?.profile_picture || (isAdmin ? adminAvatar : userAvatar)}
-                    alt="Profile"
-                    className={`rounded-full object-cover ${isAdmin ?  "w-[65px] h-[65px]" : "w-[90px] h-[90px] lg:w-[120px] lg:h-[120px]"}`}
-                />
+                {/* Profile Image with File Upload */}
+                <div className="relative">
+                    <img
+                        src={profile?.profile_picture || (isAdmin ? adminAvatar : userAvatar)}
+                        alt="ProfilePicture"
+                        className={`rounded-full object-cover ${isAdmin ?  "w-[65px] h-[65px]" : "w-[90px] h-[90px] lg:w-[120px] lg:h-[120px]"}`}
+                    />
+                    
+                    {/* Edit Profile Picture - Only for current user */}
+                    {isCurrentUser && (
+                        <div className="absolute bottom-0 right-0">
+                            <label className="cursor-pointer">
+                                <img 
+                                    src={editIcon} 
+                                    alt="Edit Profile" 
+                                    className={`${isAdmin ? "w-4 h-4" : "w-6 h-6"} bg-white rounded-full p-1 shadow-md`} 
+                                />
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleFileUpload}
+                                />
+                            </label>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Confirm Card */}
